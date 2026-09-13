@@ -163,7 +163,7 @@ The following directories contain no unmigrated unique durable information (as p
 * `SEO_PACKAGE_REFERENCE.md`:
   * Remove any stale links to deleted blueprints or audits. `REMOVE_REFERENCE`.
 * `CHANGELOG.md`:
-  * Unaffected (does not link to `docs/verification/`).
+  * `REMOVE_REFERENCE`: Must remove parenthetical links to deleted files (e.g. `(see docs/verification/...md)`). The historical changelog entries themselves must be fully preserved.
 * `docs/README.md`:
   * Rebuild entirely to match the new Authority Model (see section 10). `REMOVE_REFERENCE` for all deleted folders. `RETARGET_REFERENCE` for roadmap.
 * `tests/Stack8DocumentationTruthSynchronizationTest.php`:
@@ -239,7 +239,7 @@ Target: `tests/Stack8DocumentationTruthSynchronizationTest.php`
 3. **Rewrite docs/README.md**:
    Update to match the exact Authority Model in Section 10.
 4. **Update Root Docs**:
-   Strip links to deleted historical documents in `README.md` and `SEO_PACKAGE_REFERENCE.md`.
+   Strip links to deleted historical documents in `README.md`, `SEO_PACKAGE_REFERENCE.md`, and `CHANGELOG.md` (removing only the link text/parentheticals from `CHANGELOG.md`, not the entries).
 5. **Update Stack8 Test**:
    Remove assertions for `PHASE_22` and historical folders. Point roadmap checks to `ROADMAP.md`.
 6. **Self-Delete Audit**:
@@ -255,7 +255,7 @@ Target: `tests/Stack8DocumentationTruthSynchronizationTest.php`
 * Run other standalone PHP tests using the existing repository convention while excluding `tests/Integration/**`
 * `bash scripts/ci/actionlint.sh`
 * `git diff --check`
-* Ensure no broken markdown links in the remaining 21 docs.
+* Ensure no broken markdown links in the remaining 21 docs. Perform a repository-wide search to confirm that no surviving tracked documentation/root documentation references any deleted path under `docs/audits/`, `docs/batches/`, `docs/blueprints/`, `docs/phases/`, `docs/release/`, `docs/SEO/v1/`, `docs/verification/`, or old roadmap filenames. The cleanup must leave zero broken references.
 
 *(Do NOT add PHPUnit as a dependency)*
 
