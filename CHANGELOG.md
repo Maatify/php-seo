@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.0-rc.2] - Unreleased
+## [Unreleased]
+- **Changed:** Adopted and pinned the PHP engineering standards set and synchronized repository governance with the current authorities.
+- **Changed:** Normalized the Composer package identity to `maatify/php-seo`.
+- **Changed:** Migrated package exceptions to the shared `maatify/exceptions` taxonomy while preserving the package's established exception contracts.
+- **Changed:** Hardened CI and static-analysis verification, including real MySQL persistence coverage and the external Consumer Verification Harness.
+- **Added:** The canonical `SEO_PACKAGE_REFERENCE.md` and synchronized current package documentation with its verified contracts.
 - **Added:** Phase 24 adopted a normative `MetaGeneratorService` output contract that resolves the Stack 0 material decision through a successor contract while preserving runtime behavior.
 - **Added:** The Phase 24 standalone regression lock covers 22 normative contract cases.
 - **Fixed:** A Phase 24 test-only correction removed unauthorized exact fallback `HostUrlGeneratorInterface` call-count assertions; no production `src/` behavior changed.
@@ -24,7 +29,6 @@ All notable changes to this project will be documented in this file.
 - **Fixed:** Strict sitemap date validation now rejects malformed calendar ATOM dates. Valid YYYY-MM-DD and ATOM timestamps remain accepted.
 - **Fixed:** Raw top-level sitemap URL validation is now aligned with the typed DTO contract.
 - **Fixed:** Sitemap priority validation correctly enforces a finite number within `0.0..1.0` (rejecting `NAN`, `+INF`, and `-INF`).
-- Future stable release after RC validation.
 
 ## [1.0.0-rc.1] - 2026-07-05
 - **Summary:** Initial Release Candidate for the Maatify SEO library including fully implemented core, shared, admin, and web layers, robust JSON-LD schema support, metadata generation, output showcase, and final verifications.
@@ -62,3 +66,6 @@ All notable changes to this project will be documented in this file.
 - **Added:** Phase 2B (Repository Layer) containing PDO implementations for standard CRUD.
 - **Added:** Phase 2A (Schema) including `maa_seo_slug_history`, `maa_seo_redirects`, and `maa_seo_overrides` tables.
 - Initial foundational release (Phase 1).
+
+[Unreleased]: https://github.com/Maatify/php-seo/compare/v1.0.0-rc.1...HEAD
+[1.0.0-rc.1]: https://github.com/Maatify/php-seo/releases/tag/v1.0.0-rc.1
