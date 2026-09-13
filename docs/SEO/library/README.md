@@ -1,19 +1,27 @@
 # Maatify SEO Library Engineering Handbook
 
-Welcome to the current engineering handbook for the Maatify SEO library.
+This directory is the current, maintained Maatify SEO Library Engineering
+Handbook. Its documents provide narrower maintained architecture and service
+guidance for current package contracts.
 
-The [root Package Reference](../../../SEO_PACKAGE_REFERENCE.md) is the canonical
-human-readable package-level contract. Documents in this directory provide
-narrower architecture and service contracts that add detail without establishing
-a competing package reference.
+The root [SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md) remains
+the canonical package-level contract. This handbook adds detail without
+replacing or competing with that reference.
 
-This section provides in-depth technical explanations, architecture details, boundaries, and best practices for interacting with the current iteration of the library. Unlike the historical documents found in `docs/SEO/v1` (which are preserved for historical context), the documents in this directory represent the active, maintained contracts of the system.
+Historical implementation and execution evidence lives in Git and GitHub
+history—commits, pull requests, tags, and releases—not in historical
+documentation directories in the current tree.
+
+The [current roadmap](../../roadmap/ROADMAP.md) and active proposals are planning
+material. They do not override executable truth or current package contracts.
+
+Host/application-specific SEO architecture is outside this package handbook
+unless represented by an explicit current package contract. This includes
+routing structure, product lifecycle, HTTP status decisions,
+internal-linking strategy, and site-specific multilingual URL policy.
 
 Use the [official documentation index](../../README.md) to see the complete
-authority hierarchy. This handbook is current normative documentation; phase,
-verification, batch, completed-blueprint, audit, roadmap, and proposal documents
-provide historical evidence or planning context and do not override current code,
-tests, or the maintained contracts here.
+authority hierarchy.
 
 ## Contents
 

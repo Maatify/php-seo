@@ -88,6 +88,82 @@ foreach ([
     stack8AssertContains("docs index contains {$needle}", $docsIndex, $needle);
 }
 
+$libraryHandbook = stack8Read('docs/SEO/library/README.md');
+stack8AssertContains(
+    'library README identifies the current maintained engineering handbook',
+    $libraryHandbook,
+    'current, maintained Maatify SEO Library Engineering',
+);
+stack8AssertContains(
+    'library handbook heading identifies it as an engineering handbook',
+    $libraryHandbook,
+    '# Maatify SEO Library Engineering Handbook',
+);
+stack8AssertContains(
+    'library handbook defers to the canonical package-level contract',
+    $libraryHandbook,
+    '[SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md)',
+);
+stack8AssertContains(
+    'library handbook identifies the canonical package-level contract',
+    $libraryHandbook,
+    'canonical package-level contract',
+);
+stack8AssertContains(
+    'historical implementation evidence belongs to Git and GitHub history',
+    $libraryHandbook,
+    'Historical implementation and execution evidence lives in Git and GitHub',
+);
+stack8AssertContains(
+    'historical evidence is located in commits, pull requests, tags, and releases',
+    $libraryHandbook,
+    'commits, pull requests, tags, and releases',
+);
+stack8AssertContains(
+    'roadmap and active proposals are planning material',
+    $libraryHandbook,
+    'active proposals are planning',
+);
+stack8AssertContains('library handbook links to the current roadmap', $libraryHandbook, '../../roadmap/ROADMAP.md');
+stack8AssertContains(
+    'planning does not override current executable or package contracts',
+    $libraryHandbook,
+    'They do not override executable truth or current package contracts',
+);
+stack8AssertContains(
+    'host-specific SEO architecture is outside the package handbook without an explicit contract',
+    $libraryHandbook,
+    'outside this package handbook',
+);
+stack8AssertTrue(
+    'host-specific architecture is in scope only when an explicit package contract represents it',
+    preg_match('/outside this package handbook\s+unless represented by an explicit current package contract/', $libraryHandbook) === 1,
+);
+foreach ([
+    'routing structure',
+    'product lifecycle',
+    'HTTP status decisions',
+    'internal-linking strategy',
+    'site-specific multilingual URL policy',
+] as $hostOwnedArchitecture) {
+    stack8AssertContains("handbook marks {$hostOwnedArchitecture} as Host/application-specific", $libraryHandbook, $hostOwnedArchitecture);
+}
+foreach ([
+    'docs/SEO/v1',
+    'docs/phases/',
+    'docs/verification/',
+    'docs/batches/',
+    'docs/blueprints/',
+    'docs/audits/',
+    'provide historical evidence',
+] as $deletedDocumentationReference) {
+    stack8AssertNotContains(
+        "library handbook does not cite deleted documentation sources: {$deletedDocumentationReference}",
+        $libraryHandbook,
+        $deletedDocumentationReference,
+    );
+}
+
 $changelog = stack8Read('CHANGELOG.md');
 stack8AssertContains('Unreleased changelog exists', $changelog, '## [Unreleased]');
 stack8AssertNotContains('changelog does not claim XML streaming', $changelog, 'to stream valid XML');
