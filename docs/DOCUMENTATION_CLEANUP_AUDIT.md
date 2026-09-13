@@ -54,17 +54,32 @@ Plus 1 new `docs/roadmap/ROADMAP.md` = 21 files final tree.
 
 Target: `docs/audits/SEO_ARCHITECTURE_STANDARDS_CONTRACT_INTEGRITY_AUDIT.md`
 
-| Finding/Section ID | Concise Durable Decision | Classification | Current Authority/Evidence | Migration Destination |
+| Finding ID | Concise Durable Decision | Classification | Current Authority/Evidence | Migration Destination |
 | --- | --- | --- | --- | --- |
-| Canonical extended-DTO serialization decision | Form parameter mapping is strict, not generic dynamic mapping. | `ALREADY_CANONICAL` | Codified in `SearchConsoleInspectionResultDTO` and tested in test suite. Explicitly stated in `SEO_PACKAGE_REFERENCE.md`. | N/A |
-| Empty property missing vs explicitly provided | Empty string means "delete/missing", preserving missing state strictly. `trim()` is allowed only to detect missing/whitespace-only when surface contract has missing semantics. | `ALREADY_CANONICAL` | Enforced at code level across `SeoMetaBuilder` and validated by tests. | N/A |
-| Compatibility public fields deprecation | Deprecation of fields is explicitly deferred out of remediation until a separate migration contract is approved. | `ALREADY_CANONICAL` | Tests ensure no fields were removed prematurely. Addressed in `SEO_PACKAGE_REFERENCE.md` provider profiles. | N/A |
-| Unicode Measurement Heuristics & Scoring | Strict heuristic bounds for meta tags, resolving strlen byte-limit vs unicode requirements. | `ALREADY_CANONICAL` | Test suite characterizes and enforces measurement semantics (ASCII vs Arabic text limits). | N/A |
-| Sitemap URL & Percent decoding semantics | Strict RFC 9309 URL encoding boundaries: NO percent-decoding occurs during lexical decisions, literal `%` is encoded as `%25` | `ALREADY_CANONICAL` | Codified in `SitemapUrlDTO`, `RobotsRenderer`, and heavily characterization-tested. | N/A |
-| Structured Data Semantic Validation Deferral | Deep schema.org semantic validation is explicitly deferred, maintaining the current scoped structural check boundary. | `ALREADY_CANONICAL` | Covered in `docs/SEO/library/STRUCTURED_DATA_ARCHITECTURE.md` and `SEO_PACKAGE_REFERENCE.md` | N/A |
-| Cross-Host Semantics | External APIs must not enforce cross-host assumptions unless spec explicitly permits it. | `ALREADY_CANONICAL` | Enforced in code for Robots (cross-host allowed) vs Sitemap Index (same site). | N/A |
+| F-01 | Sitemap Generator strict arrays and return types (no streaming). | `ALREADY_CANONICAL` | `SitemapGeneratorService` signature requires `array` and returns complete `SitemapGenerationResultDTO` strings, no streaming. | N/A |
+| F-02 | Base sitemap rules and provider rules separated. | `ALREADY_CANONICAL` | Documented in `SEO_PACKAGE_REFERENCE.md` provider profiles. | N/A |
+| F-03 | Deprecated Google Image fields are retained for legacy compatibility without removal. | `ALREADY_CANONICAL` | `SitemapImageDTO` continues to support legacy fields, covered by Stack8 tests. | N/A |
+| F-04 | Google Video sitemap validation completeness (strict absolute URLs, http/https/ftp). | `ALREADY_CANONICAL` | `SitemapVideoDTO` validation rules in code enforce HTTP/HTTPS/FTP. Stated in package docs. | N/A |
+| F-05 | Google News cardinality and ISO 639 exceptions. | `ALREADY_CANONICAL` | `SitemapNewsDTO` rules enforce this, documented in `SEO_PACKAGE_REFERENCE.md`. | N/A |
+| F-06 | robots.txt generic RFC vs provider specific. | `ALREADY_CANONICAL` | `RobotsRenderer` separates rules and prevents injection. `SEO_PACKAGE_REFERENCE.md` notes this. | N/A |
+| F-07 | crawl-delay isolated as non-core. | `ALREADY_CANONICAL` | Implemented in `RobotsRenderer`. | N/A |
+| F-08 | MetaRobotsBuilder allows -1. | `ALREADY_CANONICAL` | Runtime builder allows -1. | N/A |
+| F-09 | indexifembedded presence. | `ALREADY_CANONICAL` | Runtime builder implements this. | N/A |
+| F-10 | unavailable_after requires date validation. | `ALREADY_CANONICAL` | Builder requires DateTimeInterface/valid format. | N/A |
+| F-11 | noarchive preservation. | `ALREADY_CANONICAL` | Builder supports noarchive. | N/A |
+| F-12 | SEO Validation strict rules vs heuristics (Unicode, scoring). | `ALREADY_CANONICAL` | Stack8/tests enforce Unicode heuristic rules explicitly. | N/A |
+| GDC-01 | Global Diagnostics Contract for structured data. | `ALREADY_CANONICAL` | `SearchConsole` and `MerchantCenter` namespaces implement isolated boundaries. | N/A |
+| F-13 | OGP required fields mismatch and strict http/https offline validation. | `ALREADY_CANONICAL` | `OpenGraphBuilder` enforces rules, documented in `SEO_PACKAGE_REFERENCE.md`. | N/A |
+| F-14 | Canonical URL relative vs absolute semantics. | `ALREADY_CANONICAL` | `CanonicalBuilder` validation semantics. | N/A |
+| F-15 | Hreflang ISO 639 boundary. | `ALREADY_CANONICAL` | Stack8 tests protect Hreflang ISO boundary wording. | N/A |
+| F-16 | Structured Data Google Eligibility vs Schema.org separation. | `ALREADY_CANONICAL` | `STRUCTURED_DATA_ARCHITECTURE.md` explicitly calls this out. | N/A |
+| F-17 | Course / Book provider status. | `ALREADY_CANONICAL` | Deferred to capability matrix. | N/A |
+| F-18 | JsonLd semantic validator is explicitly scoped type/range, not deep semantic. | `ALREADY_CANONICAL` | `STRUCTURED_DATA_ARCHITECTURE.md` and `SEO_PACKAGE_REFERENCE.md`. | N/A |
+| F-19 | Documentation behavior accuracy. | `NO_LONGER_CURRENT` | Resolved via `codex/standards-adoption-compliance` cleanup. | N/A |
+| F-20 | Normative documentation hierarchy. | `ALREADY_CANONICAL` | `docs/README.md` defines the new Authority model. | N/A |
+| F-21 | Twitter/X source-verification exclusion. | `ALREADY_CANONICAL` | `SEO_PACKAGE_REFERENCE.md` states Twitter/X is explicitly not source-verified. | N/A |
 
-**Result**: Every durable decision from the 339KB historical audit is already successfully codified into existing architectural contracts (`STRUCTURED_DATA_ARCHITECTURE.md`, `SEO_PACKAGE_REFERENCE.md`), test suites, or runtime behaviors. `MUST_MIGRATE = 0`. Therefore, `SEO_ARCHITECTURE_STANDARDS_CONTRACT_INTEGRITY_AUDIT.md` is classified as `DELETE_NO_CURRENT_VALUE`.
+**Result**: Every durable decision from the historical audit is already successfully codified into existing architectural contracts (`STRUCTURED_DATA_ARCHITECTURE.md`, `SEO_PACKAGE_REFERENCE.md`), test suites, or runtime behaviors. `MUST_MIGRATE = 0`. Therefore, `SEO_ARCHITECTURE_STANDARDS_CONTRACT_INTEGRITY_AUDIT.md` is classified as `DELETE_NO_CURRENT_VALUE`.
 
 ## 6. Future Roadmap Contract
 
@@ -75,18 +90,41 @@ Current roadmaps:
 These will be consolidated into `docs/roadmap/ROADMAP.md`.
 All completed phases, completed WUs, SHAs, Draft/Ready history, and historical verification states are stripped.
 
-**Risks / Decisions that Need Approval Before Coding (from old roadmap)**:
-* All old items here have been either implemented via the completed phases or addressed as part of the standards adoption in `codex/standards-adoption-compliance`. These are resolved/obsolete and will not be carried forward.
+### Pre-Coding Risks / Decisions Breakdown
 
-Future roadmap items that must genuinely remain:
+Review of the three old `Risks / Decisions that Need Approval Before Coding` (from `SEO_LIBRARY_ROADMAP.md`):
 
-* **Title**: Advanced Structured Data Semantic Validation
-  * **Current gap**: Current library validates the structure of 4 specific models (`Product`, `Offer`, `AggregateOffer`, `ProductGroup`), but leaves deep generic Schema.org semantic analysis unverified.
-  * **Intended scope**: Full semantic analysis against Schema.org types if prioritized.
-  * **Explicit out-of-scope**: Modifying current JSON-LD scoped builders. Google-specific Rich Results provider eligibility is explicitly out of scope for this task (as Google documentation remains the authority, independent of Schema validity). Merchant Center eligibility diagnostics are also out of scope as they were completed in Phase 23.
-  * **Dependencies/preconditions**: Needs architecture decision on validation engine.
-  * **Source roadmap location**: `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md` (Phase 13P Follow-up)
-  * **Evidence**: Current runtime only supports the 4 scoped structures. `SEO_PACKAGE_REFERENCE.md` and `STRUCTURED_DATA_ARCHITECTURE.md` explicitly confirm the scoped validation boundary.
+1. **Entity Identifier Type** (uuid vs int):
+   * **Classification**: `RESOLVED_CURRENT_CONTRACT`
+   * **Evidence**: `schema/maa_seo_slug_history.sql` explicitly implements `entity_id VARCHAR(36) NOT NULL COMMENT 'Host-provided ID. No FK.'`. The database schema fully addresses this decision.
+
+2. **Extensibility of `entity_type`**:
+   * **Classification**: `RESOLVED_CURRENT_CONTRACT`
+   * **Evidence**: `schema/maa_seo_slug_history.sql` defines `entity_type VARCHAR(50) NOT NULL COMMENT 'Host-defined entity type. No FK.'`. The host controls the enum strings dynamically, resolving the extensibility concern.
+
+3. **Sitemap Generation Memory Constraints** (streaming vs memory):
+   * **Classification**: `OBSOLETE`
+   * **Evidence**: The current runtime `SitemapGeneratorService` signatures explicitly accept fully loaded arrays (`array $urls`) and return complete objects `SitemapGenerationResultDTO`, building XML strings entirely in memory. It is deliberately bounded by the 50,000 URL limit and does NOT use file streaming. The memory/streaming risk decision was made in favor of in-memory string returns for framework neutrality.
+
+### Genuine Future Roadmap Items
+
+The only items that will be carried forward to `ROADMAP.md` as future work are:
+
+* **Title**: Deeper Generic Schema.org Semantic Validation
+  * **Current gap**: Current library strictly validates the structural shape and property-ranges of 4 scoped structures (`Product`, `Offer`, `AggregateOffer`, `ProductGroup`), but leaves deep Schema.org ontology unverified.
+  * **Intended scope**: Full generic semantic analysis against Schema.org types if prioritized.
+  * **Explicit out-of-scope**: Modifying current JSON-LD builders.
+  * **Dependencies/preconditions**: Architecture decision on a semantic validation engine.
+  * **Source roadmap location**: `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md` (Phase 13P Follow-up).
+  * **Evidence**: Current runtime supports only scoped structures. Explicitly deferred by `STRUCTURED_DATA_ARCHITECTURE.md`.
+
+* **Title**: Google Rich Results / Provider-Specific Eligibility Profile
+  * **Current gap**: While Phase 22 introduced external verification orchestration, an internal robust "eligibility prediction" engine specific strictly to Google's dynamic Rich Results guidelines (independent from generic Schema.org) does not exist natively in the library.
+  * **Intended scope**: A distinct validation layer verifying structures explicitly against Google's feature guidelines.
+  * **Explicit out-of-scope**: Mixing this with generic Schema.org validation. **Merchant Center Diagnostics** are ALSO out of scope here as they are already completed (Phase 23).
+  * **Dependencies/preconditions**: Volatile provider mapping and capabilities matrix.
+  * **Source roadmap location**: `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md`
+  * **Evidence**: Explicitly kept separate as provider eligibility is highly volatile, as stated in `STRUCTURED_DATA_ARCHITECTURE.md`.
 
 ## 7. Active Proposal Decision
 
@@ -172,15 +210,17 @@ Target: `tests/Stack8DocumentationTruthSynchronizationTest.php`
 
 * current docs file count: 188
 * files deleted: 168 (166 DELETE_NO_CURRENT_VALUE + 2 old roadmaps)
-* files created: 1 (new `ROADMAP.md`) (Note: `DOCUMENTATION_CLEANUP_AUDIT.md` will be created during review but deleted during final cleanup implementation).
+* files created: 1 (new `ROADMAP.md`)
 * files modified: 2 (`docs/README.md`, `tests/Stack8DocumentationTruthSynchronizationTest.php`) (plus root doc links)
-* final docs file count: 21
+* final docs file count: 21 (20 existing keeps + 1 new roadmap)
 * net file reduction: 167
 * current docs total bytes: ~1,061,027 (approx)
 * projected docs total bytes: ~140,000 (approx)
 * estimated bytes removed: ~921,027
 * percentage file-count reduction: 88.8%
 * percentage byte reduction: 86.8%
+
+*(Note: `DOCUMENTATION_CLEANUP_AUDIT.md` deletes itself at the end of execution and is excluded from the final permanent count).*
 
 ## 13. Exact Implementation Scope
 
@@ -195,17 +235,22 @@ Target: `tests/Stack8DocumentationTruthSynchronizationTest.php`
    Strip links to deleted historical documents in `README.md` and `SEO_PACKAGE_REFERENCE.md`.
 5. **Update Stack8 Test**:
    Remove assertions for `PHASE_22` and historical folders. Point roadmap checks to `ROADMAP.md`.
-6. **Cleanup the Audit File**:
+6. **Self-Delete Audit**:
    `rm docs/DOCUMENTATION_CLEANUP_AUDIT.md` (After execution of the above).
 7. **Commit Changes**:
-   Run tests. If passing, commit.
+   Verify with checks. If passing, commit.
 
 ## 14. Verification Required After Cleanup
 
-* `composer validate`
-* `vendor/bin/phpunit tests/Stack8DocumentationTruthSynchronizationTest.php`
-* Full test suite: `vendor/bin/phpunit`
+* `composer validate --strict`
+* `vendor/bin/phpstan analyse`
+* `php tests/Stack8DocumentationTruthSynchronizationTest.php`
+* Run other standalone PHP tests using the existing repository convention while excluding `tests/Integration/**`
+* `bash scripts/ci/actionlint.sh`
+* `git diff --check`
 * Ensure no broken markdown links in the remaining 21 docs.
+
+*(Do NOT add PHPUnit as a dependency)*
 
 ## 15. Final Verdict
 
