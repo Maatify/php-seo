@@ -1,5 +1,7 @@
 # Current Main Repository Gap & Acceleration Audit
 
+> **Historical snapshot — non-normative.** This document preserves an audit whose findings predate later implementation and remediation. References below to “current,” “missing,” “remaining gaps,” and recommendations describe only the repository state assessed when the original audit was written. The original artifact does not pin sufficient baseline metadata to identify an exact commit or audit date. This is not current package or runtime authority. For present state, use current source, the [canonical package reference](../../SEO_PACKAGE_REFERENCE.md), the [documentation entry point](../README.md), the [current roadmap](../roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md), and the [adopted standards manifest](../php-engineering-standards/STANDARDS_MANIFEST.md).
+
 ## 1. Completed Systems Actually Present in Code
 Based on a direct filesystem and source code audit, the following systems are fully implemented and passing tests:
 - **Core Models & Repositories**: Complete schemas and CRUD logic for `maa_seo_redirects`, `maa_seo_slug_history`, and `maa_seo_overrides`.

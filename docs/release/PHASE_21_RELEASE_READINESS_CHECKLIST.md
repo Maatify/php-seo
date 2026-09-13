@@ -1,5 +1,7 @@
 # Phase 21 — Release, Tag, and Package Readiness Checklist
 
+> **Historical Phase 21 snapshot — non-normative.** This document records repository and release-readiness facts as they existed during Phase 21. It is not the current release-readiness checklist. Its commands, checkboxes, and workflow statements are historical procedure only and MUST NOT be used as authority for current Composer identity, requirements, CI, testing, Phase topology, or publication state. For present package truth, use the current [`composer.json`](../../composer.json), [CI operations](../CI.md), maintained documentation, the [canonical package reference](../../SEO_PACKAGE_REFERENCE.md), and the adopted [Phase Stack](../php-engineering-standards/standards/GITHUB_PHASE_STACK_WORKFLOW_AR.md), [Composer Package](../php-engineering-standards/standards/packages/COMPOSER_PACKAGE_STANDARD.md), and [CI Workflow](../php-engineering-standards/standards/packages/CI_WORKFLOW_STANDARD.md) standards.
+
 ## Purpose and boundaries
 
 This checklist is the WU4 release-readiness aid for `maatify/seo`. It collects
@@ -20,9 +22,9 @@ Record the commit, command, tool version, date, and result for every executed
 item. An unchecked or failed required item blocks tagging and publication until
 the responsible maintainer resolves it in an explicitly scoped change.
 
-## Current repository facts
+## Phase 21 baseline repository facts
 
-These facts are the baseline this checklist must continue to match:
+These facts were recorded as the Phase 21 repository baseline and describe only the state assessed for that historical phase; they are not current package facts or requirements:
 
 - Composer package: `maatify/seo` (`type: library`, MIT license).
 - Runtime requirement: PHP `>=8.2` and `ext-xmlwriter`.
@@ -38,9 +40,9 @@ These facts are the baseline this checklist must continue to match:
 - The structured-data CI gate uses the existing validation pipeline and does not
   add Google Rich Results or Merchant eligibility findings.
 
-If any fact changes, update the checklist evidence or the appropriate
-documentation during the Documentation Sweep; do not silently change this WU4
-scope.
+During Phase 21, changes to these facts were to be recorded in the Documentation
+Sweep; this describes that historical process and does not instruct future
+maintainers to update this snapshot.
 
 ## 1. Preflight and scope safety
 
