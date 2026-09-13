@@ -6,6 +6,7 @@ require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Exceptions\Enum\ErrorCategoryEnum;
 use Maatify\Exceptions\Enum\ErrorCodeEnum;
+use Maatify\Exceptions\Contracts\ApiAwareExceptionInterface;
 use Maatify\Exceptions\Exception\Conflict\GenericConflictMaatifyException;
 use Maatify\Exceptions\Exception\MaatifyException;
 use Maatify\Exceptions\Exception\NotFound\ResourceNotFoundMaatifyException;
@@ -26,7 +27,7 @@ use Maatify\Seo\Web\MerchantCenter\Exception\MerchantCenterInvalidRequestExcepti
 use Maatify\Seo\Web\MerchantCenter\Exception\MerchantCenterMalformedResponseException;
 use Maatify\Seo\Web\MerchantCenter\Exception\MerchantCenterTransportException;
 
-function assertSameValue(mixed $expected, mixed $actual, string $message): void
+function testExceptionArchitectureTestAssertSameValue(mixed $expected, mixed $actual, string $message): void
 {
     if ($expected !== $actual) {
         throw new RuntimeException(sprintf(
@@ -38,29 +39,41 @@ function assertSameValue(mixed $expected, mixed $actual, string $message): void
     }
 }
 
-function assertTrueValue(bool $actual, string $message): void
+function testExceptionArchitectureTestAssertTrueValue(bool $actual, string $message): void
 {
-    assertSameValue(true, $actual, $message);
+    testExceptionArchitectureTestAssertSameValue(true, $actual, $message);
 }
 
 function assertSeoMarker(\Throwable $exception, string $label): void
 {
-    assertTrueValue($exception instanceof SeoExceptionInterface, "{$label} implements the SEO marker");
+    testExceptionArchitectureTestAssertTrueValue($exception instanceof SeoExceptionInterface, "{$label} implements the SEO marker");
+}
+
+/** @param class-string $class */
+function assertParentClass(string $class, string $expectedParent, string $label): void
+{
+    $parent = (new ReflectionClass($class))->getParentClass();
+    testExceptionArchitectureTestAssertSameValue($expectedParent, $parent === false ? null : $parent->getName(), $label);
+}
+
+function assertIsInstanceOfClass(string $expectedClass, mixed $actual, string $label): void
+{
+    testExceptionArchitectureTestAssertTrueValue($actual instanceof $expectedClass, $label);
 }
 
 function assertTaxonomy(
-    SeoExceptionInterface $exception,
+    ApiAwareExceptionInterface&SeoExceptionInterface $exception,
     ErrorCodeEnum $errorCode,
     ErrorCategoryEnum $category,
     int $httpStatus,
     bool $safe,
     string $label,
 ): void {
-    assertSameValue($errorCode, $exception->getErrorCode(), "{$label} error code");
-    assertSameValue($category, $exception->getCategory(), "{$label} category");
-    assertSameValue($httpStatus, $exception->getHttpStatus(), "{$label} HTTP status");
-    assertSameValue($safe, $exception->isSafe(), "{$label} safe flag");
-    assertSameValue(false, $exception->isRetryable(), "{$label} retryable default");
+    testExceptionArchitectureTestAssertSameValue($errorCode, $exception->getErrorCode(), "{$label} error code");
+    testExceptionArchitectureTestAssertSameValue($category, $exception->getCategory(), "{$label} category");
+    testExceptionArchitectureTestAssertSameValue($httpStatus, $exception->getHttpStatus(), "{$label} HTTP status");
+    testExceptionArchitectureTestAssertSameValue($safe, $exception->isSafe(), "{$label} safe flag");
+    testExceptionArchitectureTestAssertSameValue(false, $exception->isRetryable(), "{$label} retryable default");
 }
 
 $invalidArgumentFactories = [
@@ -72,8 +85,9 @@ $invalidArgumentFactories = [
     [SeoInvalidArgumentException::invalidValue('canonical', 'must be absolute'), 1005, 'Field [canonical] is invalid: must be absolute'],
 ];
 
-assertTrueValue(
-    is_subclass_of(SeoInvalidArgumentException::class, InvalidArgumentMaatifyException::class),
+assertParentClass(
+    SeoInvalidArgumentException::class,
+    InvalidArgumentMaatifyException::class,
     'SeoInvalidArgumentException uses the shared validation parent',
 );
 
@@ -87,104 +101,107 @@ foreach ($invalidArgumentFactories as $index => [$exception, $legacyCode, $messa
         true,
         "SEO invalid argument {$index}",
     );
-    assertSameValue($legacyCode, $exception->getCode(), "SEO invalid argument {$index} legacy code");
-    assertSameValue($message, $exception->getMessage(), "SEO invalid argument {$index} message");
+    testExceptionArchitectureTestAssertSameValue($legacyCode, $exception->getCode(), "SEO invalid argument {$index} legacy code");
+    testExceptionArchitectureTestAssertSameValue($message, $exception->getMessage(), "SEO invalid argument {$index} message");
 }
 
-assertTrueValue(
-    is_subclass_of(SeoNotFoundException::class, ResourceNotFoundMaatifyException::class),
+assertParentClass(
+    SeoNotFoundException::class,
+    ResourceNotFoundMaatifyException::class,
     'SeoNotFoundException uses the shared not-found parent',
 );
 
 $notFoundById = SeoNotFoundException::withId(17);
 assertSeoMarker($notFoundById, 'SEO not found by id');
 assertTaxonomy($notFoundById, ErrorCodeEnum::RESOURCE_NOT_FOUND, ErrorCategoryEnum::NOT_FOUND, 404, true, 'SEO not found by id');
-assertSameValue(2001, $notFoundById->getCode(), 'SEO not found by id legacy code');
-assertSameValue('Seo record with id [17] not found.', $notFoundById->getMessage(), 'SEO not found by id message');
+testExceptionArchitectureTestAssertSameValue(2001, $notFoundById->getCode(), 'SEO not found by id legacy code');
+testExceptionArchitectureTestAssertSameValue('Seo record with id [17] not found.', $notFoundById->getMessage(), 'SEO not found by id message');
 
 $notFoundByCode = SeoNotFoundException::withCode('home-page');
 assertSeoMarker($notFoundByCode, 'SEO not found by code');
 assertTaxonomy($notFoundByCode, ErrorCodeEnum::RESOURCE_NOT_FOUND, ErrorCategoryEnum::NOT_FOUND, 404, true, 'SEO not found by code');
-assertSameValue(2002, $notFoundByCode->getCode(), 'SEO not found by code legacy code');
-assertSameValue('Seo record with code [home-page] not found.', $notFoundByCode->getMessage(), 'SEO not found by code message');
+testExceptionArchitectureTestAssertSameValue(2002, $notFoundByCode->getCode(), 'SEO not found by code legacy code');
+testExceptionArchitectureTestAssertSameValue('Seo record with code [home-page] not found.', $notFoundByCode->getMessage(), 'SEO not found by code message');
 
-assertTrueValue(
-    is_subclass_of(SeoConflictException::class, GenericConflictMaatifyException::class),
+assertParentClass(
+    SeoConflictException::class,
+    GenericConflictMaatifyException::class,
     'SeoConflictException uses the shared conflict parent',
 );
 
 $conflict = SeoConflictException::dueToReason('duplicate route');
 assertSeoMarker($conflict, 'SEO conflict');
 assertTaxonomy($conflict, ErrorCodeEnum::CONFLICT, ErrorCategoryEnum::CONFLICT, 409, true, 'SEO conflict');
-assertSameValue(4001, $conflict->getCode(), 'SEO conflict legacy code');
-assertSameValue('Seo conflict occurred: duplicate route', $conflict->getMessage(), 'SEO conflict message');
+testExceptionArchitectureTestAssertSameValue(4001, $conflict->getCode(), 'SEO conflict legacy code');
+testExceptionArchitectureTestAssertSameValue('Seo conflict occurred: duplicate route', $conflict->getMessage(), 'SEO conflict message');
 
-assertTrueValue(
-    is_subclass_of(SeoCodeAlreadyExistsException::class, GenericConflictMaatifyException::class),
+assertParentClass(
+    SeoCodeAlreadyExistsException::class,
+    GenericConflictMaatifyException::class,
     'SeoCodeAlreadyExistsException uses the shared conflict parent',
 );
 
 $codeAlreadyExists = SeoCodeAlreadyExistsException::forCode('article');
 assertSeoMarker($codeAlreadyExists, 'SEO code already exists');
 assertTaxonomy($codeAlreadyExists, ErrorCodeEnum::CONFLICT, ErrorCategoryEnum::CONFLICT, 409, true, 'SEO code already exists');
-assertSameValue(3001, $codeAlreadyExists->getCode(), 'SEO code already exists legacy code');
-assertSameValue('Seo record with code [article] already exists.', $codeAlreadyExists->getMessage(), 'SEO code already exists message');
+testExceptionArchitectureTestAssertSameValue(3001, $codeAlreadyExists->getCode(), 'SEO code already exists legacy code');
+testExceptionArchitectureTestAssertSameValue('Seo record with code [article] already exists.', $codeAlreadyExists->getMessage(), 'SEO code already exists message');
 
 $uniqueKeyAlreadyExists = SeoCodeAlreadyExistsException::forUniqueKey('redirect:article');
 assertSeoMarker($uniqueKeyAlreadyExists, 'SEO unique key already exists');
-assertSameValue(3001, $uniqueKeyAlreadyExists->getCode(), 'SEO unique key legacy code');
-assertSameValue('Seo record with unique key [redirect:article] already exists.', $uniqueKeyAlreadyExists->getMessage(), 'SEO unique key message');
+testExceptionArchitectureTestAssertSameValue(3001, $uniqueKeyAlreadyExists->getCode(), 'SEO unique key legacy code');
+testExceptionArchitectureTestAssertSameValue('Seo record with unique key [redirect:article] already exists.', $uniqueKeyAlreadyExists->getMessage(), 'SEO unique key message');
 
-assertTrueValue(is_subclass_of(SearchConsoleException::class, MaatifyException::class), 'Search Console family extends MaatifyException');
-assertTrueValue(is_subclass_of(MerchantCenterException::class, MaatifyException::class), 'Merchant Center family extends MaatifyException');
+assertParentClass(SearchConsoleException::class, MaatifyException::class, 'Search Console family extends MaatifyException');
+assertParentClass(MerchantCenterException::class, MaatifyException::class, 'Merchant Center family extends MaatifyException');
 
 $searchConsoleInvalidRequest = SearchConsoleInvalidRequestException::forField('siteUrl', 'must be an absolute URL');
-assertTrueValue($searchConsoleInvalidRequest instanceof SearchConsoleException, 'Search Console invalid request remains catchable by its family');
+assertIsInstanceOfClass(SearchConsoleException::class, $searchConsoleInvalidRequest, 'Search Console invalid request remains catchable by its family');
 assertSeoMarker($searchConsoleInvalidRequest, 'Search Console invalid request');
 assertTaxonomy($searchConsoleInvalidRequest, ErrorCodeEnum::INVALID_ARGUMENT, ErrorCategoryEnum::VALIDATION, 400, true, 'Search Console invalid request');
 
 $searchConsoleMalformedResponse = SearchConsoleMalformedResponseException::forPath('inspectionResult', 'is missing');
-assertTrueValue($searchConsoleMalformedResponse instanceof SearchConsoleException, 'Search Console malformed response remains catchable by its family');
+assertIsInstanceOfClass(SearchConsoleException::class, $searchConsoleMalformedResponse, 'Search Console malformed response remains catchable by its family');
 assertSeoMarker($searchConsoleMalformedResponse, 'Search Console malformed response');
 assertTaxonomy($searchConsoleMalformedResponse, ErrorCodeEnum::MAATIFY_ERROR, ErrorCategoryEnum::SYSTEM, 500, false, 'Search Console malformed response');
 
 $searchConsolePrevious = new RuntimeException('provider connection detail');
 $searchConsoleTransport = new SearchConsoleTransportException('Search Console transport failed.', 403, $searchConsolePrevious);
-assertTrueValue($searchConsoleTransport instanceof SearchConsoleException, 'Search Console transport remains catchable by its family');
+assertIsInstanceOfClass(SearchConsoleException::class, $searchConsoleTransport, 'Search Console transport remains catchable by its family');
 assertSeoMarker($searchConsoleTransport, 'Search Console transport');
 assertTaxonomy($searchConsoleTransport, ErrorCodeEnum::MAATIFY_ERROR, ErrorCategoryEnum::SYSTEM, 500, false, 'Search Console transport');
-assertSameValue(403, $searchConsoleTransport->httpStatus, 'Search Console provider HTTP status');
-assertSameValue($searchConsolePrevious, $searchConsoleTransport->getPrevious(), 'Search Console previous exception');
-assertSameValue('Search Console provider request failed with HTTP status [429].', SearchConsoleTransportException::forHttpStatus(429)->getMessage(), 'Search Console transport factory message');
-assertSameValue(429, SearchConsoleTransportException::forHttpStatus(429)->httpStatus, 'Search Console transport factory provider status');
+testExceptionArchitectureTestAssertSameValue(403, $searchConsoleTransport->httpStatus, 'Search Console provider HTTP status');
+testExceptionArchitectureTestAssertSameValue($searchConsolePrevious, $searchConsoleTransport->getPrevious(), 'Search Console previous exception');
+testExceptionArchitectureTestAssertSameValue('Search Console provider request failed with HTTP status [429].', SearchConsoleTransportException::forHttpStatus(429)->getMessage(), 'Search Console transport factory message');
+testExceptionArchitectureTestAssertSameValue(429, SearchConsoleTransportException::forHttpStatus(429)->httpStatus, 'Search Console transport factory provider status');
 
 $merchantCenterInvalidRequest = MerchantCenterInvalidRequestException::forField('offerId', 'must not be empty');
-assertTrueValue($merchantCenterInvalidRequest instanceof MerchantCenterException, 'Merchant Center invalid request remains catchable by its family');
+assertIsInstanceOfClass(MerchantCenterException::class, $merchantCenterInvalidRequest, 'Merchant Center invalid request remains catchable by its family');
 assertSeoMarker($merchantCenterInvalidRequest, 'Merchant Center invalid request');
 assertTaxonomy($merchantCenterInvalidRequest, ErrorCodeEnum::INVALID_ARGUMENT, ErrorCategoryEnum::VALIDATION, 400, true, 'Merchant Center invalid request');
 
 $merchantCenterMalformedResponse = MerchantCenterMalformedResponseException::forPath('product', 'is malformed');
-assertTrueValue($merchantCenterMalformedResponse instanceof MerchantCenterException, 'Merchant Center malformed response remains catchable by its family');
+assertIsInstanceOfClass(MerchantCenterException::class, $merchantCenterMalformedResponse, 'Merchant Center malformed response remains catchable by its family');
 assertSeoMarker($merchantCenterMalformedResponse, 'Merchant Center malformed response');
 assertTaxonomy($merchantCenterMalformedResponse, ErrorCodeEnum::MAATIFY_ERROR, ErrorCategoryEnum::SYSTEM, 500, false, 'Merchant Center malformed response');
 
 $merchantCenterPrevious = new RuntimeException('provider response detail');
 $merchantCenterTransport = new MerchantCenterTransportException('Merchant Center transport failed.', 403, $merchantCenterPrevious);
-assertTrueValue($merchantCenterTransport instanceof MerchantCenterException, 'Merchant Center transport remains catchable by its family');
+assertIsInstanceOfClass(MerchantCenterException::class, $merchantCenterTransport, 'Merchant Center transport remains catchable by its family');
 assertSeoMarker($merchantCenterTransport, 'Merchant Center transport');
 assertTaxonomy($merchantCenterTransport, ErrorCodeEnum::MAATIFY_ERROR, ErrorCategoryEnum::SYSTEM, 500, false, 'Merchant Center transport');
-assertSameValue(403, $merchantCenterTransport->httpStatus, 'Merchant Center provider HTTP status');
-assertSameValue($merchantCenterPrevious, $merchantCenterTransport->getPrevious(), 'Merchant Center previous exception');
-assertSameValue('Merchant Center provider request failed with HTTP status [429].', MerchantCenterTransportException::forHttpStatus(429)->getMessage(), 'Merchant Center transport factory message');
-assertSameValue(429, MerchantCenterTransportException::forHttpStatus(429)->httpStatus, 'Merchant Center transport factory provider status');
+testExceptionArchitectureTestAssertSameValue(403, $merchantCenterTransport->httpStatus, 'Merchant Center provider HTTP status');
+testExceptionArchitectureTestAssertSameValue($merchantCenterPrevious, $merchantCenterTransport->getPrevious(), 'Merchant Center previous exception');
+testExceptionArchitectureTestAssertSameValue('Merchant Center provider request failed with HTTP status [429].', MerchantCenterTransportException::forHttpStatus(429)->getMessage(), 'Merchant Center transport factory message');
+testExceptionArchitectureTestAssertSameValue(429, MerchantCenterTransportException::forHttpStatus(429)->httpStatus, 'Merchant Center transport factory provider status');
 
 $jsonException = new JsonException('invalid UTF-8 sequence', 73);
 $jsonLdBuild = JsonLdBuildException::encodingFailed($jsonException);
 assertSeoMarker($jsonLdBuild, 'JSON-LD build exception');
-assertTrueValue($jsonLdBuild instanceof SystemMaatifyException, 'JSON-LD build exception uses the shared system parent');
+assertIsInstanceOfClass(SystemMaatifyException::class, $jsonLdBuild, 'JSON-LD build exception uses the shared system parent');
 assertTaxonomy($jsonLdBuild, ErrorCodeEnum::MAATIFY_ERROR, ErrorCategoryEnum::SYSTEM, 500, false, 'JSON-LD build exception');
-assertSameValue('JSON-LD schema encoding failed: invalid UTF-8 sequence', $jsonLdBuild->getMessage(), 'JSON-LD build exception message');
-assertSameValue(73, $jsonLdBuild->getCode(), 'JSON-LD build exception preserves the JsonException code');
-assertSameValue($jsonException, $jsonLdBuild->getPrevious(), 'JSON-LD build exception preserves the JsonException');
+testExceptionArchitectureTestAssertSameValue('JSON-LD schema encoding failed: invalid UTF-8 sequence', $jsonLdBuild->getMessage(), 'JSON-LD build exception message');
+testExceptionArchitectureTestAssertSameValue(73, $jsonLdBuild->getCode(), 'JSON-LD build exception preserves the JsonException code');
+testExceptionArchitectureTestAssertSameValue($jsonException, $jsonLdBuild->getPrevious(), 'JSON-LD build exception preserves the JsonException');
 
 fwrite(STDOUT, "Exception architecture tests passed.\n");

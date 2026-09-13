@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase11FSeoValidationBatchReportHelpersTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
+
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -9,6 +14,16 @@ use Maatify\Seo\Web\Validation\DTO\SeoValidationBatchReportDTO;
 use Maatify\Seo\Web\Validation\DTO\SeoValidationReportDTO;
 use Maatify\Seo\Web\Validation\SeoValidationBatchReportBuilder;
 use Maatify\Seo\Web\Validation\SeoValidationPreset;
+
+function phase11FBuildUnvalidatedItems(mixed $items): SeoValidationBatchReportDTO
+{
+    $result = (new ReflectionMethod(SeoValidationBatchReportBuilder::class, 'build'))->invoke(null, $items);
+    if (!$result instanceof SeoValidationBatchReportDTO) {
+        throw new LogicException('Batch builder did not return its documented DTO.');
+    }
+
+    return $result;
+}
 
 function assertTrueValue11F(string $label, bool $actual): void
 {
@@ -70,7 +85,7 @@ $passBatch = SeoValidationBatchReportBuilder::build([
     ['meta' => $validMeta, 'context' => ['url' => 'https://example.com/products/useful']],
     ['meta' => $secondValidMeta, 'context' => ['url' => 'https://example.com/products/another']],
 ]);
-assertTrueValue11F('batch DTO is returned', $passBatch instanceof SeoValidationBatchReportDTO);
+assertTrueValue11F('batch DTO is returned', phpstanRuntimeInstanceOfPhase11FSeoValidationBatchReportHelpersTest($passBatch, SeoValidationBatchReportDTO::class));
 assertTrueValue11F('multiple valid items batch is valid', $passBatch->isValid);
 assertTrueValue11F('multiple valid items batch is healthy', $passBatch->isHealthy);
 assertSameValue11F('pass summary status', 'pass', $passBatch->summary['status']);
@@ -80,7 +95,7 @@ assertSameValue11F('pass valid count', 2, $passBatch->validCount);
 assertSameValue11F('pass invalid count', 0, $passBatch->invalidCount);
 assertSameValue11F('pass healthy count', 2, $passBatch->healthyCount);
 assertSameValue11F('pass unhealthy count', 0, $passBatch->unhealthyCount);
-assertSameValue11F('reports are DTO list', true, $passBatch->reports[0] instanceof SeoValidationReportDTO);
+assertSameValue11F('reports are DTO list', true, phpstanRuntimeInstanceOfPhase11FSeoValidationBatchReportHelpersTest($passBatch->reports[0], SeoValidationReportDTO::class));
 
 $failBatch = SeoValidationBatchReportBuilder::build([
     ['meta' => $validMeta],
@@ -146,16 +161,16 @@ assertThrowsInvalidConfig11F('rejects empty items list', static function (): voi
     SeoValidationBatchReportBuilder::build([]);
 });
 assertThrowsInvalidConfig11F('rejects non-list items array', static function () use ($validMeta): void {
-    SeoValidationBatchReportBuilder::build(['first' => ['meta' => $validMeta]]);
+    phase11FBuildUnvalidatedItems(['first' => ['meta' => $validMeta]]);
 });
 assertThrowsInvalidConfig11F('rejects item missing meta', static function (): void {
     SeoValidationBatchReportBuilder::build([['context' => ['url' => 'https://example.com']]]);
 });
 assertThrowsInvalidConfig11F('rejects invalid meta', static function (): void {
-    SeoValidationBatchReportBuilder::build([['meta' => 'invalid']]);
+    phase11FBuildUnvalidatedItems([['meta' => 'invalid']]);
 });
 assertThrowsInvalidConfig11F('rejects invalid item context', static function () use ($validMeta): void {
-    SeoValidationBatchReportBuilder::build([['meta' => $validMeta, 'context' => 'invalid']]);
+    phase11FBuildUnvalidatedItems([['meta' => $validMeta, 'context' => 'invalid']]);
 });
 
 $inputObject = (object) ['title' => 'A useful product page title', 'description' => 'This useful product page description is long enough.'];

@@ -18,13 +18,17 @@ use Maatify\Seo\Web\Validation\Input\Hreflang\HreflangValidationPageDTO;
 use Maatify\Seo\Web\Validation\Profile\GoogleCanonicalValidator;
 use Maatify\Seo\Web\Validation\Profile\GoogleHreflangClusterValidator;
 
-$stack6Failures = 0;
+final class Stack6TestFailureCounter { public static int $count = 0; }
+
+function stack6ReflectionTypeName(?ReflectionType $type): ?string
+{
+    return $type instanceof ReflectionNamedType ? $type->getName() : null;
+}
 
 function stack6AssertSame(string $label, mixed $expected, mixed $actual): void
 {
-    global $stack6Failures;
     if ($expected !== $actual) {
-        ++$stack6Failures;
+        ++Stack6TestFailureCounter::$count;
         fwrite(STDERR, "Assertion failed: {$label}\nExpected:\n" . var_export($expected, true) . "\nActual:\n" . var_export($actual, true) . "\n");
     }
 }
@@ -111,14 +115,14 @@ function stack6AssertProfileSignature(string $label, string $class, string $inpu
     stack6AssertSame($label . ' method name', 'validate', $method->getName());
     stack6AssertSame($label . ' parameter count', 2, count($parameters));
     stack6AssertSame($label . ' input parameter name', $inputName, $parameters[0]->getName());
-    stack6AssertSame($label . ' input parameter type', $inputType, $parameters[0]->getType()?->getName());
+    stack6AssertSame($label . ' input parameter type', $inputType, stack6ReflectionTypeName($parameters[0]->getType()));
     stack6AssertFalse($label . ' input nullable', $parameters[0]->allowsNull());
     stack6AssertSame($label . ' context parameter name', 'context', $parameters[1]->getName());
-    stack6AssertSame($label . ' context parameter type', SeoValidationContextDTO::class, $parameters[1]->getType()?->getName());
+    stack6AssertSame($label . ' context parameter type', SeoValidationContextDTO::class, stack6ReflectionTypeName($parameters[1]->getType()));
     stack6AssertTrue($label . ' context nullable', $parameters[1]->allowsNull());
     stack6AssertTrue($label . ' context default available', $parameters[1]->isDefaultValueAvailable());
     stack6AssertSame($label . ' context default', null, $parameters[1]->getDefaultValue());
-    stack6AssertSame($label . ' return type', SeoCompanionValidationResultDTO::class, $method->getReturnType()?->getName());
+    stack6AssertSame($label . ' return type', SeoCompanionValidationResultDTO::class, stack6ReflectionTypeName($method->getReturnType()));
 }
 
 function stack6AssertLinkCodeTarget(SeoCompanionValidationResultDTO $result, string $code, int $pageIndex, int $linkIndex): void
@@ -354,8 +358,13 @@ stack6AssertDiagnostic(
 );
 stack6AssertSame('reciprocity missing only on source page', 0, count(array_filter(
     $reciprocalMissingResult->toArray()['diagnostics'],
-    static fn (array $diagnostic): bool => $diagnostic['code'] === 'hreflang_reciprocal_link_missing'
-        && $diagnostic['target']['entry_index'] === 1,
+    static function (array $diagnostic): bool {
+        $target = $diagnostic['target'] ?? null;
+
+        return $diagnostic['code'] === 'hreflang_reciprocal_link_missing'
+            && is_array($target)
+            && ($target['entry_index'] ?? null) === 1;
+    },
 )));
 
 $inconsistentSetResult = $hreflangValidator->validate(stack6Cluster([
@@ -484,8 +493,8 @@ stack6AssertTrue('duplicate exact page identity remains an invocation failure', 
 stack6AssertFalse('no ISO membership diagnostic code exists', in_array('hreflang_iso_membership_invalid', stack6Codes($healthyResult), true));
 stack6AssertFalse('no unapproved Stack 6 diagnostic code exists', in_array('hreflang_noncanonical_case', stack6Codes($healthyResult), true));
 
-if ($stack6Failures > 0) {
-    fwrite(STDERR, "Stack 6 failed with {$stack6Failures} assertion(s).\n");
+if (Stack6TestFailureCounter::$count > 0) {
+    fwrite(STDERR, "Stack 6 failed with " . Stack6TestFailureCounter::$count . " assertion(s).\n");
     exit(1);
 }
 

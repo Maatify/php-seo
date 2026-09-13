@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase13EOrganizationJsonLdBuilderTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
+
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -24,7 +29,7 @@ function assertTrueValue13E(string $label, bool $actual): void
 }
 
 $builder = new OrganizationJsonLdBuilder();
-assertTrueValue13E('organization builder implements builder interface', $builder instanceof JsonLdBuilderInterface);
+assertTrueValue13E('organization builder implements builder interface', phpstanRuntimeInstanceOfPhase13EOrganizationJsonLdBuilderTest($builder, JsonLdBuilderInterface::class));
 assertSameValue13E('organization builder seeds schema.org defaults', [
     '@context' => 'https://schema.org',
     '@type' => 'Organization',

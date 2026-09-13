@@ -120,7 +120,7 @@ assertSameValue10A(
 
 assertTrueValue10A(
     'renderer returns XML string only',
-    is_string($renderer->renderIndex([$dto])) && str_starts_with($renderer->renderIndex([$dto]), $xmlHeader),
+    testRuntimeIsString($renderer->renderIndex([$dto])) && str_starts_with($renderer->renderIndex([$dto]), $xmlHeader),
 );
 
 assertThrowsSeoException10A('empty loc throws module exception', static fn() => new SitemapIndexEntryDTO('   '));

@@ -8,6 +8,25 @@ use Maatify\Seo\Web\JsonLd\Builder\JsonLdBuilderInterface;
 use Maatify\Seo\Web\JsonLd\Builder\OfferJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\OrganizationJsonLdBuilder;
 
+/** @return array<string, mixed> */
+function phase13OStringKeyedArray(mixed $value): array
+{
+    if (!is_array($value)) {
+        throw new RuntimeException('Expected nested JSON-LD array.');
+    }
+
+    $array = [];
+    foreach ($value as $key => $item) {
+        if (!is_string($key)) {
+            throw new RuntimeException('Expected string keys in nested JSON-LD array.');
+        }
+
+        $array[$key] = $item;
+    }
+
+    return $array;
+}
+
 function assertSameValue13O(string $label, mixed $expected, mixed $actual): void
 {
     if ($expected !== $actual) {
@@ -47,7 +66,7 @@ assertSameValue13O(
 );
 assertTrueValue13O(
     'nested builder context is removed',
-    !array_key_exists('@context', $root->toArray()['customNode'])
+    !array_key_exists('@context', phase13OStringKeyedArray($root->toArray()['customNode'] ?? null))
 );
 
 $listRoot = new OfferJsonLdBuilder();
@@ -78,18 +97,20 @@ $nestedArrayRoot->set('wrapper', [
     ],
 ]);
 $nestedArrayOutput = $nestedArrayRoot->toArray();
+$wrapperOutput = phase13OStringKeyedArray($nestedArrayOutput['wrapper'] ?? null);
+$nodesOutput = phase13OStringKeyedArray($wrapperOutput['nodes'] ?? null);
 assertSameValue13O(
     'builders inside nested raw arrays are resolved',
     [
         '@type' => 'Organization',
         'name' => 'Deep Organization',
     ],
-    $nestedArrayOutput['wrapper']['nodes']['organization']
+    phase13OStringKeyedArray($nodesOutput['organization'] ?? null)
 );
 assertSameValue13O(
     'raw array context is preserved',
     'https://example.com/raw-context',
-    $nestedArrayOutput['wrapper']['@context']
+    $wrapperOutput['@context']
 );
 
 $stringSeller = (new OfferJsonLdBuilder())->setSeller('Store Name')->toArray();

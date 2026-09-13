@@ -26,6 +26,11 @@ use Maatify\Seo\Web\Validation\Input\Sitemap\SitemapValidationDocumentDTO;
 use Maatify\Seo\Web\Validation\Input\Sitemap\SitemapValidationLocationDTO;
 use Maatify\Seo\Web\Validation\Input\Sitemap\SitemapVideoValidationInputDTO;
 
+function stack1HasArrayKey(mixed $value, string $key): bool
+{
+    return is_array($value) && array_key_exists($key, $value);
+}
+
 function stack1AssertSame(string $label, mixed $expected, mixed $actual): void
 {
     if ($expected !== $actual) {
@@ -70,7 +75,10 @@ stack1AssertConstructorDoc('Sitemap news list PHPDoc contract', SitemapUrlValida
 stack1AssertConstructorDoc('Hreflang page list PHPDoc contract', HreflangValidationPageDTO::class, 'links', '@param list<HreflangValidationLinkDTO> $links');
 stack1AssertConstructorDoc('Hreflang cluster list PHPDoc contract', HreflangValidationClusterDTO::class, 'pages', '@param list<HreflangValidationPageDTO> $pages');
 
-/** @param list<mixed> $args */
+/**
+ * @param class-string $class
+ * @param list<mixed> $args
+ */
 function stack1ConstructWithArgs(string $class, array $args): object
 {
     return (new ReflectionClass($class))->newInstanceArgs($args);
@@ -107,7 +115,7 @@ stack1AssertSame('diagnostic jsonSerialize matches toArray', $expectedDiagnostic
 
 $companion = new SeoCompanionValidationResultDTO(diagnostics: [$diagnostic]);
 stack1AssertSame('standalone companion result exact serialization', ['legacy' => null, 'diagnostics' => [$expectedDiagnostic]], $companion->toArray());
-stack1AssertTrue('companion result has no legacy validity or score fields', !array_key_exists('is_valid', $companion->toArray()) && !array_key_exists('has_warnings', $companion->toArray()) && !array_key_exists('score', $companion->toArray()));
+stack1AssertTrue('companion result has no legacy validity or score fields', !stack1HasArrayKey($companion->toArray(), 'is_valid') && !stack1HasArrayKey($companion->toArray(), 'has_warnings') && !stack1HasArrayKey($companion->toArray(), 'score'));
 
 $legacy = new SeoValidationResultDTO([new SeoValidationIssueDTO('legacy_warning', 'warning', 'Legacy warning.', 'title')]);
 $paired = new SeoCompanionValidationResultDTO(legacy: $legacy, diagnostics: []);

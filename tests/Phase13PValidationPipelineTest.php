@@ -11,6 +11,48 @@ use Maatify\Seo\Web\Validation\SeoValidationBatchReportExporter;
 use Maatify\Seo\Web\Validation\SeoValidationReportBuilder;
 use Maatify\Seo\Web\Validation\SeoValidationReportExporter;
 
+/** @return array<string, mixed> */
+function phase13PStringKeyedArray(mixed $value): array
+{
+    if (!is_array($value)) {
+        throw new RuntimeException('Expected JSON object array.');
+    }
+
+    $array = [];
+    foreach ($value as $key => $item) {
+        if (!is_string($key)) {
+            throw new RuntimeException('Expected string keys in JSON object array.');
+        }
+
+        $array[$key] = $item;
+    }
+
+    return $array;
+}
+
+/**
+ * @param array<string, mixed> $data
+ * @return array<array-key, mixed>
+ */
+function phase13PArrayField(array $data, string $key): array
+{
+    $value = $data[$key] ?? null;
+    if (!is_array($value)) {
+        throw new RuntimeException("Expected array field {$key}.");
+    }
+
+    return $value;
+}
+
+function phase13PNumericFloat(mixed $value): float
+{
+    if (!is_scalar($value) && $value !== null) {
+        throw new RuntimeException('Expected a scalar numeric value.');
+    }
+
+    return (float) $value;
+}
+
 function assertSameValue13PPipeline(string $label, mixed $expected, mixed $actual): void
 {
     if ($expected !== $actual) {
@@ -108,7 +150,6 @@ $semanticCases = [
 ];
 
 foreach ($semanticCases as $type => $case) {
-    /** @var array<string, mixed> $node */
     $node = $case['node'];
     /** @var string $field */
     $field = $case['field'];
@@ -190,10 +231,14 @@ assertSameValue13PPipeline('batch summary status is fail', 'fail', $batch->summa
 assertSameValue13PPipeline('batch summary message is unchanged', 'SEO batch validation failed.', $batch->summary['message']);
 assertSameValue13PPipeline('batch invalid report carries semantic issue', 'json_ld_invalid_property', $batch->reports[2]->errors[0]['code']);
 assertSameValue13PPipeline('batch array exporter preserves public shape', $batch->toArray(), SeoValidationBatchReportExporter::toArray($batch));
-$batchJson = json_decode(SeoValidationBatchReportExporter::toJson($batch), true);
+$batchJson = phase13PStringKeyedArray(json_decode(SeoValidationBatchReportExporter::toJson($batch), true));
+$batchReports = phase13PArrayField($batchJson, 'reports');
+$thirdBatchReport = phase13PStringKeyedArray($batchReports[2] ?? null);
+$thirdBatchErrors = phase13PArrayField($thirdBatchReport, 'errors');
+$thirdBatchError = phase13PStringKeyedArray($thirdBatchErrors[0] ?? null);
 assertSameValue13PPipeline('batch JSON exporter preserves validity', $batch->isValid, $batchJson['is_valid']);
-assertSameValue13PPipeline('batch JSON exporter preserves average score', 90.0, (float) $batchJson['average_score']);
-assertSameValue13PPipeline('batch JSON exporter preserves semantic issue', 'json_ld_invalid_property', $batchJson['reports'][2]['errors'][0]['code']);
+assertSameValue13PPipeline('batch JSON exporter preserves average score', 90.0, phase13PNumericFloat($batchJson['average_score']));
+assertSameValue13PPipeline('batch JSON exporter preserves semantic issue', 'json_ld_invalid_property', $thirdBatchError['code']);
 $batchMarkdown = SeoValidationBatchReportExporter::toMarkdown($batch);
 assertTrueValue13PPipeline('batch Markdown exporter includes the invalid report summary', str_contains($batchMarkdown, '### Report 3'));
 assertTrueValue13PPipeline('batch Markdown exporter preserves the invalid report status', str_contains($batchMarkdown, '- Status: fail'));

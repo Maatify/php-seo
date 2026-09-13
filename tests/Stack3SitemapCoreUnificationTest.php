@@ -16,6 +16,11 @@ use Maatify\Seo\Web\Sitemap\DTO\SitemapIndexEntryDTO as WebSitemapIndexEntryDTO;
 use Maatify\Seo\Web\Sitemap\SitemapIndexXmlStringRenderer;
 use Maatify\Seo\Web\Sitemap\SitemapXmlStringRenderer;
 
+function stack3IsInstanceOf(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
+
 function stack3AssertSame(string $label, mixed $expected, mixed $actual): void
 {
     if ($expected !== $actual) {
@@ -46,6 +51,7 @@ function stack3AssertThrows(string $label, callable $callback, ?string $message 
     throw new RuntimeException("Assertion failed: {$label}\nExpected SeoInvalidArgumentException.");
 }
 
+/** @param list<string> $parameterTypes */
 function stack3AssertSignature(string $class, string $method, array $parameterTypes, string $returnType): void
 {
     $reflection = new ReflectionMethod($class, $method);
@@ -55,15 +61,20 @@ function stack3AssertSignature(string $class, string $method, array $parameterTy
         stack3AssertSame(
             $class . '::' . $method . ' parameter ' . $index,
             $expectedType,
-            $parameters[$index]->getType()?->getName(),
+            stack3ReflectionTypeName($parameters[$index]->getType()),
         );
     }
 
     stack3AssertSame(
         $class . '::' . $method . ' return type',
         $returnType,
-        $reflection->getReturnType()?->getName(),
+        stack3ReflectionTypeName($reflection->getReturnType()),
     );
+}
+
+function stack3ReflectionTypeName(?ReflectionType $type): ?string
+{
+    return $type instanceof ReflectionNamedType ? $type->getName() : null;
 }
 
 $xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
@@ -95,7 +106,7 @@ stack3AssertTrue('Shared canonical writer has no Web dependency', is_string($can
 $xmlWriterImplementationFiles = [];
 $sourceIterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../src'));
 foreach ($sourceIterator as $sourceFile) {
-    if (!$sourceFile->isFile() || $sourceFile->getExtension() !== 'php') {
+    if (!$sourceFile instanceof SplFileInfo || !$sourceFile->isFile() || $sourceFile->getExtension() !== 'php') {
         continue;
     }
 
@@ -214,8 +225,8 @@ stack3AssertSame('Shared and Web index DTO serialization contracts remain distin
 stack3AssertSame('Web index DTO serialization remains stable', ['loc' => 'https://example.com/web.xml', 'lastmod' => '2026-07-01'], $webIndexEntry->jsonSerialize());
 stack3AssertThrows('Shared index DTO keeps its empty-field URL exception', static fn() => new SharedSitemapIndexEntryDTO('not-a-url'), 'Field [loc] must not be empty.');
 stack3AssertThrows('Web index DTO keeps its invalid-URL exception', static fn() => new WebSitemapIndexEntryDTO('not-a-url'), 'URL [not-a-url] is invalid.');
-stack3AssertTrue('Shared index DTO accepts fractional seconds', new SharedSitemapIndexEntryDTO('https://example.com/shared.xml', '2026-07-01T10:00:00.123+00:00') instanceof SharedSitemapIndexEntryDTO);
-stack3AssertTrue('Web index DTO accepts fractional seconds', new WebSitemapIndexEntryDTO('https://example.com/web.xml', '2026-07-01T10:00:00.123+00:00') instanceof WebSitemapIndexEntryDTO);
+stack3AssertTrue('Shared index DTO accepts fractional seconds', stack3IsInstanceOf(new SharedSitemapIndexEntryDTO('https://example.com/shared.xml', '2026-07-01T10:00:00.123+00:00'), SharedSitemapIndexEntryDTO::class));
+stack3AssertTrue('Web index DTO accepts fractional seconds', stack3IsInstanceOf(new WebSitemapIndexEntryDTO('https://example.com/web.xml', '2026-07-01T10:00:00.123+00:00'), WebSitemapIndexEntryDTO::class));
 
 $equivalentSharedIndexEntry = new SharedSitemapIndexEntryDTO('https://example.com/web.xml', '2026-07-01');
 $generatorIndexResult = (new SitemapGeneratorService())->generateSitemapIndex([$equivalentSharedIndexEntry]);

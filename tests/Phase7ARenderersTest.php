@@ -14,7 +14,7 @@ use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
 use Maatify\Seo\Web\Render\TwitterCardHtmlRenderer;
 use Maatify\Seo\Web\SeoRender\DTO\SeoPagePayloadDTO;
 
-function assertSameValue(string $label, string $expected, string $actual): void
+function testPhase7ARenderersTestAssertSameValue(string $label, string $expected, string $actual): void
 {
     if ($expected !== $actual) {
         fwrite(STDERR, "Assertion failed: {$label}\nExpected:\n{$expected}\nActual:\n{$actual}\n");
@@ -34,20 +34,20 @@ $seoHeadDto = new SeoHeadHtmlDTO(
     . '<script type="application/ld+json">{"@type":"WebPage"}</script>',
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'SeoHeadHtmlDTO allows construction and exposes sections',
     '<title>DTO title</title>',
     $seoHeadDto->metaHtml,
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'SeoHeadHtmlDTO JSON serializes with clear section keys',
     '{"meta_html":"<title>DTO title<\/title>","open_graph_html":"<meta property=\\"og:title\\" content=\\"DTO title\\">","twitter_card_html":"<meta name=\\"twitter:title\\" content=\\"DTO title\\">","json_ld_html":"<script type=\\"application\/ld+json\\">{\"@type\":\"WebPage\"}<\/script>","full_html":"<title>DTO title<\/title>\n<meta property=\\"og:title\\" content=\\"DTO title\\">\n<meta name=\\"twitter:title\\" content=\\"DTO title\\">\n<script type=\\"application\/ld+json\\">{\"@type\":\"WebPage\"}<\/script>"}',
     json_encode($seoHeadDto, JSON_THROW_ON_ERROR),
 );
 
 $emptySeoHeadDto = new SeoHeadHtmlDTO('', '', '', '', '');
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'SeoHeadHtmlDTO allows empty section strings',
     '{"meta_html":"","open_graph_html":"","twitter_card_html":"","json_ld_html":"","full_html":""}',
     json_encode($emptySeoHeadDto, JSON_THROW_ON_ERROR),
@@ -69,7 +69,7 @@ $metaTags = new MetaTagsDTO(
     twitterImage: 'https://example.com/twitter.jpg?name=<hero>&size=large',
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'title, description, canonical, robots render with escaping',
     '<title>A &lt;Title&gt; &amp; &quot;Quote&quot;</title>' . "\n"
     . '<meta name="description" content="Desc &lt;b&gt;bold&lt;/b&gt; &amp; &quot;quoted&quot;">' . "\n"
@@ -78,13 +78,13 @@ assertSameValue(
     (new MetaTagsHtmlRenderer())->render($metaTags),
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'MetaTagsDTO JSON includes Phase 7A OpenGraph and Twitter optional fields',
     '{"title":"A <Title> & \"Quote\"","description":"Desc <b>bold<\/b> & \"quoted\"","canonical_url":"https:\/\/example.com\/page?a=1&b=<x>","robots":"noindex,nofollow","open_graph_title":"OG <Title>","open_graph_description":"OG desc & details","open_graph_url":"https:\/\/example.com\/og?x=1&y=2","twitter_title":"Twitter <Title>","twitter_description":"Twitter desc & details","open_graph_type":"article","open_graph_image":"https:\/\/example.com\/image.jpg?name=<hero>&size=large","twitter_card":"summary_large_image","twitter_image":"https:\/\/example.com\/twitter.jpg?name=<hero>&size=large"}',
     json_encode($metaTags, JSON_THROW_ON_ERROR),
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'OpenGraph renders deterministic supported fields',
     '<meta property="og:title" content="OG &lt;Title&gt;">' . "\n"
     . '<meta property="og:description" content="OG desc &amp; details">' . "\n"
@@ -94,7 +94,7 @@ assertSameValue(
     (new OpenGraphHtmlRenderer())->render($metaTags),
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'Twitter renders deterministic supported fields',
     '<meta name="twitter:card" content="summary_large_image">' . "\n"
     . '<meta name="twitter:title" content="Twitter &lt;Title&gt;">' . "\n"
@@ -103,7 +103,7 @@ assertSameValue(
     (new TwitterCardHtmlRenderer())->render($metaTags),
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'JSON-LD renders safe script payload',
     '<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"\u003CUnsafe\u003E \u0026 \u0022Quoted\u0022"}</script>',
     (new JsonLdScriptRenderer())->render(new JsonLdSchemaDTO([
@@ -113,7 +113,7 @@ assertSameValue(
     ])),
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'JSON-LD renders multiple payloads',
     '<script type="application/ld+json">{"@type":"WebPage"}</script>' . "\n"
     . '<script type="application/ld+json">{"@type":"Organization"}</script>',
@@ -123,7 +123,7 @@ assertSameValue(
     ]),
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'full composed head renders sections in deterministic order',
     '<title>A &lt;Title&gt; &amp; &quot;Quote&quot;</title>' . "\n"
     . '<meta name="description" content="Desc &lt;b&gt;bold&lt;/b&gt; &amp; &quot;quoted&quot;">' . "\n"
@@ -158,7 +158,7 @@ $minimalMetaTags = new MetaTagsDTO(
     twitterImage: '',
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'null and empty optional fields are omitted',
     '<title>Only title</title>' . "\n" . '<meta name="robots" content="index,follow">',
     (new SeoHeadHtmlRenderer())->render($minimalMetaTags),
@@ -169,13 +169,13 @@ $renderer = new SeoHeadHtmlRenderer();
 $renderedDto = $renderer->renderDto($metaTags, [new JsonLdSchemaDTO(['@type' => 'WebPage'])]);
 $expectedFullHtml = $renderer->render($metaTags, [new JsonLdSchemaDTO(['@type' => 'WebPage'])]);
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'SeoHeadHtmlRenderer::renderDto fullHtml matches existing render output',
     $expectedFullHtml,
     $renderedDto->fullHtml,
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'SeoHeadHtmlRenderer::renderDto fullHtml equals joined sections',
     implode("\n", [
         $renderedDto->metaHtml,
@@ -191,7 +191,7 @@ $payload = new SeoPagePayloadDTO(
     schemas: [new JsonLdSchemaDTO(['@type' => 'WebPage'])],
 );
 
-assertSameValue(
+testPhase7ARenderersTestAssertSameValue(
     'SeoHeadHtmlRenderer::renderPayloadDto fullHtml matches renderPayload output',
     $renderer->renderPayload($payload),
     $renderer->renderPayloadDto($payload)->fullHtml,

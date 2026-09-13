@@ -193,7 +193,7 @@ assertSameValue10E(
 
 assertTrueValue10E(
     'renderer returns XML string only and has no HTTP framework behavior',
-    is_string($renderer->renderUrlSet([$dtoUrl])) && str_starts_with($renderer->renderUrlSet([$dtoUrl]), $xmlHeader),
+    testRuntimeIsString($renderer->renderUrlSet([$dtoUrl])) && str_starts_with($renderer->renderUrlSet([$dtoUrl]), $xmlHeader),
 );
 
 echo "Phase 10E news sitemap XML string renderer tests passed.\n";

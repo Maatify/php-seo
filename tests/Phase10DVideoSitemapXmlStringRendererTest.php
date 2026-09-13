@@ -207,7 +207,7 @@ assertSameValue10D(
 
 assertTrueValue10D(
     'renderer returns XML string only',
-    is_string($renderer->renderUrlSet([$dtoUrl])) && str_starts_with($renderer->renderUrlSet([$dtoUrl]), $xmlHeader),
+    testRuntimeIsString($renderer->renderUrlSet([$dtoUrl])) && str_starts_with($renderer->renderUrlSet([$dtoUrl]), $xmlHeader),
 );
 
 echo "Phase 10D video sitemap XML string renderer tests passed.\n";

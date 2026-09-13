@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase13BProductJsonLdBuilderTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
+
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -38,7 +43,7 @@ function assertThrowsJsonLdBuildException13B(string $label, callable $callback):
 }
 
 $builder = new ProductJsonLdBuilder();
-assertTrueValue13B('product builder implements builder interface', $builder instanceof JsonLdBuilderInterface);
+assertTrueValue13B('product builder implements builder interface', phpstanRuntimeInstanceOfPhase13BProductJsonLdBuilderTest($builder, JsonLdBuilderInterface::class));
 assertSameValue13B('product builder seeds schema.org product defaults', [
     '@context' => 'https://schema.org',
     '@type' => 'Product',
@@ -199,7 +204,7 @@ assertSameValue13B(
 
 $builder1 = (new OfferJsonLdBuilder())->setPrice('31.00');
 $builder2 = (new OfferJsonLdBuilder())->setPrice('32.00');
-assertTrueValue13B('numeric list regression uses OfferJsonLdBuilder instances', $builder1 instanceof OfferJsonLdBuilder && $builder2 instanceof OfferJsonLdBuilder);
+assertTrueValue13B('numeric list regression uses OfferJsonLdBuilder instances', phpstanRuntimeInstanceOfPhase13BProductJsonLdBuilderTest($builder1, OfferJsonLdBuilder::class) && phpstanRuntimeInstanceOfPhase13BProductJsonLdBuilderTest($builder2, OfferJsonLdBuilder::class));
 assertSameValue13B(
     'setOffers resolves a numeric list of Offer builders in order',
     [

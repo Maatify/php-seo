@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase11DSeoValidationPresetsTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
+
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -81,15 +86,15 @@ $validMeta = [
 
 $standard = SeoValidationPreset::standard();
 $validationResult = SeoMetaValidator::validate($validMeta, $standard['validationOptions']);
-assertTrueValue11D('preset validation options work with validator', $validationResult instanceof SeoValidationResultDTO);
+assertTrueValue11D('preset validation options work with validator', phpstanRuntimeInstanceOfPhase11DSeoValidationPresetsTest($validationResult, SeoValidationResultDTO::class));
 assertTrueValue11D('standard preset validates valid metadata', $validationResult->isValid);
 
 $score = SeoValidationScoreCalculator::score($validationResult, $standard['scoreOptions']);
-assertTrueValue11D('preset score options work with score calculator', $score instanceof SeoValidationScoreDTO);
+assertTrueValue11D('preset score options work with score calculator', phpstanRuntimeInstanceOfPhase11DSeoValidationPresetsTest($score, SeoValidationScoreDTO::class));
 assertSameValue11D('standard preset valid metadata score', 100, $score->score);
 
 $report = SeoValidationReportBuilder::build($validMeta, $standard['validationOptions'], $standard['scoreOptions']);
-assertTrueValue11D('presets work with report builder', $report instanceof SeoValidationReportDTO);
+assertTrueValue11D('presets work with report builder', phpstanRuntimeInstanceOfPhase11DSeoValidationPresetsTest($report, SeoValidationReportDTO::class));
 assertSameValue11D('standard preset valid metadata report status', 'pass', $report->summary['status']);
 
 $strict = SeoValidationPreset::strict();

@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase7DSpatieSchemaAdapterTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
+
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -11,7 +16,7 @@ use Maatify\Seo\Web\Builder\FluentSeoBuilder;
 use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
 use Maatify\Seo\Web\Schema\SpatieSchemaAdapter;
 
-function assertSameValue(string $label, mixed $expected, mixed $actual): void
+function testPhase7DSpatieSchemaAdapterTestAssertSameValue(string $label, mixed $expected, mixed $actual): void
 {
     if ($expected !== $actual) {
         fwrite(STDERR, "Assertion failed: {$label}\nExpected:\n" . var_export($expected, true) . "\nActual:\n" . var_export($actual, true) . "\n");
@@ -19,7 +24,7 @@ function assertSameValue(string $label, mixed $expected, mixed $actual): void
     }
 }
 
-function assertTrueValue(string $label, bool $actual): void
+function testPhase7DSpatieSchemaAdapterTestAssertTrueValue(string $label, bool $actual): void
 {
     if (!$actual) {
         fwrite(STDERR, "Assertion failed: {$label}\n");
@@ -27,7 +32,7 @@ function assertTrueValue(string $label, bool $actual): void
     }
 }
 
-function assertFalseValue(string $label, bool $actual): void
+function testPhase7DSpatieSchemaAdapterTestAssertFalseValue(string $label, bool $actual): void
 {
     if ($actual) {
         fwrite(STDERR, "Assertion failed: {$label}\n");
@@ -35,12 +40,12 @@ function assertFalseValue(string $label, bool $actual): void
     }
 }
 
-function assertThrowsSeoException(string $label, callable $callback): void
+function testPhase7DSpatieSchemaAdapterTestAssertThrowsSeoException(string $label, callable $callback): void
 {
     try {
         $callback();
     } catch (SeoExceptionInterface $exception) {
-        assertTrueValue($label . ' uses invalid argument exception', $exception instanceof SeoInvalidArgumentException);
+        testPhase7DSpatieSchemaAdapterTestAssertTrueValue($label . ' uses invalid argument exception', $exception instanceof SeoInvalidArgumentException);
         return;
     }
 
@@ -99,39 +104,39 @@ final class FakeListArraySchema
 $adapter = new SpatieSchemaAdapter();
 
 $arrayDto = $adapter->toJsonLdSchemaDTO(new FakeToArraySchema());
-assertTrueValue('toArray conversion returns JsonLdSchemaDTO', $arrayDto instanceof JsonLdSchemaDTO);
-assertSameValue('toArray schema maps to DTO', ['@type' => 'Article', 'headline' => 'Array schema'], $arrayDto->jsonSerialize());
-assertTrueValue('supports returns true for toArray schema', $adapter->supports(new FakeToArraySchema()));
+testPhase7DSpatieSchemaAdapterTestAssertTrueValue('toArray conversion returns JsonLdSchemaDTO', phpstanRuntimeInstanceOfPhase7DSpatieSchemaAdapterTest($arrayDto, JsonLdSchemaDTO::class));
+testPhase7DSpatieSchemaAdapterTestAssertSameValue('toArray schema maps to DTO', ['@type' => 'Article', 'headline' => 'Array schema'], $arrayDto->jsonSerialize());
+testPhase7DSpatieSchemaAdapterTestAssertTrueValue('supports returns true for toArray schema', $adapter->supports(new FakeToArraySchema()));
 
 $jsonSerializeDto = $adapter->toJsonLdSchemaDTO(new FakeJsonSerializeSchema());
-assertSameValue('jsonSerialize schema maps to DTO', ['@type' => 'Product', 'name' => 'Serialized schema'], $jsonSerializeDto->jsonSerialize());
-assertTrueValue('supports returns true for jsonSerialize schema', $adapter->supports(new FakeJsonSerializeSchema()));
+testPhase7DSpatieSchemaAdapterTestAssertSameValue('jsonSerialize schema maps to DTO', ['@type' => 'Product', 'name' => 'Serialized schema'], $jsonSerializeDto->jsonSerialize());
+testPhase7DSpatieSchemaAdapterTestAssertTrueValue('supports returns true for jsonSerialize schema', $adapter->supports(new FakeJsonSerializeSchema()));
 
 $scriptDto = $adapter->toJsonLdSchemaDTO(new FakeScriptSchema());
-assertSameValue('toScript schema maps to DTO', ['@type' => 'WebPage', 'name' => 'Script schema'], $scriptDto->jsonSerialize());
-assertTrueValue('supports returns true for toScript schema', $adapter->supports(new FakeScriptSchema()));
+testPhase7DSpatieSchemaAdapterTestAssertSameValue('toScript schema maps to DTO', ['@type' => 'WebPage', 'name' => 'Script schema'], $scriptDto->jsonSerialize());
+testPhase7DSpatieSchemaAdapterTestAssertTrueValue('supports returns true for toScript schema', $adapter->supports(new FakeScriptSchema()));
 
 $multipleSchemas = $adapter->toJsonLdSchemaDTOs([
     new FakeToArraySchema(),
     new FakeJsonSerializeSchema(),
     new FakeScriptSchema(),
 ]);
-assertSameValue('multiple schema conversion count', 3, count($multipleSchemas));
-assertSameValue('multiple schema conversion preserves order', ['@type' => 'Product', 'name' => 'Serialized schema'], $multipleSchemas[1]->jsonSerialize());
+testPhase7DSpatieSchemaAdapterTestAssertSameValue('multiple schema conversion count', 3, count($multipleSchemas));
+testPhase7DSpatieSchemaAdapterTestAssertSameValue('multiple schema conversion preserves order', ['@type' => 'Product', 'name' => 'Serialized schema'], $multipleSchemas[1]->jsonSerialize());
 
-assertFalseValue('supports returns false for invalid object', $adapter->supports(new FakeInvalidSchema()));
-assertFalseValue('supports returns false for empty array output', $adapter->supports(new FakeEmptyArraySchema()));
-assertFalseValue('supports returns false for list array output', $adapter->supports(new FakeListArraySchema()));
+testPhase7DSpatieSchemaAdapterTestAssertFalseValue('supports returns false for invalid object', $adapter->supports(new FakeInvalidSchema()));
+testPhase7DSpatieSchemaAdapterTestAssertFalseValue('supports returns false for empty array output', $adapter->supports(new FakeEmptyArraySchema()));
+testPhase7DSpatieSchemaAdapterTestAssertFalseValue('supports returns false for list array output', $adapter->supports(new FakeListArraySchema()));
 
-assertThrowsSeoException('invalid object throws module exception', static function () use ($adapter): void {
+testPhase7DSpatieSchemaAdapterTestAssertThrowsSeoException('invalid object throws module exception', static function () use ($adapter): void {
     $adapter->toJsonLdSchemaDTO(new FakeInvalidSchema());
 });
 
-assertThrowsSeoException('empty array output throws module exception', static function () use ($adapter): void {
+testPhase7DSpatieSchemaAdapterTestAssertThrowsSeoException('empty array output throws module exception', static function () use ($adapter): void {
     $adapter->toJsonLdSchemaDTO(new FakeEmptyArraySchema());
 });
 
-assertThrowsSeoException('list array output throws module exception', static function () use ($adapter): void {
+testPhase7DSpatieSchemaAdapterTestAssertThrowsSeoException('list array output throws module exception', static function () use ($adapter): void {
     $adapter->toJsonLdSchemaDTO(new FakeListArraySchema());
 });
 
@@ -140,7 +145,7 @@ $builderOutput = (new FluentSeoBuilder())
     ->spatieSchema(new FakeToArraySchema(), $adapter)
     ->render(new SeoHeadHtmlRenderer());
 
-assertSameValue(
+testPhase7DSpatieSchemaAdapterTestAssertSameValue(
     'FluentSeoBuilder spatieSchema renders adapter DTO',
     '<title>Spatie builder</title>' . "\n"
     . '<meta name="robots" content="index,follow">' . "\n"
@@ -153,7 +158,7 @@ $existingBuilderOutput = (new FluentSeoBuilder())
     ->schema(['@type' => 'Organization'])
     ->render(new SeoHeadHtmlRenderer());
 
-assertSameValue(
+testPhase7DSpatieSchemaAdapterTestAssertSameValue(
     'Existing Phase 7C schema behavior remains unchanged',
     '<title>Existing schema</title>' . "\n"
     . '<meta name="robots" content="index,follow">' . "\n"
@@ -161,7 +166,7 @@ assertSameValue(
     $existingBuilderOutput,
 );
 
-assertSameValue(
+testPhase7DSpatieSchemaAdapterTestAssertSameValue(
     'Existing Phase 7A renderer behavior remains unchanged',
     '<script type="application/ld+json">{"@type":"WebPage"}</script>',
     (new Maatify\Seo\Web\Render\JsonLdScriptRenderer())->render(new JsonLdSchemaDTO(['@type' => 'WebPage'])),

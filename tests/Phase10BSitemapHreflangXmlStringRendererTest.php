@@ -141,7 +141,7 @@ assertThrowsSeoException10B('invalid alternate entry shape throws module excepti
 
 assertTrueValue10B(
     'renderer returns XML string only',
-    is_string($renderer->renderUrlSet([$dtoUrl])) && str_starts_with($renderer->renderUrlSet([$dtoUrl]), $xmlHeader),
+    testRuntimeIsString($renderer->renderUrlSet([$dtoUrl])) && str_starts_with($renderer->renderUrlSet([$dtoUrl]), $xmlHeader),
 );
 
 echo "Phase 10B sitemap hreflang XML string renderer tests passed.\n";

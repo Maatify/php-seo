@@ -12,3 +12,8 @@ if (! is_file($autoloadPath)) {
 }
 
 require_once $autoloadPath;
+
+function testRuntimeIsString(mixed $value): bool
+{
+    return is_string($value);
+}

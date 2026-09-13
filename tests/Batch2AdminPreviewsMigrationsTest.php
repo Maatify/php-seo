@@ -17,8 +17,8 @@ use Maatify\Seo\Shared\DTO\SeoOverride\SeoOverrideDTO;
 use Maatify\Seo\Shared\DTO\SlugHistoryDTO;
 use Maatify\Seo\Web\Page\SeoPagePresetOutputDTO;
 
-$failures = 0;
-function ok(bool $value, string $message): void { global $failures; if (!$value) { $failures++; echo "FAIL: $message\n"; } }
+final class Batch2TestFailureCounter { public static int $count = 0; }
+function ok(bool $value, string $message): void { if (!$value) { Batch2TestFailureCounter::$count++; echo "FAIL: $message\n"; } }
 function same(mixed $expected, mixed $actual, string $message): void { ok($expected === $actual, $message); }
 
 echo "Running Batch 2 Admin Previews & Migrations Tests...\n\n";
@@ -57,8 +57,8 @@ $result = new SeoMetadataImportResultDTO(1, 2, 3, 4, ['err'], true);
 same(2, $result->toArray()['updated'], 'Import result DTO serializes updated count');
 
 $source = file_get_contents(__DIR__ . '/../src/Admin/Export/SeoMetadataExporter.php') . file_get_contents(__DIR__ . '/../src/Admin/Import/SeoMetadataImporter.php');
-ok(is_string($source) && !str_contains($source, 'Illuminate\\') && !str_contains($source, 'Symfony\\') && !str_contains($source, 'Response'), 'Admin migration helpers have no framework/HTTP coupling strings');
+ok(testRuntimeIsString($source) && !str_contains($source, 'Illuminate\\') && !str_contains($source, 'Symfony\\') && !str_contains($source, 'Response'), 'Admin migration helpers have no framework/HTTP coupling strings');
 
 echo "\n";
-if ($failures > 0) { echo "FAILED with $failures errors.\n"; exit(1); }
+if (Batch2TestFailureCounter::$count > 0) { echo "FAILED with " . Batch2TestFailureCounter::$count . " errors.\n"; exit(1); }
 echo "SUCCESS: All tests passed.\n"; exit(0);

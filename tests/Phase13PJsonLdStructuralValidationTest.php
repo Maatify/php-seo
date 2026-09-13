@@ -159,11 +159,15 @@ $generatedGraph = $generator->generateGraph([
     new GenericSchemaDTO('Product', ['name' => 'Generated product']),
     new GenericSchemaDTO('Article', ['headline' => 'Generated article']),
 ])->jsonSerialize();
+$generatedNodes = $generatedGraph['@graph'] ?? null;
 assertSameValue13P('generated graph wrapper context', 'https://schema.org', $generatedGraph['@context']);
 assertTrueValue13P('generated graph has no wrapper type requirement', !array_key_exists('@type', $generatedGraph));
-assertTrueValue13P('generated graph is a non-empty list', is_array($generatedGraph['@graph']) && $generatedGraph['@graph'] !== [] && array_is_list($generatedGraph['@graph']));
-assertSameValue13P('generated graph preserves node order', ['Product', 'Article'], array_column($generatedGraph['@graph'], '@type'));
-assertFalseValue13P('generated graph nodes omit nested contexts', array_key_exists('@context', $generatedGraph['@graph'][0]));
+assertTrueValue13P('generated graph is a non-empty list', is_array($generatedNodes) && $generatedNodes !== [] && array_is_list($generatedNodes));
+if (!is_array($generatedNodes) || !isset($generatedNodes[0]) || !is_array($generatedNodes[0])) {
+    throw new RuntimeException('Generated graph must contain an array node at index 0.');
+}
+assertSameValue13P('generated graph preserves node order', ['Product', 'Article'], array_column($generatedNodes, '@type'));
+assertFalseValue13P('generated graph nodes omit nested contexts', array_key_exists('@context', $generatedNodes[0]));
 assertNoStructuralIssues13P('SchemaGeneratorService graph output is valid', SeoMetaValidator::validate(validMeta13P($generatedGraph)));
 
 $graphInput = [

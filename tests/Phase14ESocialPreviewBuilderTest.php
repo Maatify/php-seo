@@ -14,13 +14,17 @@ use Maatify\Seo\Web\Social\OpenGraphBuilder;
 use Maatify\Seo\Web\Social\SocialPreviewBuilder;
 use Maatify\Seo\Web\Social\TwitterCardBuilder;
 
-$failures = 0;
-
-function assertSameValue(mixed $expected, mixed $actual, string $message): void
+function phase14EIsInstanceOf(mixed $value, string $class): bool
 {
-    global $failures;
+    return $value instanceof $class;
+}
+
+final class Phase14ETestFailureCounter { public static int $count = 0; }
+
+function testPhase14ESocialPreviewBuilderTestAssertSameValue(mixed $expected, mixed $actual, string $message): void
+{
     if ($expected !== $actual) {
-        $failures++;
+        Phase14ETestFailureCounter::$count++;
         echo "FAIL: $message\n";
         echo "  Expected: " . print_r($expected, true) . "\n";
         echo "  Actual:   " . print_r($actual, true) . "\n";
@@ -29,8 +33,8 @@ function assertSameValue(mixed $expected, mixed $actual, string $message): void
 
 // 1. Internal builder access tests
 $builder = new SocialPreviewBuilder();
-assertSameValue(true, $builder->openGraph() instanceof OpenGraphBuilder, 'openGraph() should return OpenGraphBuilder');
-assertSameValue(true, $builder->twitter() instanceof TwitterCardBuilder, 'twitter() should return TwitterCardBuilder');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, phase14EIsInstanceOf($builder->openGraph(), OpenGraphBuilder::class), 'openGraph() should return OpenGraphBuilder');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, phase14EIsInstanceOf($builder->twitter(), TwitterCardBuilder::class), 'twitter() should return TwitterCardBuilder');
 
 $builder->openGraph()->setType('article');
 $builder->twitter()->setPlayer('https://example.com/player');
@@ -46,8 +50,8 @@ foreach ($array as $tag) {
         $twitterPlayerFound = true;
     }
 }
-assertSameValue(true, $ogTypeFound, 'Advanced customization through openGraph() should apply');
-assertSameValue(true, $twitterPlayerFound, 'Advanced customization through twitter() should apply');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, $ogTypeFound, 'Advanced customization through openGraph() should apply');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, $twitterPlayerFound, 'Advanced customization through twitter() should apply');
 
 
 // 2. Shared setters
@@ -68,9 +72,9 @@ foreach ($array as $tag) {
     if ($tag['name'] === 'twitter:image' && $tag['content'] === 'https://example.com/image.jpg') $twImage = true;
 }
 
-assertSameValue(true, $ogTitle && $twTitle, 'setTitle() should apply to both OG and Twitter');
-assertSameValue(true, $ogDesc && $twDesc, 'setDescription() should apply to both OG and Twitter');
-assertSameValue(true, $ogImage && $twImage, 'setImage() should apply to both OG and Twitter');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, $ogTitle && $twTitle, 'setTitle() should apply to both OG and Twitter');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, $ogDesc && $twDesc, 'setDescription() should apply to both OG and Twitter');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, $ogImage && $twImage, 'setImage() should apply to both OG and Twitter');
 
 
 // 3. Open Graph-only setters
@@ -92,12 +96,12 @@ foreach ($array as $tag) {
     if ($tag['name'] === 'twitter:locale') $twLocale = true;
 }
 
-assertSameValue(true, $ogUrl, 'setUrl() applies to OG');
-assertSameValue(false, $twUrl, 'setUrl() does not apply to Twitter');
-assertSameValue(true, $ogSiteName, 'setSiteName() applies to OG');
-assertSameValue(false, $twSiteName, 'setSiteName() does not apply to Twitter');
-assertSameValue(true, $ogLocale, 'setLocale() applies to OG');
-assertSameValue(false, $twLocale, 'setLocale() does not apply to Twitter');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, $ogUrl, 'setUrl() applies to OG');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(false, $twUrl, 'setUrl() does not apply to Twitter');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, $ogSiteName, 'setSiteName() applies to OG');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(false, $twSiteName, 'setSiteName() does not apply to Twitter');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, $ogLocale, 'setLocale() applies to OG');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(false, $twLocale, 'setLocale() does not apply to Twitter');
 
 
 // 4. Twitter-only setters
@@ -120,12 +124,12 @@ foreach ($array as $tag) {
     if ($tag['name'] === 'og:creator') $ogCreator = true;
 }
 
-assertSameValue(true, $twCard, 'setTwitterCard() applies to Twitter');
-assertSameValue(false, $ogCard, 'setTwitterCard() does not apply to OG');
-assertSameValue(true, $twSite, 'setTwitterSite() applies to Twitter');
-assertSameValue(false, $ogSite, 'setTwitterSite() does not apply to OG');
-assertSameValue(true, $twCreator, 'setTwitterCreator() applies to Twitter');
-assertSameValue(false, $ogCreator, 'setTwitterCreator() does not apply to OG');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, $twCard, 'setTwitterCard() applies to Twitter');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(false, $ogCard, 'setTwitterCard() does not apply to OG');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, $twSite, 'setTwitterSite() applies to Twitter');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(false, $ogSite, 'setTwitterSite() does not apply to OG');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, $twCreator, 'setTwitterCreator() applies to Twitter');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(false, $ogCreator, 'setTwitterCreator() does not apply to OG');
 
 
 // 5. Output behavior
@@ -137,10 +141,10 @@ $builder->setDescription('Desc < > & "');
 
 // Collection and RenderOutput
 $collection = $builder->toCollection();
-assertSameValue('Maatify\Seo\Web\Social\SocialMetaCollection', get_class($collection), 'toCollection returns SocialMetaCollection');
+testPhase14ESocialPreviewBuilderTestAssertSameValue('Maatify\Seo\Web\Social\SocialMetaCollection', get_class($collection), 'toCollection returns SocialMetaCollection');
 
 $renderOutput = $builder->toRenderOutput();
-assertSameValue('Maatify\Seo\Web\Social\SocialMetaRenderOutput', get_class($renderOutput), 'toRenderOutput returns SocialMetaRenderOutput');
+testPhase14ESocialPreviewBuilderTestAssertSameValue('Maatify\Seo\Web\Social\SocialMetaRenderOutput', get_class($renderOutput), 'toRenderOutput returns SocialMetaRenderOutput');
 
 // Deduplication avoidance and order
 $array = $builder->toArray();
@@ -148,25 +152,25 @@ $array = $builder->toArray();
 $expectedNames = ['og:title', 'og:description', 'og:url', 'twitter:card', 'twitter:title', 'twitter:description'];
 $actualNames = array_column($array, 'name');
 
-assertSameValue($expectedNames, $actualNames, 'Open Graph tags should appear before Twitter tags and no deduplication across them');
+testPhase14ESocialPreviewBuilderTestAssertSameValue($expectedNames, $actualNames, 'Open Graph tags should appear before Twitter tags and no deduplication across them');
 
 // Output uses correct attributes
 foreach ($array as $tag) {
     if (str_starts_with($tag['name'], 'og:')) {
-        assertSameValue('property', $tag['attribute'], 'Open graph should use property attribute');
+        testPhase14ESocialPreviewBuilderTestAssertSameValue('property', $tag['attribute'], 'Open graph should use property attribute');
     }
     if (str_starts_with($tag['name'], 'twitter:')) {
-        assertSameValue('name', $tag['attribute'], 'Twitter should use name attribute');
+        testPhase14ESocialPreviewBuilderTestAssertSameValue('name', $tag['attribute'], 'Twitter should use name attribute');
     }
 }
 
 // HTML escaping is delegated
 $html = $builder->toHtml();
-assertSameValue(true, str_contains($html, 'Desc &lt; &gt; &amp; &quot;'), 'HTML escaping should work correctly in toHtml');
+testPhase14ESocialPreviewBuilderTestAssertSameValue(true, str_contains($html, 'Desc &lt; &gt; &amp; &quot;'), 'HTML escaping should work correctly in toHtml');
 
 
-if ($failures > 0) {
-    echo "\n$failures test(s) failed.\n";
+if (Phase14ETestFailureCounter::$count > 0) {
+    echo "\n" . Phase14ETestFailureCounter::$count . " test(s) failed.\n";
     exit(1);
 }
 

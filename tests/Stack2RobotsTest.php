@@ -17,6 +17,11 @@ use Maatify\Seo\Web\Validation\Profile\GoogleRobotsMetaValidator;
 use Maatify\Seo\Web\Validation\Profile\GoogleRobotsTxtValidator;
 use Maatify\Seo\Web\Validation\Profile\Rfc9309RobotsValidator;
 
+function stack2ReflectionTypeName(?ReflectionType $type): ?string
+{
+    return $type instanceof ReflectionNamedType ? $type->getName() : null;
+}
+
 function stack2AssertSame(string $label, mixed $expected, mixed $actual): void
 {
     if ($expected !== $actual) {
@@ -53,12 +58,12 @@ function stack2AssertValidatorSignature(string $label, string $class, string $in
 
     $parameters = $method->getParameters();
     stack2AssertSame($label . ' input parameter name', 'input', $parameters[0]->getName());
-    stack2AssertSame($label . ' input parameter type', $inputClass, $parameters[0]->getType()?->getName());
+    stack2AssertSame($label . ' input parameter type', $inputClass, stack2ReflectionTypeName($parameters[0]->getType()));
     stack2AssertSame($label . ' context parameter name', 'context', $parameters[1]->getName());
-    stack2AssertSame($label . ' context parameter type', 'Maatify\\Seo\\Web\\Validation\\DTO\\SeoValidationContextDTO', $parameters[1]->getType()?->getName());
+    stack2AssertSame($label . ' context parameter type', 'Maatify\\Seo\\Web\\Validation\\DTO\\SeoValidationContextDTO', stack2ReflectionTypeName($parameters[1]->getType()));
     stack2AssertTrue($label . ' context default is available', $parameters[1]->isDefaultValueAvailable());
     stack2AssertSame($label . ' context default', null, $parameters[1]->getDefaultValue());
-    stack2AssertSame($label . ' return type', 'Maatify\\Seo\\Web\\Validation\\DTO\\SeoCompanionValidationResultDTO', $method->getReturnType()?->getName());
+    stack2AssertSame($label . ' return type', 'Maatify\\Seo\\Web\\Validation\\DTO\\SeoCompanionValidationResultDTO', stack2ReflectionTypeName($method->getReturnType()));
 }
 
 /** @param list<array{code: string, severity: string, field: string, origin: string, profile: string, evidence_state: string|null, target: array{scope: string, entry_index: int|null, item_index: int|null, line: int|null}}> $expected */

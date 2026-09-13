@@ -15,7 +15,7 @@ use Maatify\Seo\Shared\DTO\SeoOverride\SeoOverrideDTO;
 use Maatify\Seo\Shared\Service\MetaGeneratorService;
 use Maatify\Seo\Shared\Service\SeoOverrideQueryService;
 
-$phase24CompletedCases = 0;
+final class Phase24ContractCaseCounter { public static int $count = 0; }
 
 function phase24Fail(string $label, string $details = ''): never
 {
@@ -46,15 +46,13 @@ function phase24CaptureException(string $label, callable $callback): \Throwable
 
 function phase24RunCase(string $label, callable $callback): void
 {
-    global $phase24CompletedCases;
-
     try {
         $callback();
     } catch (\Throwable $exception) {
         phase24Fail($label, get_class($exception) . ': ' . $exception->getMessage());
     }
 
-    ++$phase24CompletedCases;
+    ++Phase24ContractCaseCounter::$count;
 }
 
 function phase24Command(
@@ -394,5 +392,5 @@ phase24RunCase('22 MetaTagsDTO constructor order and serialized keys remain publ
     ], array_keys($meta->jsonSerialize()));
 });
 
-phase24AssertSame('exact contract case count', 22, $phase24CompletedCases);
+phase24AssertSame('exact contract case count', 22, Phase24ContractCaseCounter::$count);
 fwrite(STDOUT, "Phase 24 MetaGeneratorService contract tests passed (22 cases).\n");

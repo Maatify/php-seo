@@ -183,7 +183,7 @@ assertSameValue10C(
 
 assertTrueValue10C(
     'renderer returns XML string only',
-    is_string($renderer->renderUrlSet([$dtoUrl])) && str_starts_with($renderer->renderUrlSet([$dtoUrl]), $xmlHeader),
+    testRuntimeIsString($renderer->renderUrlSet([$dtoUrl])) && str_starts_with($renderer->renderUrlSet([$dtoUrl]), $xmlHeader),
 );
 
 echo "Phase 10C image sitemap XML string renderer tests passed.\n";

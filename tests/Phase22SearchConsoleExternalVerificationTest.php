@@ -37,7 +37,39 @@ function assertFalseValue22(string $label, bool $actual): void
     }
 }
 
-/** @return array<string, mixed> */
+function assertNotInstanceOf22(string $class, mixed $actual, string $label): void
+{
+    assertTrueValue22($label, !$actual instanceof $class);
+}
+
+/**
+ * @return array{
+ *     inspectionResult: array{
+ *         inspectionResultLink: string,
+ *         indexStatusResult: array{
+ *             verdict: string,
+ *             coverageState: string,
+ *             robotsTxtState: string,
+ *             indexingState: string,
+ *             lastCrawlTime: string,
+ *             pageFetchState: string,
+ *             googleCanonical: string,
+ *             userCanonical: string,
+ *             crawledAs: string
+ *         },
+ *         richResultsResult: array{
+ *             verdict: string,
+ *             detectedItems: list<array{
+ *                 richResultType: string,
+ *                 items: list<array{
+ *                     name: ?string,
+ *                     issues: list<array{issueMessage: string, severity: string}>
+ *                 }>
+ *             }>
+ *         }
+ *     }
+ * }
+ */
 function phase22BaseResponse(): array
 {
     return [
@@ -140,7 +172,6 @@ foreach ([
     assertSameValue22('valid site property reaches transport', 1, $validSiteTransport->calls);
 }
 
-/** @var array<string, mixed> $errorBody */
 $errorBody = phase22BaseResponse();
 $errorBody['inspectionResult']['richResultsResult']['verdict'] = 'ERROR';
 $errorBody['inspectionResult']['richResultsResult']['detectedItems'][0]['items'][0]['issues'] = [
@@ -150,7 +181,6 @@ $errorResult = (new SearchConsoleInspectionService(phase22Service($errorBody), n
 assertSameValue22('rich-result error verdict', 'ERROR', $errorResult->richResultsResult?->verdict);
 assertSameValue22('rich-result error severity', 'ERROR', $errorResult->richResultsResult?->detectedItems[0]->items[0]->issues[0]->severity);
 
-/** @var array<string, mixed> $warningBody */
 $warningBody = phase22BaseResponse();
 $warningBody['inspectionResult']['richResultsResult']['verdict'] = 'WARNING';
 $warningBody['inspectionResult']['richResultsResult']['detectedItems'][0]['items'][0]['issues'] = [
@@ -160,7 +190,6 @@ $warningResult = (new SearchConsoleInspectionService(phase22Service($warningBody
 assertSameValue22('rich-result warning verdict', 'WARNING', $warningResult->richResultsResult?->verdict);
 assertSameValue22('rich-result warning severity', 'WARNING', $warningResult->richResultsResult?->detectedItems[0]->items[0]->issues[0]->severity);
 
-/** @var array<string, mixed> $multipleBody */
 $multipleBody = phase22BaseResponse();
 $multipleBody['inspectionResult']['richResultsResult']['detectedItems'][] = [
     'richResultType' => 'Breadcrumbs',
@@ -170,10 +199,9 @@ $multipleBody['inspectionResult']['richResultsResult']['detectedItems'][] = [
     ],
 ];
 $multipleResult = (new SearchConsoleInspectionService(phase22Service($multipleBody), new SearchConsoleResponseMapper()))->inspect($request);
-assertSameValue22('multiple rich-result types', 2, count($multipleResult->richResultsResult?->detectedItems ?? []));
+assertSameValue22('multiple rich-result types', 2, count($multipleResult->richResultsResult->detectedItems ?? []));
 assertSameValue22('multiple items', 2, count($multipleResult->richResultsResult?->detectedItems[1]->items ?? []));
 
-/** @var array<string, mixed> $withoutRichResults */
 $withoutRichResults = phase22BaseResponse();
 unset($withoutRichResults['inspectionResult']['richResultsResult']);
 $withoutRichResult = (new SearchConsoleInspectionService(phase22Service($withoutRichResults), new SearchConsoleResponseMapper()))->inspect($request);
@@ -188,7 +216,6 @@ assertSameValue22('google canonical', 'https://example.com/articles/search-conso
 assertSameValue22('user canonical', 'https://example.com/articles/search-console', $result->indexStatusResult->userCanonical);
 assertSameValue22('crawled as', 'MOBILE', $result->indexStatusResult->crawledAs);
 
-/** @var array<string, mixed> $optionalBody */
 $optionalBody = phase22BaseResponse();
 unset(
     $optionalBody['inspectionResult']['inspectionResultLink'],
@@ -202,7 +229,6 @@ assertSameValue22('optional coverage state', null, $optionalResult->indexStatusR
 assertSameValue22('optional crawl time', null, $optionalResult->indexStatusResult->lastCrawlTime);
 assertSameValue22('optional google canonical', null, $optionalResult->indexStatusResult->googleCanonical);
 
-/** @var array<string, mixed> $unknownBody */
 $unknownBody = phase22BaseResponse();
 $unknownBody['inspectionResult']['indexStatusResult']['verdict'] = 'FUTURE_VERDICT';
 $unknownBody['inspectionResult']['indexStatusResult']['robotsTxtState'] = 'FUTURE_ROBOTS_STATE';
@@ -290,9 +316,10 @@ assertSameValue22(
     [SearchConsoleTransportInterface::class, SearchConsoleResponseMapper::class],
     $constructorTypes,
 );
-assertFalseValue22(
+assertNotInstanceOf22(
+    \Maatify\Seo\Web\Validation\DTO\SeoValidationResultDTO::class,
+    $result,
     'external result is not the core validation DTO',
-    $result instanceof \Maatify\Seo\Web\Validation\DTO\SeoValidationResultDTO,
 );
 
 echo "Phase 22 Search Console external verification tests passed.\n";

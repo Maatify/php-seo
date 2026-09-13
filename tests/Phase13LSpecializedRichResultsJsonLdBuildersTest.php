@@ -9,29 +9,30 @@ use Maatify\Seo\Web\JsonLd\Builder\JobPostingJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\CourseJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\SoftwareApplicationJsonLdBuilder;
 
-function recursiveKsort(array &$array): void
+/** @param array<array-key, mixed> $array */
+function testPhase13LSpecializedRichResultsJsonLdBuildersTestRecursiveKsort(array &$array): void
 {
     foreach ($array as &$value) {
         if (is_array($value)) {
-            recursiveKsort($value);
+            testPhase13LSpecializedRichResultsJsonLdBuildersTestRecursiveKsort($value);
         }
     }
     ksort($array);
 }
 
-function assertSameValue(mixed $expected, mixed $actual, string $message): void
+function testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(mixed $expected, mixed $actual, string $message): void
 {
     $expectedSorted = $expected;
     $actualSorted = $actual;
 
     if (is_array($expectedSorted) && is_array($actualSorted)) {
-        recursiveKsort($expectedSorted);
-        recursiveKsort($actualSorted);
+        testPhase13LSpecializedRichResultsJsonLdBuildersTestRecursiveKsort($expectedSorted);
+        testPhase13LSpecializedRichResultsJsonLdBuildersTestRecursiveKsort($actualSorted);
     }
 
     if ($expectedSorted !== $actualSorted) {
-        $expectedStr = is_array($expectedSorted) ? json_encode($expectedSorted) : (string)$expectedSorted;
-        $actualStr = is_array($actualSorted) ? json_encode($actualSorted) : (string)$actualSorted;
+        $expectedStr = var_export($expectedSorted, true);
+        $actualStr = var_export($actualSorted, true);
         throw new \RuntimeException("$message\nExpected: $expectedStr\nActual: $actualStr");
     }
 }
@@ -63,26 +64,26 @@ $recipe->setName('Pancakes')
 
 $recipeOutput = $recipe->toArray();
 
-assertSameValue('Recipe', $recipeOutput['@type'] ?? null, 'Recipe @type');
-assertSameValue('Pancakes', $recipeOutput['name'] ?? null, 'Recipe name');
-assertSameValue('Delicious pancakes', $recipeOutput['description'] ?? null, 'Recipe description');
-assertSameValue('pancakes.jpg', $recipeOutput['image'] ?? null, 'Recipe image');
-assertSameValue(['@type' => 'Person', 'name' => 'John Doe'], $recipeOutput['author'] ?? null, 'Recipe author normalized');
-assertSameValue('2023-01-01', $recipeOutput['datePublished'] ?? null, 'Recipe datePublished');
-assertSameValue('PT15M', $recipeOutput['prepTime'] ?? null, 'Recipe prepTime');
-assertSameValue('PT10M', $recipeOutput['cookTime'] ?? null, 'Recipe cookTime');
-assertSameValue('PT25M', $recipeOutput['totalTime'] ?? null, 'Recipe totalTime');
-assertSameValue('4 servings', $recipeOutput['recipeYield'] ?? null, 'Recipe recipeYield');
-assertSameValue('Breakfast', $recipeOutput['recipeCategory'] ?? null, 'Recipe recipeCategory');
-assertSameValue('American', $recipeOutput['recipeCuisine'] ?? null, 'Recipe recipeCuisine');
-assertSameValue(['Flour', 'Milk', 'Eggs'], $recipeOutput['recipeIngredient'] ?? null, 'Recipe ingredients');
-assertSameValue([
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Recipe', $recipeOutput['@type'] ?? null, 'Recipe @type');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Pancakes', $recipeOutput['name'] ?? null, 'Recipe name');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Delicious pancakes', $recipeOutput['description'] ?? null, 'Recipe description');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('pancakes.jpg', $recipeOutput['image'] ?? null, 'Recipe image');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['@type' => 'Person', 'name' => 'John Doe'], $recipeOutput['author'] ?? null, 'Recipe author normalized');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('2023-01-01', $recipeOutput['datePublished'] ?? null, 'Recipe datePublished');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('PT15M', $recipeOutput['prepTime'] ?? null, 'Recipe prepTime');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('PT10M', $recipeOutput['cookTime'] ?? null, 'Recipe cookTime');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('PT25M', $recipeOutput['totalTime'] ?? null, 'Recipe totalTime');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('4 servings', $recipeOutput['recipeYield'] ?? null, 'Recipe recipeYield');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Breakfast', $recipeOutput['recipeCategory'] ?? null, 'Recipe recipeCategory');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('American', $recipeOutput['recipeCuisine'] ?? null, 'Recipe recipeCuisine');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['Flour', 'Milk', 'Eggs'], $recipeOutput['recipeIngredient'] ?? null, 'Recipe ingredients');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue([
     ['@type' => 'HowToStep', 'text' => 'Mix ingredients'],
     ['@type' => 'HowToStep', 'text' => 'Cook on pan'],
     ['@type' => 'HowToStep', 'text' => 'Serve hot']
 ], $recipeOutput['recipeInstructions'] ?? null, 'Recipe instructions normalized');
-assertSameValue(['calories' => '250 calories', '@type' => 'NutritionInformation'], $recipeOutput['nutrition'] ?? null, 'Recipe nutrition normalized');
-assertSameValue(['ratingValue' => '5', '@type' => 'AggregateRating'], $recipeOutput['aggregateRating'] ?? null, 'Recipe aggregateRating normalized');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['calories' => '250 calories', '@type' => 'NutritionInformation'], $recipeOutput['nutrition'] ?? null, 'Recipe nutrition normalized');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['ratingValue' => '5', '@type' => 'AggregateRating'], $recipeOutput['aggregateRating'] ?? null, 'Recipe aggregateRating normalized');
 
 // 2. JobPostingJsonLdBuilder
 $jobPosting = new JobPostingJsonLdBuilder();
@@ -100,18 +101,18 @@ $jobPosting->setTitle('Software Engineer')
 
 $jobPostingOutput = $jobPosting->toArray();
 
-assertSameValue('JobPosting', $jobPostingOutput['@type'] ?? null, 'JobPosting @type');
-assertSameValue('Software Engineer', $jobPostingOutput['title'] ?? null, 'JobPosting title');
-assertSameValue('Develop cool stuff', $jobPostingOutput['description'] ?? null, 'JobPosting description');
-assertSameValue('2023-01-01', $jobPostingOutput['datePosted'] ?? null, 'JobPosting datePosted');
-assertSameValue('2024-01-01', $jobPostingOutput['validThrough'] ?? null, 'JobPosting validThrough');
-assertSameValue('FULL_TIME', $jobPostingOutput['employmentType'] ?? null, 'JobPosting employmentType');
-assertSameValue(['@type' => 'Organization', 'name' => 'Tech Corp'], $jobPostingOutput['hiringOrganization'] ?? null, 'JobPosting hiringOrganization normalized');
-assertSameValue(['@type' => 'Place', 'name' => 'New York'], $jobPostingOutput['jobLocation'] ?? null, 'JobPosting jobLocation normalized');
-assertSameValue(['currency' => 'USD', 'value' => ['@type' => 'QuantitativeValue', 'value' => 100000], '@type' => 'MonetaryAmount'], $jobPostingOutput['baseSalary'] ?? null, 'JobPosting baseSalary normalized');
-assertSameValue(['@type' => 'Country', 'name' => 'US'], $jobPostingOutput['applicantLocationRequirements'] ?? null, 'JobPosting applicantLocationRequirements normalized');
-assertSameValue('TELECOMMUTE', $jobPostingOutput['jobLocationType'] ?? null, 'JobPosting jobLocationType');
-assertSameValue(true, $jobPostingOutput['directApply'] ?? null, 'JobPosting directApply');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('JobPosting', $jobPostingOutput['@type'] ?? null, 'JobPosting @type');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Software Engineer', $jobPostingOutput['title'] ?? null, 'JobPosting title');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Develop cool stuff', $jobPostingOutput['description'] ?? null, 'JobPosting description');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('2023-01-01', $jobPostingOutput['datePosted'] ?? null, 'JobPosting datePosted');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('2024-01-01', $jobPostingOutput['validThrough'] ?? null, 'JobPosting validThrough');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('FULL_TIME', $jobPostingOutput['employmentType'] ?? null, 'JobPosting employmentType');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['@type' => 'Organization', 'name' => 'Tech Corp'], $jobPostingOutput['hiringOrganization'] ?? null, 'JobPosting hiringOrganization normalized');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['@type' => 'Place', 'name' => 'New York'], $jobPostingOutput['jobLocation'] ?? null, 'JobPosting jobLocation normalized');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['currency' => 'USD', 'value' => ['@type' => 'QuantitativeValue', 'value' => 100000], '@type' => 'MonetaryAmount'], $jobPostingOutput['baseSalary'] ?? null, 'JobPosting baseSalary normalized');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['@type' => 'Country', 'name' => 'US'], $jobPostingOutput['applicantLocationRequirements'] ?? null, 'JobPosting applicantLocationRequirements normalized');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('TELECOMMUTE', $jobPostingOutput['jobLocationType'] ?? null, 'JobPosting jobLocationType');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(true, $jobPostingOutput['directApply'] ?? null, 'JobPosting directApply');
 
 // 3. CourseJsonLdBuilder
 $course = new CourseJsonLdBuilder();
@@ -127,18 +128,18 @@ $course->setName('Intro to PHP')
 
 $courseOutput = $course->toArray();
 
-assertSameValue('Course', $courseOutput['@type'] ?? null, 'Course @type');
-assertSameValue('Intro to PHP', $courseOutput['name'] ?? null, 'Course name');
-assertSameValue('Learn PHP basics', $courseOutput['description'] ?? null, 'Course description');
-assertSameValue(['@type' => 'Organization', 'name' => 'University'], $courseOutput['provider'] ?? null, 'Course provider normalized');
-assertSameValue('CS101', $courseOutput['courseCode'] ?? null, 'Course courseCode');
-assertSameValue('Certificate', $courseOutput['educationalCredentialAwarded'] ?? null, 'Course credential');
-assertSameValue([
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Course', $courseOutput['@type'] ?? null, 'Course @type');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Intro to PHP', $courseOutput['name'] ?? null, 'Course name');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Learn PHP basics', $courseOutput['description'] ?? null, 'Course description');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['@type' => 'Organization', 'name' => 'University'], $courseOutput['provider'] ?? null, 'Course provider normalized');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('CS101', $courseOutput['courseCode'] ?? null, 'Course courseCode');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Certificate', $courseOutput['educationalCredentialAwarded'] ?? null, 'Course credential');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue([
     ['courseMode' => 'online', '@type' => 'CourseInstance'],
     ['courseMode' => 'onsite', '@type' => 'CourseInstance']
 ], $courseOutput['hasCourseInstance'] ?? null, 'Course instances normalized');
-assertSameValue([['@type' => 'Offer', 'price' => '100.00']], $courseOutput['offers'] ?? null, 'Course offers');
-assertSameValue(['ratingValue' => '4.5', '@type' => 'AggregateRating'], $courseOutput['aggregateRating'] ?? null, 'Course aggregateRating normalized');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue([['@type' => 'Offer', 'price' => '100.00']], $courseOutput['offers'] ?? null, 'Course offers');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['ratingValue' => '4.5', '@type' => 'AggregateRating'], $courseOutput['aggregateRating'] ?? null, 'Course aggregateRating normalized');
 
 // 4. SoftwareApplicationJsonLdBuilder
 $software = new SoftwareApplicationJsonLdBuilder();
@@ -156,17 +157,17 @@ $software->setName('My App')
 
 $softwareOutput = $software->toArray();
 
-assertSameValue('SoftwareApplication', $softwareOutput['@type'] ?? null, 'SoftwareApplication @type');
-assertSameValue('My App', $softwareOutput['name'] ?? null, 'SoftwareApplication name');
-assertSameValue('Best app ever', $softwareOutput['description'] ?? null, 'SoftwareApplication description');
-assertSameValue('UtilitiesApplication', $softwareOutput['applicationCategory'] ?? null, 'SoftwareApplication category');
-assertSameValue('Android', $softwareOutput['operatingSystem'] ?? null, 'SoftwareApplication os');
-assertSameValue('1.0', $softwareOutput['softwareVersion'] ?? null, 'SoftwareApplication version');
-assertSameValue([['@type' => 'Offer', 'price' => '0']], $softwareOutput['offers'] ?? null, 'SoftwareApplication offers');
-assertSameValue(['ratingValue' => '4.8', '@type' => 'AggregateRating'], $softwareOutput['aggregateRating'] ?? null, 'SoftwareApplication aggregateRating');
-assertSameValue(['@type' => 'Person', 'name' => 'App Dev'], $softwareOutput['author'] ?? null, 'SoftwareApplication author normalized');
-assertSameValue(['@type' => 'Organization', 'name' => 'App Studio'], $softwareOutput['publisher'] ?? null, 'SoftwareApplication publisher normalized');
-assertSameValue('https://example.com/download', $softwareOutput['downloadUrl'] ?? null, 'SoftwareApplication downloadUrl');
-assertSameValue('screenshot.jpg', $softwareOutput['screenshot'] ?? null, 'SoftwareApplication screenshot');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('SoftwareApplication', $softwareOutput['@type'] ?? null, 'SoftwareApplication @type');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('My App', $softwareOutput['name'] ?? null, 'SoftwareApplication name');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Best app ever', $softwareOutput['description'] ?? null, 'SoftwareApplication description');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('UtilitiesApplication', $softwareOutput['applicationCategory'] ?? null, 'SoftwareApplication category');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('Android', $softwareOutput['operatingSystem'] ?? null, 'SoftwareApplication os');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('1.0', $softwareOutput['softwareVersion'] ?? null, 'SoftwareApplication version');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue([['@type' => 'Offer', 'price' => '0']], $softwareOutput['offers'] ?? null, 'SoftwareApplication offers');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['ratingValue' => '4.8', '@type' => 'AggregateRating'], $softwareOutput['aggregateRating'] ?? null, 'SoftwareApplication aggregateRating');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['@type' => 'Person', 'name' => 'App Dev'], $softwareOutput['author'] ?? null, 'SoftwareApplication author normalized');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue(['@type' => 'Organization', 'name' => 'App Studio'], $softwareOutput['publisher'] ?? null, 'SoftwareApplication publisher normalized');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('https://example.com/download', $softwareOutput['downloadUrl'] ?? null, 'SoftwareApplication downloadUrl');
+testPhase13LSpecializedRichResultsJsonLdBuildersTestAssertSameValue('screenshot.jpg', $softwareOutput['screenshot'] ?? null, 'SoftwareApplication screenshot');
 
 echo "All Phase 13L Specialized Rich Results tests passed!\n";

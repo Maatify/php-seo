@@ -3,59 +3,196 @@ name: CI
 on:
   push:
     branches:
-      - '**'
+      - main
   pull_request:
     branches:
-      - '**'
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build-and-test:
+  quality:
+    name: Quality
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
 
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.2'
+          extensions: xmlwriter
+          tools: composer:v2
+          coverage: none
+
+      - name: Validate and resolve current dependencies
+        run: |
+          set -euo pipefail
+          composer validate --strict
+          composer update --no-interaction --prefer-dist --no-progress
+          composer check-platform-reqs
+          composer audit --no-interaction --abandoned=fail
+
+      - name: Check PHP syntax
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file"
+          done < <(find src tests examples -type f -name '*.php' -print0 | sort -z)
+
+      - name: Check changed-range whitespace
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          PUSH_AFTER_SHA: ${{ github.event.after }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            if [[ -z "$PR_BASE_SHA" || -z "$PR_HEAD_SHA" ]]; then
+              echo "Pull request base/head SHA is unavailable; whitespace verification cannot run." >&2
+              exit 1
+            fi
+            git cat-file -e "${PR_BASE_SHA}^{commit}"
+            git cat-file -e "${PR_HEAD_SHA}^{commit}"
+            git diff --check "${PR_BASE_SHA}...${PR_HEAD_SHA}"
+          elif [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            if [[ -z "$PUSH_BEFORE_SHA" || -z "$PUSH_AFTER_SHA" || "$PUSH_BEFORE_SHA" =~ ^0+$ ]]; then
+              echo "Push before/after SHA does not describe a verifiable commit range." >&2
+              exit 1
+            fi
+            git cat-file -e "${PUSH_BEFORE_SHA}^{commit}"
+            git cat-file -e "${PUSH_AFTER_SHA}^{commit}"
+            git diff --check "$PUSH_BEFORE_SHA" "$PUSH_AFTER_SHA"
+          else
+            echo "Unsupported event for changed-range whitespace verification: $GITHUB_EVENT_NAME" >&2
+            exit 1
+          fi
+
+      - name: Analyze source and tests with PHPStan
+        run: |
+          set -euo pipefail
+          vendor/bin/phpstan analyse
+
+  test-matrix:
+    name: Standalone tests (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.2', '8.3', '8.4']
-
+        php-version: ['8.2', '8.3', '8.4', '8.5']
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
           php-version: ${{ matrix.php-version }}
           extensions: xmlwriter
+          tools: composer:v2
           coverage: none
 
-      - name: Validate composer.json
-        run: composer validate --strict
-
-      - name: Install Dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction
-
-      - name: Run PHP syntax checks
+      - name: Resolve dependencies and run maintained standalone suite
         run: |
-          while IFS= read -r -d '' file; do
-            if ! php -l "$file"; then
-              echo "PHP syntax check failed: $file" >&2
-              exit 1
-            fi
-          done < <(find src tests examples -type f -name '*.php' -print0 | sort -z)
+          set -euo pipefail
+          composer update --no-interaction --prefer-dist --no-progress
+          composer check-platform-reqs
+          composer audit --no-interaction --abandoned=fail
+          find tests -name '*Test.php' -print0 | sort -z | xargs -0 -n1 php
 
-      - name: Run PHPStan
-        run: vendor/bin/phpstan analyse
+  lowest-dependencies:
+    name: Lowest dependencies (PHP 8.2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
-      - name: Run structured-data validation gate
-        run: php tests/Phase21StructuredDataCiValidationTest.php
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.2'
+          extensions: xmlwriter
+          tools: composer:v2
+          coverage: none
 
-      - name: Run PHPUnit if available
+      - name: Resolve lowest supported dependencies
         run: |
-          if [ -x "vendor/bin/phpunit" ]; then
-            vendor/bin/phpunit
-          else
-            echo "phpunit is not installed or not executable, skipping."
+          set -euo pipefail
+          composer update \
+            --prefer-lowest \
+            --prefer-stable \
+            --no-interaction \
+            --prefer-dist \
+            --no-progress
+          composer check-platform-reqs
+          composer audit --no-interaction --abandoned=fail
+          vendor/bin/phpstan analyse
+          find tests -name '*Test.php' -print0 | sort -z | xargs -0 -n1 php
+
+  workflow-lint:
+    name: Workflow lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Lint GitHub workflows
+        run: bash scripts/ci/actionlint.sh
+
+  ci-gate:
+    name: CI Gate
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - quality
+      - test-matrix
+      - lowest-dependencies
+      - workflow-lint
+    timeout-minutes: 5
+    steps:
+      - name: Require every CI job to succeed
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          TEST_MATRIX_RESULT: ${{ needs.test-matrix.result }}
+          LOWEST_DEPENDENCIES_RESULT: ${{ needs.lowest-dependencies.result }}
+          WORKFLOW_LINT_RESULT: ${{ needs.workflow-lint.result }}
+        run: |
+          set -euo pipefail
+          if [[ "$QUALITY_RESULT" != "success" ]]; then
+            echo "quality result was $QUALITY_RESULT" >&2
+            exit 1
           fi
-
-      - name: Run Maatify standalone tests
-        run: find tests -name '*Test.php' -print0 | xargs -0 -n1 php
+          if [[ "$TEST_MATRIX_RESULT" != "success" ]]; then
+            echo "test-matrix result was $TEST_MATRIX_RESULT" >&2
+            exit 1
+          fi
+          if [[ "$LOWEST_DEPENDENCIES_RESULT" != "success" ]]; then
+            echo "lowest-dependencies result was $LOWEST_DEPENDENCIES_RESULT" >&2
+            exit 1
+          fi
+          if [[ "$WORKFLOW_LINT_RESULT" != "success" ]]; then
+            echo "workflow-lint result was $WORKFLOW_LINT_RESULT" >&2
+            exit 1
+          fi

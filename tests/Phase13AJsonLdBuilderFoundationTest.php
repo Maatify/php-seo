@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase13AJsonLdBuilderFoundationTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
+
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -34,7 +39,7 @@ function assertThrowsJsonLdBuildException13A(string $label, callable $callback):
     try {
         $callback();
     } catch (JsonLdBuildException $exception) {
-        assertTrueValue13A($label . ' implements module exception interface', $exception instanceof SeoExceptionInterface);
+        assertTrueValue13A($label . ' implements module exception interface', phpstanRuntimeInstanceOfPhase13AJsonLdBuilderFoundationTest($exception, SeoExceptionInterface::class));
         return;
     }
 
@@ -44,7 +49,7 @@ function assertThrowsJsonLdBuildException13A(string $label, callable $callback):
 
 $builder = new Phase13ATestBuilder(['@context' => 'https://schema.org']);
 
-assertTrueValue13A('builder implements interface', $builder instanceof JsonLdBuilderInterface);
+assertTrueValue13A('builder implements interface', phpstanRuntimeInstanceOfPhase13AJsonLdBuilderFoundationTest($builder, JsonLdBuilderInterface::class));
 assertSameValue13A('constructor seeds schema', ['@context' => 'https://schema.org'], $builder->toArray());
 assertSameValue13A('set is fluent', $builder, $builder->set('@type', 'Thing'));
 assertTrueValue13A('has detects null values after set', $builder->set('name', null)->has('name'));

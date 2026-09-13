@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase13CArticleJsonLdBuilderTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
+
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -24,7 +29,7 @@ function assertTrueValue13C(string $label, bool $actual): void
 }
 
 $builder = new ArticleJsonLdBuilder();
-assertTrueValue13C('article builder implements builder interface', $builder instanceof JsonLdBuilderInterface);
+assertTrueValue13C('article builder implements builder interface', phpstanRuntimeInstanceOfPhase13CArticleJsonLdBuilderTest($builder, JsonLdBuilderInterface::class));
 assertSameValue13C('article builder seeds schema.org article defaults', [
     '@context' => 'https://schema.org',
     '@type' => 'Article',

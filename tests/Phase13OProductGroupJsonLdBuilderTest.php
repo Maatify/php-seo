@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase13OProductGroupJsonLdBuilderTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
+
 
 require_once __DIR__ . '/bootstrap.php';
 
@@ -26,7 +31,7 @@ function assertTrueValue13OProductGroup(string $label, bool $actual): void
 }
 
 $constructor = new ProductGroupJsonLdBuilder();
-assertTrueValue13OProductGroup('product group implements builder interface', $constructor instanceof JsonLdBuilderInterface);
+assertTrueValue13OProductGroup('product group implements builder interface', phpstanRuntimeInstanceOfPhase13OProductGroupJsonLdBuilderTest($constructor, JsonLdBuilderInterface::class));
 assertSameValue13OProductGroup('product group constructor seeds schema.org defaults', [
     '@context' => 'https://schema.org',
     '@type' => 'ProductGroup',

@@ -9,6 +9,39 @@ use Maatify\Seo\Web\Validation\SeoMetaValidator;
 use Maatify\Seo\Web\Validation\SeoValidationReportBuilder;
 use Maatify\Seo\Web\Validation\SeoValidationReportExporter;
 
+/** @return array<string, mixed> */
+function phase21StringKeyedArray(mixed $value): array
+{
+    if (!is_array($value)) {
+        throw new RuntimeException('Expected JSON object array.');
+    }
+
+    $array = [];
+    foreach ($value as $key => $item) {
+        if (!is_string($key)) {
+            throw new RuntimeException('Expected string keys in JSON object array.');
+        }
+
+        $array[$key] = $item;
+    }
+
+    return $array;
+}
+
+/**
+ * @param array<string, mixed> $data
+ * @return array<array-key, mixed>
+ */
+function phase21ArrayField(array $data, string $key): array
+{
+    $value = $data[$key] ?? null;
+    if (!is_array($value)) {
+        throw new RuntimeException("Expected array field {$key}.");
+    }
+
+    return $value;
+}
+
 function assertSameValue21StructuredData(string $label, mixed $expected, mixed $actual): void
 {
     if ($expected !== $actual) {
@@ -245,9 +278,12 @@ $report = SeoValidationReportBuilder::build(validMeta21StructuredData([
     '@type' => 'Product',
     'name' => 123,
 ]));
-$reportJson = json_decode(SeoValidationReportExporter::toJson($report), true);
-assertTrueValue21StructuredData('existing report JSON is an array', is_array($reportJson));
-assertSameValue21StructuredData('report JSON preserves issue code', 'json_ld_invalid_property', $reportJson['errors'][0]['code'] ?? null);
-assertSameValue21StructuredData('report JSON preserves field path', 'jsonLd.name', $reportJson['errors'][0]['field'] ?? null);
+$decodedReportJson = json_decode(SeoValidationReportExporter::toJson($report), true);
+assertTrueValue21StructuredData('existing report JSON is an array', is_array($decodedReportJson));
+$reportJson = phase21StringKeyedArray($decodedReportJson);
+$reportErrors = phase21ArrayField($reportJson, 'errors');
+$reportFirstError = phase21StringKeyedArray($reportErrors[0] ?? null);
+assertSameValue21StructuredData('report JSON preserves issue code', 'json_ld_invalid_property', $reportFirstError['code'] ?? null);
+assertSameValue21StructuredData('report JSON preserves field path', 'jsonLd.name', $reportFirstError['field'] ?? null);
 
 echo "Phase 21 WU2 structured-data validation gate passed.\n";
