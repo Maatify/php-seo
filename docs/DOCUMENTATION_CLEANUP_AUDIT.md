@@ -30,6 +30,7 @@ Following the owner policy, all directories containing historical execution evid
 * `docs/release/**` → DELETE_NO_CURRENT_VALUE
 * `docs/SEO/v1/**` → DELETE_NO_CURRENT_VALUE
 * `docs/roadmap/**` → MIGRATE_THEN_DELETE into one `docs/roadmap/ROADMAP.md`
+* `docs/DOCUMENTATION_CLEANUP_AUDIT.md` → DELETE_NO_CURRENT_VALUE (to be deleted after cleanup execution)
 
 ## 4. Final Keep Set
 
@@ -44,28 +45,26 @@ The following documents represent the active architecture, governance, and integ
 * `docs/SEO/library/STRUCTURED_DATA_ARCHITECTURE.md`
 * `docs/php-engineering-standards/**` (all 12 files)
 * `docs/proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md`
+* `docs/roadmap/ROADMAP.md` (new)
 
-Root documents remaining intact:
-* `README.md`
-* `SEO_PACKAGE_REFERENCE.md`
-* `CHANGELOG.md`
-* `SECURITY.md`
-* `CONTRIBUTING.md`
-* `CODE_OF_CONDUCT.md`
-* `AGENTS.md`
-
-Total `KEEP_CURRENT`: 20 files (19 existing + 1 new roadmap).
+Total existing retained docs: 20 files.
+Plus 1 new `docs/roadmap/ROADMAP.md` = 21 files final tree.
 
 ## 5. Architecture Audit Migration Matrix
 
 Target: `docs/audits/SEO_ARCHITECTURE_STANDARDS_CONTRACT_INTEGRITY_AUDIT.md`
 
-Review of the historical audit against `SEO_PACKAGE_REFERENCE.md`, `docs/SEO/library/STRUCTURED_DATA_ARCHITECTURE.md`, `docs/SEO/library/META_GENERATOR_SERVICE_CONTRACT.md` and `docs/guides/USAGE_GUIDE.md` confirms that the **durable architectural decisions**—such as the JSON-LD scoped structural validation boundary, empty vs. non-empty property evaluations, URL validation constraints (RFC 9309, percentage decoding rules), and strict exclusion of automatic provider migration—are either already reflected in the current authoritative sources (e.g. `SEO_PACKAGE_REFERENCE.md` defines the scope and provider boundary, and `Stack8DocumentationTruthSynchronizationTest.php` protects these statements), or they have been explicitly coded into the test suites that govern the package.
+| Finding/Section ID | Concise Durable Decision | Classification | Current Authority/Evidence | Migration Destination |
+| --- | --- | --- | --- | --- |
+| Canonical extended-DTO serialization decision | Form parameter mapping is strict, not generic dynamic mapping. | `ALREADY_CANONICAL` | Codified in `SearchConsoleInspectionResultDTO` and tested in test suite. Explicitly stated in `SEO_PACKAGE_REFERENCE.md`. | N/A |
+| Empty property missing vs explicitly provided | Empty string means "delete/missing", preserving missing state strictly. `trim()` is allowed only to detect missing/whitespace-only when surface contract has missing semantics. | `ALREADY_CANONICAL` | Enforced at code level across `SeoMetaBuilder` and validated by tests. | N/A |
+| Compatibility public fields deprecation | Deprecation of fields is explicitly deferred out of remediation until a separate migration contract is approved. | `ALREADY_CANONICAL` | Tests ensure no fields were removed prematurely. Addressed in `SEO_PACKAGE_REFERENCE.md` provider profiles. | N/A |
+| Unicode Measurement Heuristics & Scoring | Strict heuristic bounds for meta tags, resolving strlen byte-limit vs unicode requirements. | `ALREADY_CANONICAL` | Test suite characterizes and enforces measurement semantics (ASCII vs Arabic text limits). | N/A |
+| Sitemap URL & Percent decoding semantics | Strict RFC 9309 URL encoding boundaries: NO percent-decoding occurs during lexical decisions, literal `%` is encoded as `%25` | `ALREADY_CANONICAL` | Codified in `SitemapUrlDTO`, `RobotsRenderer`, and heavily characterization-tested. | N/A |
+| Structured Data Semantic Validation Deferral | Deep schema.org semantic validation is explicitly deferred, maintaining the current scoped structural check boundary. | `ALREADY_CANONICAL` | Covered in `docs/SEO/library/STRUCTURED_DATA_ARCHITECTURE.md` and `SEO_PACKAGE_REFERENCE.md` | N/A |
+| Cross-Host Semantics | External APIs must not enforce cross-host assumptions unless spec explicitly permits it. | `ALREADY_CANONICAL` | Enforced in code for Robots (cross-host allowed) vs Sitemap Index (same site). | N/A |
 
-**Decision**:
-Every durable decision is already canonically represented or codified in `src/`/`tests/`.
-`docs/audits/SEO_ARCHITECTURE_STANDARDS_CONTRACT_INTEGRITY_AUDIT.md` = `DELETE_NO_CURRENT_VALUE`.
-No migration is required.
+**Result**: Every durable decision from the 339KB historical audit is already successfully codified into existing architectural contracts (`STRUCTURED_DATA_ARCHITECTURE.md`, `SEO_PACKAGE_REFERENCE.md`), test suites, or runtime behaviors. `MUST_MIGRATE = 0`. Therefore, `SEO_ARCHITECTURE_STANDARDS_CONTRACT_INTEGRITY_AUDIT.md` is classified as `DELETE_NO_CURRENT_VALUE`.
 
 ## 6. Future Roadmap Contract
 
@@ -74,36 +73,35 @@ Current roadmaps:
 * `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md`
 
 These will be consolidated into `docs/roadmap/ROADMAP.md`.
-All completed phases, WUs, SHAs, and verification history will be stripped.
+All completed phases, completed WUs, SHAs, Draft/Ready history, and historical verification states are stripped.
 
-Future roadmap items that must remain:
+**Risks / Decisions that Need Approval Before Coding (from old roadmap)**:
+* All old items here have been either implemented via the completed phases or addressed as part of the standards adoption in `codex/standards-adoption-compliance`. These are resolved/obsolete and will not be carried forward.
 
-* **Item**: Advanced Structured Data Semantic Validation (Phase 13P Follow-up)
-  * **Current gap**: Current library validates structure but leaves deep Schema.org semantics/ontology unverified.
+Future roadmap items that must genuinely remain:
+
+* **Title**: Advanced Structured Data Semantic Validation
+  * **Current gap**: Current library validates the structure of 4 specific models (`Product`, `Offer`, `AggregateOffer`, `ProductGroup`), but leaves deep generic Schema.org semantic analysis unverified.
   * **Intended scope**: Full semantic analysis against Schema.org types if prioritized.
-  * **Explicit out-of-scope**: Modifying current JSON-LD scoped builders.
+  * **Explicit out-of-scope**: Modifying current JSON-LD scoped builders. Google-specific Rich Results provider eligibility is explicitly out of scope for this task (as Google documentation remains the authority, independent of Schema validity). Merchant Center eligibility diagnostics are also out of scope as they were completed in Phase 23.
   * **Dependencies/preconditions**: Needs architecture decision on validation engine.
-  * **Source roadmap location**: `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md`
-  * **Evidence**: Current runtime only supports the 4 scoped structures. `SEO_PACKAGE_REFERENCE.md` explicitly calls this out.
-
-* **Item**: Optional Admin SEO Control Layer (Phase 24 / RFC)
-  * **Current gap**: No UI/admin integration standard.
-  * **Intended scope**: Standardized control layer interfaces.
-  * **Explicit out-of-scope**: Concrete framework views.
-  * **Dependencies/preconditions**: Current proposed RFC.
-  * **Source roadmap location**: `docs/roadmap/SEO_LIBRARY_ROADMAP.md`
-  * **Evidence**: Proposed in `docs/proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md`.
+  * **Source roadmap location**: `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md` (Phase 13P Follow-up)
+  * **Evidence**: Current runtime only supports the 4 scoped structures. `SEO_PACKAGE_REFERENCE.md` and `STRUCTURED_DATA_ARCHITECTURE.md` explicitly confirm the scoped validation boundary.
 
 ## 7. Active Proposal Decision
 
 Target: `docs/proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md`
 
 **Decision**: `KEEP_ACTIVE_PROPOSAL`
-The proposal is currently marked as 'Proposed' and the runtime has no concrete admin view layer implemented. The future `ROADMAP.md` will link to this RFC.
+* The proposal is a standalone active RFC.
+* The gap is a framework-neutral higher-level admin orchestration/control API, **not a UI implementation**.
+* UI/views/controllers/routes remain explicitly out of scope.
+* It is NOT "Phase 24" (Phase 24 is MetaGeneratorService Contract Finalization, which is complete).
+* The future `ROADMAP.md` will link to this RFC.
 
 ## 8. Full Directory Deletion Decisions
 
-The following directories contain no unmigrated unique durable information and will be removed completely. No archive replacement will be created.
+The following directories contain no unmigrated unique durable information (as proved by the matrix) and will be removed completely. No archive replacement will be created.
 
 * `docs/audits/`
 * `docs/batches/`
@@ -118,7 +116,7 @@ The following directories contain no unmigrated unique durable information and w
 * `README.md`:
   * Remove links to historical execution evidence (audits/verification). `REMOVE_REFERENCE`.
 * `SEO_PACKAGE_REFERENCE.md`:
-  * Remove any stale links to deleted blueprints. `REMOVE_REFERENCE`.
+  * Remove any stale links to deleted blueprints or audits. `REMOVE_REFERENCE`.
 * `CHANGELOG.md`:
   * Unaffected (does not link to `docs/verification/`).
 * `docs/README.md`:
@@ -153,7 +151,7 @@ Future planning
 Governance
 - docs/php-engineering-standards/**
 ```
-All references to historical directories will be removed.
+All references to deleted historical directories will be removed from this authority model.
 
 ## 11. Stack8 Test Impact
 
@@ -174,24 +172,22 @@ Target: `tests/Stack8DocumentationTruthSynchronizationTest.php`
 
 * current docs file count: 188
 * files deleted: 168 (166 DELETE_NO_CURRENT_VALUE + 2 old roadmaps)
-* files created: 2 (`ROADMAP.md` and this `DOCUMENTATION_CLEANUP_AUDIT.md`)
+* files created: 1 (new `ROADMAP.md`) (Note: `DOCUMENTATION_CLEANUP_AUDIT.md` will be created during review but deleted during final cleanup implementation).
 * files modified: 2 (`docs/README.md`, `tests/Stack8DocumentationTruthSynchronizationTest.php`) (plus root doc links)
-* final docs file count: 22
-* net file reduction: 166
-* current docs total bytes: 1,061,027 (approx)
+* final docs file count: 21
+* net file reduction: 167
+* current docs total bytes: ~1,061,027 (approx)
 * projected docs total bytes: ~140,000 (approx)
 * estimated bytes removed: ~921,027
-* percentage file-count reduction: 88.3%
+* percentage file-count reduction: 88.8%
 * percentage byte reduction: 86.8%
-
-*(Note: directories are not counted as files in the above metrics)*
 
 ## 13. Exact Implementation Scope
 
 1. **Delete Directories**:
    `rm -rf docs/audits/ docs/batches/ docs/blueprints/ docs/phases/ docs/release/ docs/SEO/v1/ docs/verification/`
 2. **Consolidate Roadmaps**:
-   Create `docs/roadmap/ROADMAP.md` with active future items.
+   Create `docs/roadmap/ROADMAP.md` with only the active future items outlined in section 6.
    `rm docs/roadmap/SEO_LIBRARY_ROADMAP.md docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md`
 3. **Rewrite docs/README.md**:
    Update to match the exact Authority Model in Section 10.
@@ -199,7 +195,9 @@ Target: `tests/Stack8DocumentationTruthSynchronizationTest.php`
    Strip links to deleted historical documents in `README.md` and `SEO_PACKAGE_REFERENCE.md`.
 5. **Update Stack8 Test**:
    Remove assertions for `PHASE_22` and historical folders. Point roadmap checks to `ROADMAP.md`.
-6. **Commit Changes**:
+6. **Cleanup the Audit File**:
+   `rm docs/DOCUMENTATION_CLEANUP_AUDIT.md` (After execution of the above).
+7. **Commit Changes**:
    Run tests. If passing, commit.
 
 ## 14. Verification Required After Cleanup
@@ -207,7 +205,7 @@ Target: `tests/Stack8DocumentationTruthSynchronizationTest.php`
 * `composer validate`
 * `vendor/bin/phpunit tests/Stack8DocumentationTruthSynchronizationTest.php`
 * Full test suite: `vendor/bin/phpunit`
-* Ensure no broken markdown links in the remaining 22 docs.
+* Ensure no broken markdown links in the remaining 21 docs.
 
 ## 15. Final Verdict
 
