@@ -244,11 +244,11 @@ echo $renderer->render($schemaDto);
 
 ## 6. Advanced Product Structured Data
 
-Phase 13O introduced advanced, typed nested composition for e-commerce schemas.
+Product structured data supports both scalar offer setters for simple cases and explicit offer composition for more complex e-commerce schemas.
 
-### Legacy Implicit Offers vs. Explicit Offers API
+### Scalar Offers and Explicit Offers API
 
-Historically, you could set price and currency directly on the `ProductJsonLdBuilder` (e.g., `setPrice('10.00')`), which implicitly created an underlying `Offer` array. This is still perfectly valid.
+Setting price and currency directly on `ProductJsonLdBuilder` (for example, `setPrice('10.00')`) maintains an implicit `Offer` array and remains supported.
 
 However, if you need typed `Offer` objects, multiple offers, or an `AggregateOffer`, use the **Explicit Offers API**: `setOffers()` and `addOffer()`.
 
@@ -800,6 +800,19 @@ $customScoreDto = SeoValidationScoreCalculator::score($result, $scoreOptions);
 
 > **Note:** Providing invalid options (like a string instead of an integer penalty, or a penalty below 0) to `SeoValidationScoreCalculator::score()` will throw a `SeoInvalidArgumentException`. The score helper is strictly framework-neutral and emits no headers, responses, routes, or controllers.
 
+### Companion protocol and provider-profile diagnostics
+
+`SeoMetaValidator` handles the package's generic metadata and scoped structured-data checks. Protocol and provider-profile checks are separate calls that return `SeoCompanionValidationResultDTO`; they do not silently change the generic result or score. `SeoMetaValidator::validateWithCompanion()` does not run every profile validator, so select the profiles that match the input and evidence you have.
+
+| Concern | Current profile entry points |
+| --- | --- |
+| Robots | `Rfc9309RobotsValidator`, `GoogleRobotsTxtValidator`, `GoogleRobotsMetaValidator` |
+| Sitemap | `SitemapProtocolValidator`, `GoogleSitemapValidator`, `GoogleImageSitemapValidator`, `GoogleVideoSitemapValidator`, `GoogleNewsSitemapValidator` |
+| Canonical and hreflang | `GoogleCanonicalValidator`, `GoogleHreflangClusterValidator` |
+| Open Graph | `OpenGraphProtocolValidator` |
+
+Use the matching raw-input or cluster DTO for each profile. Results identify their diagnostic origin/profile and remain distinct from core validation and scoring. These checks are scoped protocol/profile diagnostics; they do not imply remote inspection, complete standards-registry membership, or provider eligibility.
+
 ---
 
 ## 12. Existing SitemapGeneratorService Example
@@ -897,6 +910,130 @@ In your Blade layout (`product.blade.php`):
 
 ### Template Rendering Tips
 Always pass the pre-rendered HTML string (or the `SeoHeadHtmlDTO`) to your templating engine (like Twig, Blade, or Smarty) for output, avoiding calling the builder methods directly within the template files whenever possible. Keep the construction logic in the controller.
+
+### Metadata orchestration with `MetaGeneratorService`
+
+`MetaGeneratorService` turns Host-supplied page defaults and the active SEO override for an entity/language into a `MetaTagsDTO`. Missing active overrides leave the defaults in place. When configured with a Host implementation of `HostUrlGeneratorInterface`, it can use the Host-generated entity URL if the command has no non-blank explicit canonical. The Host owns route and URL policy; the service contract documents exact precedence, fallback, exception, and output semantics.
+
+```php
+use Maatify\Seo\Shared\Command\GenerateMetaTagsCommand;
+
+$metaTags = $metaGeneratorService->generate(new GenerateMetaTagsCommand(
+    entityType: 'product',
+    entityId: 'sku-123',
+    languageId: 1,
+    defaultTitle: 'Blue Shirt',
+    defaultDescription: 'Cotton shirt',
+    slug: 'blue-shirt',
+));
+
+// $metaTags is a MetaTagsDTO ready for a package renderer or Host template.
+```
+
+See the maintained [MetaGeneratorService contract](../SEO/library/META_GENERATOR_SERVICE_CONTRACT.md) for the complete service semantics and the [SEO_PACKAGE_REFERENCE.md](../../SEO_PACKAGE_REFERENCE.md) for the package-level contract.
+
+### Page presets
+
+Page preset factories are package-provided composition helpers. They combine metadata, canonical/robots values, social tags, JSON-LD schemas, and ready-to-render head HTML into a `SeoPagePresetOutputDTO`; they do not choose Host routes or own business lifecycle policy.
+
+```php
+use Maatify\Seo\Web\Page\EcommerceSeoPresetFactory;
+
+$preset = EcommerceSeoPresetFactory::productDetail(
+    title: 'Blue Shirt',
+    description: 'Cotton shirt',
+    product: [
+        'name' => 'Blue Shirt',
+        'sku' => 'SKU-123',
+        'price' => '29.99',
+        'currency' => 'USD',
+    ],
+    options: ['canonicalUrl' => 'https://example.com/products/blue-shirt'],
+);
+
+$metaTags = $preset->metaTags;
+$schemas = $preset->schemas;
+$headHtml = $preset->html;
+```
+
+`SeoPagePresetFactory` also provides generic, product, category, article, home, and breadcrumb composition. `ContentSeoPresetFactory` covers article, blog-post, news-article, tag, and author pages; `LocalBusinessSeoPresetFactory` covers business-home, location, service, and contact pages. Ecommerce presets include product detail, category listing, search results, brand, and offer pages. Presets accept package options for canonical, robots, social metadata, breadcrumbs, and extra schemas.
+
+### Page rendering orchestration
+
+Use `SeoPageRenderService` when a Host wants a single service call to combine `MetaGeneratorService` output with supplied JSON-LD schemas and optional breadcrumb data. A `RenderSeoPageCommand` carries Host entity identifiers and defaults plus those inputs. `render()` returns a `SeoPagePayloadDTO` containing `MetaTagsDTO` and generated schema DTOs; it does not return an HTTP response or write template output. A `SeoHeadHtmlRenderer` can render that payload after composition.
+
+```php
+use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
+use Maatify\Seo\Web\SeoRender\Command\RenderSeoPageCommand;
+
+$payload = $seoPageRenderService->render(new RenderSeoPageCommand(
+    entityType: 'product',
+    entityId: 'sku-123',
+    languageId: 1,
+    defaultTitle: 'Blue Shirt',
+    defaultDescription: 'Cotton shirt',
+    slug: 'blue-shirt',
+    schemas: [$productSchema], // JsonSerializable package schema/builder inputs
+));
+
+$headHtml = (new SeoHeadHtmlRenderer())->renderPayload($payload);
+```
+
+The renderer is a presentation step over the service payload. Use the lower-level builders and renderers directly when the Host needs a custom composition. Optional redirect resolution returns a domain redirect decision for the Host to apply; the Host still delivers the HTTP response.
+
+### Canonical URLs and hreflang
+
+`CanonicalUrlBuilder` assembles a URL from an optional base, path, and query parameters and can render a canonical link tag. `HreflangLinkBuilder` composes alternate links and `HreflangLinkRenderer` renders them as HTML. These are generation helpers; use separate validation profiles when checking a canonical candidate or a supplied hreflang cluster.
+
+```php
+use Maatify\Seo\Web\Hreflang\HreflangLinkBuilder;
+use Maatify\Seo\Web\Indexing\CanonicalUrlBuilder;
+
+$canonical = (new CanonicalUrlBuilder('https://example.com'))
+    ->setPath('/articles/seo')
+    ->setQueryParams(['page' => 2, 'tracking' => null])
+    ->build();
+
+$alternates = (new HreflangLinkBuilder())
+    ->add('en', 'https://example.com/en/articles/seo')
+    ->add('fr', 'https://example.com/fr/articles/seo')
+    ->xDefault('https://example.com/en/articles/seo');
+
+$hreflangHtml = $alternates->render();
+```
+
+`GoogleCanonicalValidator` and `GoogleHreflangClusterValidator` return separate companion diagnostics. The hreflang profile checks its defined lexical, URL, self-reference, reciprocity, and alternate-set boundaries; it does not establish ISO registry membership. Generation alone does not assert that a cluster passes validation.
+
+### Admin-domain utilities
+
+The package's Admin namespace contains domain operations and data helpers, not an Admin application. `AdminRedirectCommandService` and `AdminRedirectQueryService` create, update, retrieve, list, and delete redirect records; `AdminSeoOverrideCommandService` and `AdminSeoOverrideQueryService` provide corresponding override operations; `AdminSlugHistoryCommandService` and `AdminSlugHistoryQueryService` record and query prior slugs. Redirect decisions and configured status values are domain data for the Host to apply to its HTTP response.
+
+`SerpPreviewFactory` and `SocialPreviewFactory` can consume a preset or `MetaTagsDTO` and return preview DTOs with missing-field warnings. `SeoMetadataExporter` serializes override, redirect, and slug-history data; `SeoMetadataImporter` validates JSON/array payloads and supports dry runs, with repositories supplied when writes are intended.
+
+```php
+use Maatify\Seo\Admin\Export\SeoMetadataExporter;
+use Maatify\Seo\Admin\Import\SeoMetadataImporter;
+use Maatify\Seo\Admin\Preview\SerpPreviewFactory;
+use Maatify\Seo\Admin\Preview\SocialPreviewFactory;
+
+$serpPreview = SerpPreviewFactory::fromPreset($preset);
+$socialPreview = SocialPreviewFactory::fromPreset($preset, 'Example Store');
+
+$exporter = new SeoMetadataExporter();
+$export = $exporter->export($seoOverrides, $redirects, $slugHistory);
+$json = $exporter->toJson($export);
+
+$importer = new SeoMetadataImporter(
+    seoOverrideRepository: $seoOverrideRepository,
+    redirectRepository: $redirectRepository,
+    slugHistoryRepository: $slugHistoryRepository,
+);
+$dryRun = $importer->importJson($json, dryRun: true);
+```
+
+Supply the package repository implementations only when the importer is intended to write those sections; an unconfigured importer can still validate and run a dry run.
+
+The Host still owns Admin UI, routes, controllers, authentication, permissions, and workflow. It chooses which service results to display, when to invoke writes, and how to map domain outcomes to HTTP behavior.
 
 ---
 

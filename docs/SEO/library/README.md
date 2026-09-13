@@ -25,5 +25,24 @@ authority hierarchy.
 
 ## Contents
 
-* [Structured Data Architecture](STRUCTURED_DATA_ARCHITECTURE.md)
-* [MetaGeneratorService Contract](META_GENERATOR_SERVICE_CONTRACT.md)
+The Package Reference is the canonical inventory of current package contracts.
+This map points to the most useful maintained entry point for each architecture
+area without repeating that inventory.
+
+| Area | Current entry point |
+| --- | --- |
+| Package authority and public contract | [SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md) |
+| Metadata generation and override semantics | [MetaGeneratorService Contract](META_GENERATOR_SERVICE_CONTRACT.md), [Usage Guide](../../guides/USAGE_GUIDE.md) |
+| HTML head rendering and social metadata | [Usage Guide](../../guides/USAGE_GUIDE.md), [Integration Guide](../../guides/INTEGRATION_GUIDE.md) |
+| Canonical URLs and hreflang | [Usage Guide](../../guides/USAGE_GUIDE.md), [SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md) |
+| Robots and sitemaps | [Usage Guide](../../guides/USAGE_GUIDE.md), [Integration Guide](../../guides/INTEGRATION_GUIDE.md) |
+| Structured data and JSON-LD | [Structured Data Architecture](STRUCTURED_DATA_ARCHITECTURE.md), [Usage Guide](../../guides/USAGE_GUIDE.md) |
+| Core validation and companion profiles | [Usage Guide](../../guides/USAGE_GUIDE.md), [SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md) |
+| Redirects, slug history, and SEO overrides | [Integration Guide](../../guides/INTEGRATION_GUIDE.md), [SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md) |
+| Persistence and package-owned schemas | [Integration Guide](../../guides/INTEGRATION_GUIDE.md), [SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md) |
+| Admin previews, operations, and import/export | [Usage Guide](../../guides/USAGE_GUIDE.md), [Integration Guide](../../guides/INTEGRATION_GUIDE.md) |
+| Page presets and page rendering | [Usage Guide](../../guides/USAGE_GUIDE.md), [Integration Guide](../../guides/INTEGRATION_GUIDE.md) |
+| Search Console | [Usage Guide](../../guides/USAGE_GUIDE.md), [Integration Guide](../../guides/INTEGRATION_GUIDE.md) |
+| Merchant Center | [Usage Guide](../../guides/USAGE_GUIDE.md), [Integration Guide](../../guides/INTEGRATION_GUIDE.md) |
+| CI and local verification | [CI operations](../../CI.md) |
+| Future roadmap and active proposals | [Roadmap](../../roadmap/ROADMAP.md), [Optional Admin SEO Control Layer RFC](../../proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md) |

@@ -164,6 +164,66 @@ foreach ([
     );
 }
 
+$metaGeneratorContract = stack8Read('docs/SEO/library/META_GENERATOR_SERVICE_CONTRACT.md');
+foreach ([
+    'current maintained contract of `MetaGeneratorService`',
+    'canonical package-level contract',
+    'narrower normative service semantics',
+    'current runtime source and maintained tests are executable evidence',
+    'Historical implementation phases',
+] as $currentContractMarker) {
+    stack8AssertContains(
+        "MetaGeneratorService contract records {$currentContractMarker}",
+        $metaGeneratorContract,
+        $currentContractMarker,
+    );
+}
+foreach ([
+    'Phase 24',
+    'integration/phase-24-meta-generator-contract',
+    'WU2',
+    'not yet be part of current `main`',
+    'Stack 0',
+    'architecture audit',
+] as $staleMetaContractClaim) {
+    stack8AssertNotContains(
+        "MetaGeneratorService contract does not retain stale claim {$staleMetaContractClaim}",
+        $metaGeneratorContract,
+        $staleMetaContractClaim,
+    );
+}
+
+foreach ([
+    'Package authority and public contract',
+    'Metadata generation and override semantics',
+    'HTML head rendering and social metadata',
+    'Canonical URLs and hreflang',
+    'Robots and sitemaps',
+    'Structured data and JSON-LD',
+    'Core validation and companion profiles',
+    'Redirects, slug history, and SEO overrides',
+    'Persistence and package-owned schemas',
+    'Admin previews, operations, and import/export',
+    'Page presets and page rendering',
+    'Search Console',
+    'Merchant Center',
+    'CI and local verification',
+    'Future roadmap and active proposals',
+] as $handbookArchitectureArea) {
+    stack8AssertContains(
+        "current Engineering Handbook map includes {$handbookArchitectureArea}",
+        $libraryHandbook,
+        $handbookArchitectureArea,
+    );
+}
+foreach (['Phase 13O', 'Phase 13P', 'phase execution history'] as $staleHandbookChronology) {
+    stack8AssertNotContains(
+        "Engineering Handbook map does not frame current architecture as {$staleHandbookChronology}",
+        $libraryHandbook,
+        $staleHandbookChronology,
+    );
+}
+
 $changelog = stack8Read('CHANGELOG.md');
 stack8AssertContains('Unreleased changelog exists', $changelog, '## [Unreleased]');
 stack8AssertNotContains('changelog does not claim XML streaming', $changelog, 'to stream valid XML');
@@ -241,6 +301,142 @@ foreach ($structuredDocPaths as $path) {
     $structuredDocContents[$path] = $contents;
     stack8AssertContains("{$path} uses the Stack 7 validation wording", $contents, 'scoped structural and property-range semantic validation');
 }
+
+$usageGuide = $structuredDocContents['docs/guides/USAGE_GUIDE.md'];
+foreach ([
+    'MetaGeneratorService',
+    'HostUrlGeneratorInterface',
+    'SeoPagePresetFactory',
+    'EcommerceSeoPresetFactory',
+    'ContentSeoPresetFactory',
+    'LocalBusinessSeoPresetFactory',
+    'SeoPagePresetOutputDTO',
+    'RenderSeoPageCommand',
+    'SeoPagePayloadDTO',
+    'SeoPageRenderService',
+    'CanonicalUrlBuilder',
+    'HreflangLinkBuilder',
+    'HreflangLinkRenderer',
+    'GoogleCanonicalValidator',
+    'GoogleHreflangClusterValidator',
+    'AdminRedirectCommandService',
+    'AdminSeoOverrideCommandService',
+    'AdminSlugHistoryCommandService',
+    'SerpPreviewFactory',
+    'SocialPreviewFactory',
+    'SeoMetadataImporter',
+    'SeoMetadataExporter',
+    'Rfc9309RobotsValidator',
+    'SitemapProtocolValidator',
+    'GoogleSitemapValidator',
+    'OpenGraphProtocolValidator',
+] as $usageCapability) {
+    stack8AssertContains(
+        "Usage Guide exposes current capability {$usageCapability}",
+        $usageGuide,
+        $usageCapability,
+    );
+}
+stack8AssertContains(
+    'Usage Guide separates companion profiles from core validation',
+    $usageGuide,
+    'do not silently change the generic result or score',
+);
+
+$integrationGuide = stack8Read('docs/guides/INTEGRATION_GUIDE.md');
+foreach ([
+    'SeoPagePresetFactory',
+    'SeoPageRenderService',
+    'MetaGeneratorService',
+    'HostUrlGeneratorInterface',
+    'GoogleCanonicalValidator',
+    'GoogleHreflangClusterValidator',
+    'AdminRedirectCommandService',
+    'AdminSeoOverrideCommandService',
+    'AdminSlugHistoryCommandService',
+    'SerpPreviewFactory',
+    'SeoMetadataImporter',
+    'SearchConsoleInspectionService',
+    'SearchConsoleTransportInterface',
+    'MerchantCenterDiagnosticsService',
+    'MerchantCenterTransportInterface',
+    'httpStatus',
+    'getHttpStatus()',
+] as $integrationCapability) {
+    stack8AssertContains(
+        "Integration Guide explains current capability/boundary {$integrationCapability}",
+        $integrationGuide,
+        $integrationCapability,
+    );
+}
+foreach (['Host owns Admin UI', 'authentication, authorization', 'application workflow'] as $hostOwnedAdminSurface) {
+    stack8AssertContains(
+        "Integration Guide keeps Host ownership of {$hostOwnedAdminSurface}",
+        $integrationGuide,
+        $hostOwnedAdminSurface,
+    );
+}
+stack8AssertContains(
+    'Integration Guide separates provider evidence from generic validation',
+    $integrationGuide,
+    'separate from generic SEO validation',
+);
+
+$adminRfc = stack8Read('docs/proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md');
+stack8AssertContains('active Admin RFC remains proposed', $adminRfc, '**Status:** Proposed');
+foreach ([
+    'current package already provides granular Admin-facing capabilities',
+    'optional, higher-level orchestration/control API',
+    'No UI or views',
+    'No routes or controllers',
+    'No authentication or authorization',
+    'No framework coupling',
+    'No Host lifecycle ownership',
+] as $adminRfcCurrentBoundary) {
+    stack8AssertContains(
+        "active Admin RFC states {$adminRfcCurrentBoundary}",
+        $adminRfc,
+        $adminRfcCurrentBoundary,
+    );
+}
+foreach ([
+    'Post v1.0.0',
+    'initial `v1.0.0` release',
+    'Not Required for v1.0.0',
+    'Phase 11',
+    'Phase 19',
+] as $staleAdminRfcChronology) {
+    stack8AssertNotContains(
+        "active Admin RFC does not claim a stale release/phase baseline {$staleAdminRfcChronology}",
+        $adminRfc,
+        $staleAdminRfcChronology,
+    );
+}
+
+foreach ([
+    'docs/SEO/library/README.md' => $libraryHandbook,
+    'docs/SEO/library/META_GENERATOR_SERVICE_CONTRACT.md' => $metaGeneratorContract,
+    'docs/SEO/library/STRUCTURED_DATA_ARCHITECTURE.md' => $structuredDocContents['docs/SEO/library/STRUCTURED_DATA_ARCHITECTURE.md'],
+    'docs/guides/USAGE_GUIDE.md' => $usageGuide,
+    'docs/guides/INTEGRATION_GUIDE.md' => $integrationGuide,
+    'docs/proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md' => $adminRfc,
+] as $currentDocumentationPath => $currentDocumentation) {
+    foreach ([
+        'docs/SEO/v1',
+        'docs/phases/',
+        'docs/verification/',
+        'docs/batches/',
+        'docs/blueprints/',
+        'docs/audits/',
+    ] as $deletedDocumentationDirectory) {
+        stack8AssertNotContains(
+            "{$currentDocumentationPath} does not cite deleted documentation authority {$deletedDocumentationDirectory}",
+            $currentDocumentation,
+            $deletedDocumentationDirectory,
+        );
+    }
+}
+
 $currentStructuredDocs = implode('\n', $structuredDocContents);
 foreach ([
     'scoped structural and property-range semantic validation',

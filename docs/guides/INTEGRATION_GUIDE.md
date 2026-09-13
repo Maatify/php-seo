@@ -383,15 +383,183 @@ For features requiring database storage (such as SEO overrides, redirects, or sl
 
 ---
 
-## 12. Error Handling
+## 12. Current Page and Domain Integration
+
+The package offers both high-level composition helpers and lower-level
+builders. Choose the smallest integration surface that fits the Host page:
+
+- Use `SeoPagePresetFactory` or a domain preset factory for a common page shape
+  and a ready `SeoPagePresetOutputDTO` containing metadata, social tags,
+  schemas, and head HTML.
+- Use `SeoPageRenderService` when the Host wants a service to combine
+  Host-provided page defaults, active overrides, and schema inputs into a
+  `SeoPagePayloadDTO`.
+- Use builders and renderers directly when the Host needs its own composition
+  or wants to place sections separately.
+
+Presets do not own Host routes, page selection, product lifecycle, or
+application data. The render service does not create controllers or HTTP
+responses. `SeoHeadHtmlRenderer` renders a payload into an HTML string or DTO;
+the Host places and delivers that output.
+
+### 12.1 Metadata and Host URL generation
+
+The Host supplies entity identity and fallback title/description to
+`MetaGeneratorService`. The service queries the active SEO override through
+`SeoOverrideQueryService`, keeps defaults when no override is found, and returns
+a `MetaTagsDTO`. The Host may configure the service with an implementation of
+`HostUrlGeneratorInterface`; that adapter owns URL construction from the Host's
+route and entity rules. A non-blank explicit canonical in the command takes
+precedence over the optional generated URL, and no URL generator means the
+canonical may remain `null`. See the [MetaGeneratorService contract](../SEO/library/META_GENERATOR_SERVICE_CONTRACT.md)
+for the exact trimming, fallback, exception, and output rules.
+
+```php
+use Maatify\Seo\Shared\Command\GenerateMetaTagsCommand;
+
+$metaTags = $metaGeneratorService->generate(new GenerateMetaTagsCommand(
+    entityType: 'product',
+    entityId: (string) $product->id,
+    languageId: $languageId,
+    defaultTitle: $product->name,
+    defaultDescription: $product->description,
+    slug: $product->slug,
+));
+```
+
+`MetaGeneratorService` does not own the Host's route definitions, URL policy,
+entity lookup, or lifecycle. For persisted overrides, use the package's
+`SeoOverrideQueryService` and configured repository; the Host supplies its PDO
+connection, while the package provides PDO adapters and schemas for its own
+tables as described in [Persistence Integration](#11-persistence-integration-guidance).
+
+### 12.2 Presets and page rendering
+
+For a common product page, a Host can use a domain preset and render its output:
+
+```php
+use Maatify\Seo\Web\Page\EcommerceSeoPresetFactory;
+
+$preset = EcommerceSeoPresetFactory::productDetail(
+    title: $product->name,
+    description: $product->description,
+    product: [
+        'name' => $product->name,
+        'sku' => $product->sku,
+        'price' => $product->price,
+        'currency' => $product->currency,
+    ],
+    options: ['canonicalUrl' => $canonicalUrl],
+);
+
+$headHtml = $preset->html;
+```
+
+Other factories cover generic, content, and local-business page compositions.
+The preset result exposes `metaTags`, `canonicalUrl`, `robots`, `socialTags`,
+`socialHtml`, `schemas`, and `html` for Host use.
+
+When a Host instead wants the service orchestration path, it passes a
+`RenderSeoPageCommand` to `SeoPageRenderService::render()`. The command carries
+Host identifiers/defaults plus JSON-serializable schemas and optional
+breadcrumbs. The returned `SeoPagePayloadDTO` carries metadata and generated
+schema DTOs; `SeoHeadHtmlRenderer::renderPayload()` can produce the head HTML.
+Optional redirect resolution returns a `RedirectDecisionDTO` for the Host to
+apply. It remains the Host's responsibility to map that domain decision to an
+HTTP response.
+
+```php
+use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
+use Maatify\Seo\Web\SeoRender\Command\RenderSeoPageCommand;
+
+$payload = $seoPageRenderService->render(new RenderSeoPageCommand(
+    entityType: 'product',
+    entityId: (string) $product->id,
+    languageId: $languageId,
+    defaultTitle: $product->name,
+    defaultDescription: $product->description,
+    slug: $product->slug,
+    schemas: [$productSchema], // a JsonSerializable package builder/DTO
+));
+
+$headHtml = (new SeoHeadHtmlRenderer())->renderPayload($payload);
+```
+
+### 12.3 Canonical and hreflang integration
+
+Use `CanonicalUrlBuilder` to assemble a canonical URL from Host-approved base,
+path, and query values, or use the metadata service's canonical input and
+Host URL generator boundary. `HreflangLinkBuilder` composes alternate links and
+`HreflangLinkRenderer` renders link tags. These APIs generate values; profile
+validation is a separate step.
+
+`GoogleCanonicalValidator` returns a companion diagnostic result for the
+canonical candidate. `GoogleHreflangClusterValidator` accepts a cluster input
+and checks its defined lexical and relationship boundaries, including usable
+URLs, self-references, reciprocity, and consistent alternate sets. Neither
+builder output nor these checks prove language-tag membership in an ISO
+registry, and the Host chooses when and where to run validation.
+
+### 12.4 Admin-domain integration
+
+The current package Admin layer provides `AdminRedirectCommandService` and
+`AdminRedirectQueryService`, `AdminSeoOverrideCommandService` and
+`AdminSeoOverrideQueryService`, and `AdminSlugHistoryCommandService` and
+`AdminSlugHistoryQueryService`; it also provides `SerpPreviewFactory`,
+`SocialPreviewFactory`, `SeoMetadataImporter`, and `SeoMetadataExporter`. They
+return DTOs, identifiers, validation errors, dry-run counts, or domain
+decisions for the Host to use. For example, redirect
+operations store redirect intent/status as domain data; the Host emits the
+corresponding HTTP response. Preview factories return preview DTOs and
+missing-field warnings rather than an Admin screen or provider-rendered search
+result.
+
+The Host owns Admin UI, routes/controllers, authentication, authorization,
+permissions, and application workflow. It decides who may invoke an operation,
+how to present the DTOs, and when to persist or apply the result. Import/export
+can work with the package's DTOs and configured repositories; they do not
+provide bulk Admin workflows or Host-specific entity mapping automatically.
+
+### 12.5 Search Console and Merchant Center
+
+For Search Console, compose `SearchConsoleInspectionService` with
+`SearchConsoleResponseMapper` and a Host implementation of
+`SearchConsoleTransportInterface`. The package validates request DTOs, invokes
+the transport, and returns mapped provider evidence in typed result DTOs. The
+Host supplies HTTP and OAuth handling, credentials, and decoded transport
+responses. Search Console results remain separate from generic SEO validation,
+scores, and reports; an absent rich-results result remains absent rather than
+being treated as a pass.
+
+For Merchant Center, use `MerchantCenterDiagnosticsService`,
+`MerchantCenterResponseMapper`, and a Host implementation of
+`MerchantCenterTransportInterface`. The service returns typed product or
+aggregate diagnostic DTOs. The Host owns HTTP, OAuth, credentials, decoded
+responses, pagination using the returned page token, and scheduling. The
+package maps provider evidence; it does not synthesize a separate overall
+eligibility verdict or automatically remediate provider issues.
+
+Both provider families distinguish invalid request input from malformed
+responses and transport failures. Invalid requests use the package's safe
+validation exception family; malformed responses and transport errors use its
+system-error family. A transport exception may expose the provider response
+code through its `httpStatus` property, while the shared application
+`getHttpStatus()` remains the package's system-error status. Do not convert a
+provider HTTP code such as 403 directly into an application HTTP 403; map the
+package exception according to the Host's application error policy. See
+[`SEO_PACKAGE_REFERENCE.md`](../../SEO_PACKAGE_REFERENCE.md) for the exact
+exception taxonomy.
+
+## 13. Error Handling
 
 - **Library Exceptions:** The SEO library throws specific library exceptions (e.g., `SeoNotFoundException`, `SeoConflictException`) when operations fail.
 - **Host Responsibility:** The host application is responsible for catching these exceptions, logging them, and converting them into appropriate HTTP status codes (like 404 Not Found or 400 Bad Request).
+- For Search Console and Merchant Center, use the package exception taxonomy for application error handling. The transport exception's `httpStatus` property is the provider response code; it is not the exception's shared application HTTP status. See [Current Page and Domain Integration](#125-search-console-and-merchant-center).
 - The library should never call `http_response_code()` or throw HTTP-specific framework exceptions (like `Symfony\Component\HttpKernel\Exception\NotFoundHttpException`).
 
 ---
 
-## 13. Common Integration Mistakes
+## 14. Common Integration Mistakes
 
 To maintain library integrity, ensure you **do not**:
 
