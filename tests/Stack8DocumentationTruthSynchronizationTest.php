@@ -67,31 +67,26 @@ stack8AssertTrue(
 
 foreach ([
     '## Documentation authority',
-    '### Current executable package contract',
-    '### Canonical human-readable package reference',
-    'canonical human-readable package contract',
-    '### Detailed current documentation',
-    '### Historical implementation evidence',
-    '### Future and planning material',
-    'SEO/library/',
-    '../SEO_PACKAGE_REFERENCE.md',
-    'guides/',
-    'phases/',
-    'verification/',
-    'batches/',
-    'audits/',
-    'roadmap/',
-    'proposals/',
+    'Executable truth',
+    '- composer.json',
+    '- src/**',
+    '- schema/**',
+    '- tests/**',
+    'Canonical package contract',
+    '- SEO_PACKAGE_REFERENCE.md',
+    'Maintained documentation',
+    '- README.md',
+    '- docs/guides/**',
+    '- docs/SEO/library/**',
+    '- docs/CI.md',
+    'Future planning',
+    '- docs/roadmap/ROADMAP.md',
+    '- active proposals only',
+    'Governance',
+    '- docs/php-engineering-standards/**',
 ] as $needle) {
     stack8AssertContains("docs index contains {$needle}", $docsIndex, $needle);
 }
-
-$phase22 = stack8Read('docs/phases/PHASE_22_SEARCH_CONSOLE_EXTERNAL_VERIFICATION.md');
-stack8AssertContains('Phase 22 Final Review passed', $phase22, 'Final Review: `PASS`');
-stack8AssertContains('Phase 22 is complete', $phase22, 'Phase 22: `Complete`');
-stack8AssertContains('Phase 22 integration is recorded', $phase22, 'Integration PR: `#214` merged into `main`');
-stack8AssertNotContains('Phase 22 has no pending Final Review', $phase22, 'Final Review: pending');
-stack8AssertNotContains('Phase 22 has no incomplete lifecycle wording', $phase22, 'not marked complete');
 
 $changelog = stack8Read('CHANGELOG.md');
 stack8AssertContains('Unreleased changelog exists', $changelog, '## [Unreleased]');
@@ -209,39 +204,57 @@ foreach ([
 stack8AssertContains('MetaGeneratorService links its current resolved contract', $reference, 'META_GENERATOR_SERVICE_CONTRACT.md');
 stack8AssertNotContains('canonical Package Reference has no unresolved MetaGenerator contract wording', $reference, 'unknown / needs decision');
 
-$enhancementRoadmap = stack8Read('docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md');
-$phase21Start = strpos($enhancementRoadmap, '## Structured-data CI and external-verification boundary');
-$phase21End = $phase21Start === false ? false : strpos($enhancementRoadmap, '## Constraints', $phase21Start);
-if ($phase21Start === false || $phase21End === false) {
-    stack8Fail('Phase 21 structured-data scope section has clear boundaries');
-}
-$phase21Scope = substr($enhancementRoadmap, $phase21Start, $phase21End - $phase21Start);
-stack8AssertContains(
-    'Phase 21 lists exactly the four scoped JSON-LD types',
-    $phase21Scope,
-    'scoped structural and property-range semantic validation limited to `Product`, `Offer`, `AggregateOffer`, and `ProductGroup`',
-);
-
-stack8AssertContains('Image fields remain public/output compatible', $enhancementRoadmap, 'public/output-compatible fields `title`, `caption`, `geoLocation`, and');
-stack8AssertContains('Image fields are classified as Google deprecated', $enhancementRoadmap, 'Google-deprecated compatibility fields');
-stack8AssertContains('Image fields are not current recommended enhancements', $enhancementRoadmap, 'current recommended provider enhancements');
-stack8AssertContains('News optional fields remain legacy/public-output compatible', $enhancementRoadmap, 'legacy/public-output compatibility fields');
-stack8AssertContains('News fields are not current recommended enhancements', $enhancementRoadmap, 'legacy/public-output compatibility fields, not current recommended provider');
-
-$phase13OStart = strpos($enhancementRoadmap, '# Phase 13O — Advanced Product & Variant Structured Data');
-$phase13PEnd = $phase13OStart === false ? false : strpos($enhancementRoadmap, '# Phase 13P — Structured Data Semantic Validation', $phase13OStart);
-if ($phase13OStart === false || $phase13PEnd === false) {
-    stack8Fail('Phase 13O historical section has clear boundaries');
-}
-$phase13O = substr($enhancementRoadmap, $phase13OStart, $phase13PEnd - $phase13OStart);
-stack8AssertNotContains('Phase 13O no longer says Phase 13P is outstanding', $phase13O, 'Deep Schema.org semantic validation remains outstanding in Phase 13P');
-stack8AssertNotContains('Phase 13O contains no outstanding Phase 13P claim', strtolower($phase13O), 'remains outstanding in phase 13p');
-stack8AssertContains('Phase 13O records that Phase 13P was historical follow-up', $phase13O, 'identified as follow-up work for Phase 13P');
-stack8AssertContains('Phase 13O records that Phase 13P is complete', $phase13O, 'Phase 13P has since completed');
-stack8AssertContains('Phase 13O states the current scoped validation contract', $phase13O, 'scoped structural and property-range semantic validation');
+$roadmap = stack8Read('docs/roadmap/ROADMAP.md');
+preg_match_all('/^## .+$/m', $roadmap, $roadmapHeadings);
 stack8AssertTrue(
-    'Phase 13O avoids a complete Schema.org claim',
-    preg_match('/This does not claim\s+complete Schema\.org validation\./', $phase13O) === 1,
+    'roadmap contains only the three future items and active proposal',
+    $roadmapHeadings[0] === [
+        '## 1. Deeper Generic Schema.org Semantic Validation',
+        '## 2. Google Rich Results / Provider-Specific Eligibility Profile',
+        '## 3. Large Sitemap Memory / Streaming Strategy',
+        '## Active proposal',
+    ],
+);
+stack8AssertContains(
+    'generic semantic validation remains scoped to selected structures',
+    $roadmap,
+    '`Product`, `Offer`, `AggregateOffer`, and `ProductGroup`',
+);
+stack8AssertContains(
+    'roadmap does not imply current JSON-LD generation is invalid',
+    $roadmap,
+    'does not imply that current JSON-LD generation is invalid',
+);
+stack8AssertContains(
+    'Google eligibility remains a distinct future capability',
+    $roadmap,
+    'Results eligibility prediction or profile',
+);
+stack8AssertContains(
+    'Merchant Center diagnostics are already implemented',
+    $roadmap,
+    'implemented and are not future work',
+);
+stack8AssertContains(
+    'sitemap roadmap preserves the current in-memory API',
+    $roadmap,
+    'The current in-memory API remains valid',
+);
+stack8AssertContains(
+    'active Admin RFC is linked',
+    $roadmap,
+    '../proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md',
+);
+stack8AssertContains(
+    'active Admin RFC remains framework-neutral and not a UI implementation',
+    $roadmap,
+    'orchestration/control API',
+);
+stack8AssertContains('active Admin RFC is not a UI implementation', $roadmap, 'not a UI implementation');
+stack8AssertContains(
+    'views, controllers, and routes remain outside the RFC scope',
+    $roadmap,
+    'and routes remain outside the proposal',
 );
 
 $sitemapExample = stack8Read('examples/sitemap-output.php');
