@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\Seo\Exception;
 
-final class SeoInvalidArgumentException extends \RuntimeException implements SeoExceptionInterface
+use Maatify\Exceptions\Exception\Validation\InvalidArgumentMaatifyException;
+
+final class SeoInvalidArgumentException extends InvalidArgumentMaatifyException implements SeoExceptionInterface
 {
     public static function emptyField(string $field): self
     {

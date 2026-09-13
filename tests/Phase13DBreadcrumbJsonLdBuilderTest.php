@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/bootstrap.php';
+
 require_once __DIR__ . '/../src/Exception/SeoExceptionInterface.php';
 require_once __DIR__ . '/../src/Web/JsonLd/Builder/JsonLdBuildException.php';
 require_once __DIR__ . '/../src/Web/JsonLd/Builder/JsonLdBuilderInterface.php';

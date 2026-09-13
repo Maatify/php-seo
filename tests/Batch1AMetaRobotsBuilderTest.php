@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/bootstrap.php';
+
 require_once __DIR__ . '/../src/Web/Robots/MetaRobotsBuilder.php';
 require_once __DIR__ . '/../src/Exception/SeoErrorCode.php';
 require_once __DIR__ . '/../src/Exception/SeoExceptionInterface.php';

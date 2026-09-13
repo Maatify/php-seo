@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\Seo\Exception;
 
-final class SeoCodeAlreadyExistsException extends \RuntimeException implements SeoExceptionInterface
+use Maatify\Exceptions\Exception\Conflict\GenericConflictMaatifyException;
+
+final class SeoCodeAlreadyExistsException extends GenericConflictMaatifyException implements SeoExceptionInterface
 {
     public static function forCode(string $code): self
     {

@@ -2,19 +2,7 @@
 
 declare(strict_types=1);
 
-// Standalone autoloader for standalone testing
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require_once __DIR__ . '/../vendor/autoload.php';
-} else {
-    spl_autoload_register(function ($class) {
-        if (strpos($class, 'Maatify\Seo\\') === 0) {
-            $file = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, 12)) . '.php';
-            if (file_exists($file)) {
-                require $file;
-            }
-        }
-    });
-}
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Web\JsonLd\Builder\RecipeJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\JobPostingJsonLdBuilder;
