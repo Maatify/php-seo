@@ -56,28 +56,28 @@ Target: `docs/audits/SEO_ARCHITECTURE_STANDARDS_CONTRACT_INTEGRITY_AUDIT.md`
 
 | Finding ID | Concise Durable Decision | Classification | Current Authority/Evidence | Migration Destination |
 | --- | --- | --- | --- | --- |
-| F-01 | Sitemap Generator strict arrays and return types (no streaming). | `ALREADY_CANONICAL` | `SitemapGeneratorService` signature requires `array` and returns complete `SitemapGenerationResultDTO` strings, no streaming. | N/A |
-| F-02 | Base sitemap rules and provider rules separated. | `ALREADY_CANONICAL` | Documented in `SEO_PACKAGE_REFERENCE.md` provider profiles. | N/A |
-| F-03 | Deprecated Google Image fields are retained for legacy compatibility without removal. | `ALREADY_CANONICAL` | `SitemapImageDTO` continues to support legacy fields, covered by Stack8 tests. | N/A |
-| F-04 | Google Video sitemap validation completeness (strict absolute URLs, http/https/ftp). | `ALREADY_CANONICAL` | `SitemapVideoDTO` validation rules in code enforce HTTP/HTTPS/FTP. Stated in package docs. | N/A |
-| F-05 | Google News cardinality and ISO 639 exceptions. | `ALREADY_CANONICAL` | `SitemapNewsDTO` rules enforce this, documented in `SEO_PACKAGE_REFERENCE.md`. | N/A |
-| F-06 | robots.txt generic RFC vs provider specific. | `ALREADY_CANONICAL` | `RobotsRenderer` separates rules and prevents injection. `SEO_PACKAGE_REFERENCE.md` notes this. | N/A |
-| F-07 | crawl-delay isolated as non-core. | `ALREADY_CANONICAL` | Implemented in `RobotsRenderer`. | N/A |
-| F-08 | MetaRobotsBuilder allows -1. | `ALREADY_CANONICAL` | Runtime builder allows -1. | N/A |
-| F-09 | indexifembedded presence. | `ALREADY_CANONICAL` | Runtime builder implements this. | N/A |
-| F-10 | unavailable_after requires date validation. | `ALREADY_CANONICAL` | Builder requires DateTimeInterface/valid format. | N/A |
-| F-11 | noarchive preservation. | `ALREADY_CANONICAL` | Builder supports noarchive. | N/A |
-| F-12 | SEO Validation strict rules vs heuristics (Unicode, scoring). | `ALREADY_CANONICAL` | Stack8/tests enforce Unicode heuristic rules explicitly. | N/A |
-| GDC-01 | Global Diagnostics Contract for structured data. | `ALREADY_CANONICAL` | `SearchConsole` and `MerchantCenter` namespaces implement isolated boundaries. | N/A |
-| F-13 | OGP required fields mismatch and strict http/https offline validation. | `ALREADY_CANONICAL` | `OpenGraphBuilder` enforces rules, documented in `SEO_PACKAGE_REFERENCE.md`. | N/A |
-| F-14 | Canonical URL relative vs absolute semantics. | `ALREADY_CANONICAL` | `CanonicalBuilder` validation semantics. | N/A |
-| F-15 | Hreflang ISO 639 boundary. | `ALREADY_CANONICAL` | Stack8 tests protect Hreflang ISO boundary wording. | N/A |
-| F-16 | Structured Data Google Eligibility vs Schema.org separation. | `ALREADY_CANONICAL` | `STRUCTURED_DATA_ARCHITECTURE.md` explicitly calls this out. | N/A |
-| F-17 | Course / Book provider status. | `ALREADY_CANONICAL` | Deferred to capability matrix. | N/A |
-| F-18 | JsonLd semantic validator is explicitly scoped type/range, not deep semantic. | `ALREADY_CANONICAL` | `STRUCTURED_DATA_ARCHITECTURE.md` and `SEO_PACKAGE_REFERENCE.md`. | N/A |
-| F-19 | Documentation behavior accuracy. | `NO_LONGER_CURRENT` | Resolved via `codex/standards-adoption-compliance` cleanup. | N/A |
-| F-20 | Normative documentation hierarchy. | `ALREADY_CANONICAL` | `docs/README.md` defines the new Authority model. | N/A |
-| F-21 | Twitter/X source-verification exclusion. | `ALREADY_CANONICAL` | `SEO_PACKAGE_REFERENCE.md` states Twitter/X is explicitly not source-verified. | N/A |
+| F-01 | Sitemap serialization has two independent implementation paths. (Unified architecture required). | `NO_LONGER_CURRENT` | Resolved by `SitemapGeneratorService` unifying generation. | N/A |
+| F-02 | Base sitemap protocol rules and provider extension rules separated. | `ALREADY_CANONICAL` | Documented in `SEO_PACKAGE_REFERENCE.md` provider profiles and strict scope. | N/A |
+| F-03 | Deprecated Google Image sitemap fields remain for compatibility. | `ALREADY_CANONICAL` | `SitemapImageDTO` continues to support legacy fields, covered by Stack8 tests. | N/A |
+| F-04 | Google Video sitemap validation completeness (strict absolute URLs, http/https/ftp). | `ALREADY_CANONICAL` | `SitemapVideoDTO` validation rules in code enforce HTTP/HTTPS/FTP. | N/A |
+| F-05 | Google News sitemap provider contract and ISO 639 exceptions. | `ALREADY_CANONICAL` | `SitemapNewsDTO` rules enforce this, documented in `SEO_PACKAGE_REFERENCE.md`. | N/A |
+| F-06 | `robots.txt` DTOs conform to RFC 9309 and Google-specific contracts separated. | `ALREADY_CANONICAL` | `RobotsRenderer` handles base rules. `SEO_PACKAGE_REFERENCE.md` notes this. | N/A |
+| F-07 | `crawl-delay` modeled as non-core behavior. | `ALREADY_CANONICAL` | Handled properly in `RobotsRenderer`. | N/A |
+| F-08 | `MetaRobotsBuilder` allows Google `-1` semantics. | `ALREADY_CANONICAL` | Runtime builder allows -1. | N/A |
+| F-09 | `indexifembedded` presence in typed Google robots helpers. | `ALREADY_CANONICAL` | Runtime builder implements this. | N/A |
+| F-10 | `unavailable_after` accepted with proper date validation. | `ALREADY_CANONICAL` | Builder requires valid date format. | N/A |
+| F-11 | `noarchive` valid to preserve despite stale Google meaning. | `ALREADY_CANONICAL` | Builder supports noarchive. | N/A |
+| F-12 | Core SEO validation conflates validity with heuristics (byte/length). | `ALREADY_CANONICAL` | Stack8/tests enforce Unicode heuristic rules explicitly. | N/A |
+| GDC-01 | Global diagnostics contract for protocol/provider/context diagnostics. | `ALREADY_CANONICAL` | `SearchConsole` and `MerchantCenter` namespaces implement isolated boundaries. | N/A |
+| F-13 | Open Graph required-field model mismatch and explicit protocol contract. | `ALREADY_CANONICAL` | `OpenGraphBuilder` enforces rules, documented in `SEO_PACKAGE_REFERENCE.md`. | N/A |
+| F-14 | Canonical URL behavior permissive by design; relative canonical allowed. | `ALREADY_CANONICAL` | `CanonicalBuilder` handles validation correctly. | N/A |
+| F-15 | Hreflang normalization paths and provider-aware cluster validation. | `ALREADY_CANONICAL` | Stack8 tests protect Hreflang ISO boundary wording. | N/A |
+| F-16 | Structured Data correctly separates Schema.org from Google eligibility. | `ALREADY_CANONICAL` | `STRUCTURED_DATA_ARCHITECTURE.md` explicitly calls this out. | N/A |
+| F-17 | Course / Book provider status deferred to capability matrix. | `ALREADY_CANONICAL` | `SEO_PACKAGE_REFERENCE.md` states capability matrix. | N/A |
+| F-18 | `JsonLdSemanticValidator` is scoped type/range validation, not complete semantic. | `ALREADY_CANONICAL` | `STRUCTURED_DATA_ARCHITECTURE.md` and `SEO_PACKAGE_REFERENCE.md`. | N/A |
+| F-19 | Documentation and CHANGELOG do not accurately describe behavior. | `NO_LONGER_CURRENT` | Resolved via `codex/standards-adoption-compliance` cleanup and CHANGELOG updates. | N/A |
+| F-20 | Repository needs one normative documentation hierarchy. | `ALREADY_CANONICAL` | `docs/README.md` defines the new Authority model. | N/A |
+| F-21 | Twitter/X Cards provider contract not source-verified by this audit. | `ALREADY_CANONICAL` | `SEO_PACKAGE_REFERENCE.md` states Twitter/X is explicitly not source-verified. | N/A |
 
 **Result**: Every durable decision from the historical audit is already successfully codified into existing architectural contracts (`STRUCTURED_DATA_ARCHITECTURE.md`, `SEO_PACKAGE_REFERENCE.md`), test suites, or runtime behaviors. `MUST_MIGRATE = 0`. Therefore, `SEO_ARCHITECTURE_STANDARDS_CONTRACT_INTEGRITY_AUDIT.md` is classified as `DELETE_NO_CURRENT_VALUE`.
 
@@ -103,8 +103,8 @@ Review of the three old `Risks / Decisions that Need Approval Before Coding` (fr
    * **Evidence**: `schema/maa_seo_slug_history.sql` defines `entity_type VARCHAR(50) NOT NULL COMMENT 'Host-defined entity type. No FK.'`. The host controls the enum strings dynamically, resolving the extensibility concern.
 
 3. **Sitemap Generation Memory Constraints** (streaming vs memory):
-   * **Classification**: `OBSOLETE`
-   * **Evidence**: The current runtime `SitemapGeneratorService` signatures explicitly accept fully loaded arrays (`array $urls`) and return complete objects `SitemapGenerationResultDTO`, building XML strings entirely in memory. It is deliberately bounded by the 50,000 URL limit and does NOT use file streaming. The memory/streaming risk decision was made in favor of in-memory string returns for framework neutrality.
+   * **Classification**: `FUTURE_WORK`
+   * **Evidence**: The current runtime `SitemapGeneratorService` signatures explicitly accept fully loaded arrays (`array $urls`) and return complete objects/strings, building XML strings entirely in memory. It does not provide a streaming API. There is no repository evidence proving the streaming concern was explicitly closed/rejected. Thus, memory handling for very large sitemaps remains future work.
 
 ### Genuine Future Roadmap Items
 
@@ -113,7 +113,7 @@ The only items that will be carried forward to `ROADMAP.md` as future work are:
 * **Title**: Deeper Generic Schema.org Semantic Validation
   * **Current gap**: Current library strictly validates the structural shape and property-ranges of 4 scoped structures (`Product`, `Offer`, `AggregateOffer`, `ProductGroup`), but leaves deep Schema.org ontology unverified.
   * **Intended scope**: Full generic semantic analysis against Schema.org types if prioritized.
-  * **Explicit out-of-scope**: Modifying current JSON-LD builders.
+  * **Explicit out-of-scope**: Modifying current JSON-LD builders. Google-specific Rich Results provider eligibility is explicitly out of scope for this task. Merchant Center eligibility diagnostics are ALSO out of scope (completed in Phase 23).
   * **Dependencies/preconditions**: Architecture decision on a semantic validation engine.
   * **Source roadmap location**: `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md` (Phase 13P Follow-up).
   * **Evidence**: Current runtime supports only scoped structures. Explicitly deferred by `STRUCTURED_DATA_ARCHITECTURE.md`.
@@ -121,10 +121,17 @@ The only items that will be carried forward to `ROADMAP.md` as future work are:
 * **Title**: Google Rich Results / Provider-Specific Eligibility Profile
   * **Current gap**: While Phase 22 introduced external verification orchestration, an internal robust "eligibility prediction" engine specific strictly to Google's dynamic Rich Results guidelines (independent from generic Schema.org) does not exist natively in the library.
   * **Intended scope**: A distinct validation layer verifying structures explicitly against Google's feature guidelines.
-  * **Explicit out-of-scope**: Mixing this with generic Schema.org validation. **Merchant Center Diagnostics** are ALSO out of scope here as they are already completed (Phase 23).
+  * **Explicit out-of-scope**: Mixing this with generic Schema.org validation. Merchant Center Diagnostics are ALSO out of scope here as they are already completed (Phase 23).
   * **Dependencies/preconditions**: Volatile provider mapping and capabilities matrix.
   * **Source roadmap location**: `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md`
   * **Evidence**: Explicitly kept separate as provider eligibility is highly volatile, as stated in `STRUCTURED_DATA_ARCHITECTURE.md`.
+
+* **Title**: Large Sitemap Memory / Streaming Strategy
+  * **Current gap**: `SitemapGeneratorService` processes complete arrays and generates complete XML strings in memory. There is no streaming API for very large datasets, posing a risk of memory exhaustion.
+  * **Intended scope**: Provide a memory-efficient strategy (such as `XMLWriter` streaming) to generate sitemaps without holding the entire XML in memory.
+  * **Compatibility constraints**: Must not imply that the current in-memory API is invalid for typical use cases. Must preserve framework neutrality.
+  * **Source roadmap location**: `docs/roadmap/SEO_LIBRARY_ROADMAP.md` (Risks).
+  * **Evidence**: Current `SitemapGeneratorService` signatures and lack of explicit repository rejection of the streaming concern.
 
 ## 7. Active Proposal Decision
 
@@ -134,7 +141,7 @@ Target: `docs/proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md`
 * The proposal is a standalone active RFC.
 * The gap is a framework-neutral higher-level admin orchestration/control API, **not a UI implementation**.
 * UI/views/controllers/routes remain explicitly out of scope.
-* It is NOT "Phase 24" (Phase 24 is MetaGeneratorService Contract Finalization, which is complete).
+* It is NOT "Phase 24". Phase 24 was MetaGeneratorService Contract Finalization (which is complete).
 * The future `ROADMAP.md` will link to this RFC.
 
 ## 8. Full Directory Deletion Decisions
