@@ -84,7 +84,7 @@ Execution Standard.
 | Path | Status | Reason / action |
 | --- | --- | --- |
 | `README.md` | `reviewed-no-change` | No stale Robots API claim or required discovery link was found. |
-| `docs/SEO_LIBRARY_REFERENCE.md` | `reviewed-no-change` | The current Robots renderer and DTO surface is already documented accurately. |
+| `SEO_PACKAGE_REFERENCE.md` | `reviewed-no-change` | The current Robots renderer and DTO surface is already documented accurately. |
 | `docs/guides/USAGE_GUIDE.md` | `reviewed-no-change` | The existing example covers current construction, multiple sitemap URLs, and host-owned plain-string output. |
 | `docs/guides/INTEGRATION_GUIDE.md` | `reviewed-no-change` | Route, headers, and HTTP response ownership are correctly assigned to the host application. |
 | `docs/SEO/**` | `reviewed-no-change` | No active contradictory Robots contract was found; `docs/SEO/v1/**` is historical and was not rewritten. |

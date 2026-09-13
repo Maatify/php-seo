@@ -38,7 +38,7 @@ The following phases were verified:
 * `README.md`
 * `CHANGELOG.md`
 * `docs/roadmap/SEO_LIBRARY_ROADMAP.md`
-* `docs/SEO_LIBRARY_REFERENCE.md`
+* `SEO_PACKAGE_REFERENCE.md`
 * `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md`
 * `docs/guides/USAGE_GUIDE.md`
 * `docs/guides/INTEGRATION_GUIDE.md`

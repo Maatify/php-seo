@@ -16,7 +16,7 @@ Ensure all roadmap, reference, and usage documentation accurately reflects the c
 - **SEO_LIBRARY_ENHANCEMENT_ROADMAP.md**:
   - Updated headings for Phase 14, 15, 16, 17, and 18 to explicitly indicate they were completed via the acceleration batches (e.g. `(Complete via Batch 1B & 1C)`).
 
-- **docs/SEO_LIBRARY_REFERENCE.md**:
+- **SEO_PACKAGE_REFERENCE.md**:
   - Added a new `Accelerated Feature Batches` section detailing the exact classes and namespaces provided by Batch 1 (MetaRobotsBuilder, SeoPagePresetFactory, Domain factories), Batch 2 (Admin preview DTOs/factories plus metadata import/export helpers), Batch 3 (HTML head `<link rel="alternate" hreflang="..." href="...">` generation), and the Phase 14/15 builder implementations (Social Preview, Canonical).
 
 ## 3. Results

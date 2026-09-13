@@ -80,6 +80,6 @@ For developers upgrading to Phase 13O:
 
 - **Blueprint:** [PHASE_13O_PRODUCT_STRUCTURED_DATA_BLUEPRINT.md](../blueprints/PHASE_13O_PRODUCT_STRUCTURED_DATA_BLUEPRINT.md)
 - **Verification Report:** [PHASE_13O_PRODUCT_STRUCTURED_DATA_VERIFICATION_REPORT.md](../verification/PHASE_13O_PRODUCT_STRUCTURED_DATA_VERIFICATION_REPORT.md)
-- **API Reference:** [SEO_LIBRARY_REFERENCE.md](../SEO_LIBRARY_REFERENCE.md)
+- **API Reference:** [SEO_PACKAGE_REFERENCE.md](../../SEO_PACKAGE_REFERENCE.md)
 - **Usage Guide:** [USAGE_GUIDE.md](../guides/USAGE_GUIDE.md)
 - **Examples:** `examples/phase13o-product-advanced.php` (Demonstrating composed scenarios).

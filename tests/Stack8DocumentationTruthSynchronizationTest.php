@@ -53,14 +53,28 @@ $loadedSourceFiles = array_values(array_filter(
 stack8AssertTrue('Stack 8 test has no production-source dependency', $loadedSourceFiles === []);
 
 $docsIndex = stack8Read('docs/README.md');
+$repositoryRoot = dirname(__DIR__);
+$referencePath = $repositoryRoot . '/SEO_PACKAGE_REFERENCE.md';
+stack8AssertTrue('canonical Package Reference exists at repository root', is_file($referencePath));
+$oldReferencePath = $repositoryRoot . '/docs/' . 'SEO_' . 'LIBRARY_REFERENCE.md';
+stack8AssertFalse('obsolete nested Package Reference has been removed', is_file($oldReferencePath));
+$rootPackageReferences = glob($repositoryRoot . '/*_PACKAGE_REFERENCE.md') ?: [];
+stack8AssertTrue('exactly one root Package Reference exists', count($rootPackageReferences) === 1);
+stack8AssertTrue(
+    'the sole root Package Reference is SEO_PACKAGE_REFERENCE.md',
+    count($rootPackageReferences) === 1 && basename($rootPackageReferences[0]) === 'SEO_PACKAGE_REFERENCE.md',
+);
+
 foreach ([
     '## Documentation authority',
-    '### Current normative documentation',
+    '### Current executable package contract',
+    '### Canonical human-readable package reference',
+    'canonical human-readable package contract',
+    '### Detailed current documentation',
     '### Historical implementation evidence',
-    '### Architecture and audit evidence',
     '### Future and planning material',
     'SEO/library/',
-    'SEO_LIBRARY_REFERENCE.md',
+    '../SEO_PACKAGE_REFERENCE.md',
     'guides/',
     'phases/',
     'verification/',
@@ -137,6 +151,9 @@ foreach ($addedLines[0] as $addedLine) {
 }
 
 $readme = stack8Read('README.md');
+stack8AssertContains('README links to the canonical Package Reference', $readme, '](SEO_PACKAGE_REFERENCE.md)');
+stack8AssertContains('README records package-owned PDO persistence', $readme, 'The host supplies PDO and connection configuration; the package ships concrete PDO repositories and its own schemas');
+stack8AssertNotContains('README does not require Host ORM repository implementations', $readme, 'allowing the host application to use Doctrine, Eloquent, or native PDO');
 stack8AssertContains('README records base and strict sitemap scope', $readme, 'base/strict DTO fields');
 stack8AssertContains('README separates sitemap provider profiles', $readme, 'provider/profile validation boundaries');
 stack8AssertNotContains('README does not imply provider strict compliance', $readme, 'strict URL/date/frequency/priority validation.');
@@ -144,7 +161,7 @@ stack8AssertContains('README records Twitter/X audit boundary', $readme, 'Twitte
 
 $structuredDocPaths = [
     'docs/SEO/library/STRUCTURED_DATA_ARCHITECTURE.md',
-    'docs/SEO_LIBRARY_REFERENCE.md',
+    'SEO_PACKAGE_REFERENCE.md',
     'docs/guides/USAGE_GUIDE.md',
 ];
 $structuredDocContents = [];
@@ -171,9 +188,26 @@ stack8AssertContains('current docs separate Google required and recommended prop
 stack8AssertContains('current docs separate Merchant eligibility', $currentStructuredDocs, 'Merchant eligibility');
 stack8AssertContains('current docs preserve the Twitter/X compatibility boundary', $readme, 'Twitter/X provider conformance was not source-verified');
 
-$reference = $structuredDocContents['docs/SEO_LIBRARY_REFERENCE.md'];
-stack8AssertContains('Phase 24 MetaGeneratorService contract is the current resolved authority', $reference, 'META_GENERATOR_SERVICE_CONTRACT.md');
-stack8AssertNotContains('Phase 24 resolved contract replaces unresolved wording in the current reference', $reference, 'unknown / needs decision');
+$reference = $structuredDocContents['SEO_PACKAGE_REFERENCE.md'];
+foreach ([
+    'maatify/php-seo',
+    'maatify/exceptions',
+    'The host supplies a configured **PDO**',
+    'package-owned tables',
+    'maa_seo_redirects',
+    'maa_seo_overrides',
+    'maa_seo_slug_history',
+    'Consumer Verification Harness',
+    'SeoExceptionInterface extends Throwable',
+    'INVALID_ARGUMENT',
+    'Google required/recommended',
+    'Merchant eligibility',
+    'separately versioned standards-data contract',
+] as $needle) {
+    stack8AssertContains("canonical Package Reference contains {$needle}", $reference, $needle);
+}
+stack8AssertContains('MetaGeneratorService links its current resolved contract', $reference, 'META_GENERATOR_SERVICE_CONTRACT.md');
+stack8AssertNotContains('canonical Package Reference has no unresolved MetaGenerator contract wording', $reference, 'unknown / needs decision');
 
 $enhancementRoadmap = stack8Read('docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md');
 $phase21Start = strpos($enhancementRoadmap, '## Structured-data CI and external-verification boundary');

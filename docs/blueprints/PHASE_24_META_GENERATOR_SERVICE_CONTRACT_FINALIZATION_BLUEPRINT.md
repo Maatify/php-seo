@@ -171,7 +171,7 @@ The Phase 24 Documentation Sweep reviewed the paths below and records exactly on
 | `docs/README.md` | reviewed-no-change |
 | `docs/SEO/library/README.md` | reviewed-no-change |
 | `docs/SEO/library/META_GENERATOR_SERVICE_CONTRACT.md` | reviewed-no-change |
-| `docs/SEO_LIBRARY_REFERENCE.md` | updated |
+| `SEO_PACKAGE_REFERENCE.md` | updated |
 | `docs/guides/USAGE_GUIDE.md` | reviewed-no-change |
 | `docs/guides/INTEGRATION_GUIDE.md` | reviewed-no-change |
 | `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md` | updated |

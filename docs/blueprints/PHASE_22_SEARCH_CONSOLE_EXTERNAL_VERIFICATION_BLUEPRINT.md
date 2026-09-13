@@ -227,7 +227,7 @@ The Final Verification Gate reassesses the complete Phase 22 implementation agai
 
 ## 17. Documentation impact candidates
 
-* `docs/SEO_LIBRARY_REFERENCE.md`: Update to reflect the new external verification namespace and DTOs.
+* `SEO_PACKAGE_REFERENCE.md`: Update to reflect the new external verification namespace and DTOs.
 * `docs/guides/USAGE_GUIDE.md`: Add a section detailing how a host application would implement the transport and inject it.
 * `docs/phases/PHASE_22_SEARCH_CONSOLE_EXTERNAL_VERIFICATION.md`: (To be created post-implementation) Summarizing the phase.
 * Documentation must clearly emphasize that this is indexed data, not live validation, and that quotas/retries are the host's responsibility.

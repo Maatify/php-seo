@@ -71,7 +71,7 @@ must explicitly classify each applicable documentation layer as either requiring
 update, reviewed with no update required, or deferred with a documented reason:
 
 * `README.md`
-* `docs/SEO_LIBRARY_REFERENCE.md`
+* `SEO_PACKAGE_REFERENCE.md`
 * `docs/guides/USAGE_GUIDE.md`
 * `docs/guides/INTEGRATION_GUIDE.md`, when integration or usage changes
 * `docs/SEO/**`

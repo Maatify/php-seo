@@ -81,7 +81,7 @@ listed separately from runtime gaps below.
 ### Documentation and example evidence
 
 - `README.md` advertises sitemap, hreflang, and the sitemap example.
-- `docs/SEO_LIBRARY_REFERENCE.md` documents the Web renderers and all current
+- `SEO_PACKAGE_REFERENCE.md` documents the Web renderers and all current
   sitemap DTO families.
 - `docs/guides/USAGE_GUIDE.md` and `docs/guides/INTEGRATION_GUIDE.md` contain
   current examples for URL sets, alternates, images, videos, news, and index
@@ -369,7 +369,7 @@ Expected later documentation sweep, intentionally not performed here:
 
 - `README.md`: add a concise pointer or example coverage note for index and
   extended sitemap rendering if maintainers want README-level discoverability.
-- `docs/SEO_LIBRARY_REFERENCE.md`: explain the Core/Shared versus Web index
+- `SEO_PACKAGE_REFERENCE.md`: explain the Core/Shared versus Web index
   DTO split and state raw-array validation parity.
 - `docs/guides/USAGE_GUIDE.md`: retain current complete examples and add the
   clarified validation/date behavior only after implementation acceptance.

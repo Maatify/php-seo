@@ -11,7 +11,7 @@ This audit evaluated the documentation, Developer Experience (DX), roadmap align
 - `docs/guides/` (`INTEGRATION_GUIDE.md`, `USAGE_GUIDE.md`)
 - `docs/roadmap/` (`SEO_LIBRARY_ROADMAP.md`, `SEO_LIBRARY_ENHANCEMENT_ROADMAP.md`)
 - `docs/proposals/` (`OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md`)
-- `docs/SEO_LIBRARY_REFERENCE.md`
+- `SEO_PACKAGE_REFERENCE.md`
 - `examples/` directory and standalone scripts
 - `CHANGELOG.md`, `SECURITY.md`, `LICENSE`
 
@@ -21,7 +21,7 @@ This audit evaluated the documentation, Developer Experience (DX), roadmap align
 None. The documentation is accurate, the examples are verifiable, and the roadmap accurately reflects the shipped state of the codebase.
 
 ### Strong Recommendation
-- **Terminology Clean-up in Active Docs (Docs vs Implementation):** A few lingering references to "module" instead of "library" still exist in active reading material like `docs/guides/INTEGRATION_GUIDE.md`, `docs/guides/USAGE_GUIDE.md`, `docs/SEO_LIBRARY_REFERENCE.md`, and `docs/roadmap/SEO_LIBRARY_ROADMAP.md`. While the term "module" was correct historically, updating these to "library" or "package" will ensure better consistency with the public `README.md`.
+- **Terminology Clean-up in Active Docs (Docs vs Implementation):** A few lingering references to "module" instead of "library" still exist in active reading material like `docs/guides/INTEGRATION_GUIDE.md`, `docs/guides/USAGE_GUIDE.md`, `SEO_PACKAGE_REFERENCE.md`, and `docs/roadmap/SEO_LIBRARY_ROADMAP.md`. While the term "module" was correct historically, updating these to "library" or "package" will ensure better consistency with the public `README.md`.
   - *Recommendation:* Replace these remaining instances before or immediately after RC.1.
 
 ### Future Improvement

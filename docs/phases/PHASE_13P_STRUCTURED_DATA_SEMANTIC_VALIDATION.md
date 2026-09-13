@@ -148,7 +148,7 @@ Each Section 8 path was reviewed during this sweep and has one explicit final st
 | Path | Status | Reason |
 | --- | --- | --- |
 | `README.md` | `reviewed-no-change` | The top-level quick start and feature summary remain accurate and do not need a new validator example for this Phase. |
-| `docs/SEO_LIBRARY_REFERENCE.md` | `updated` | Added the public validator entry point, four layers, scoped types, issue taxonomy, relationships, aliases, and limitations. |
+| `SEO_PACKAGE_REFERENCE.md` | `updated` | Added the public validator entry point, four layers, scoped types, issue taxonomy, relationships, aliases, and limitations. |
 | `docs/guides/USAGE_GUIDE.md` | `reviewed-no-change` | Existing validator, score, report, batch, and exporter usage remains correct; no public API or usage flow changed. |
 | `docs/guides/INTEGRATION_GUIDE.md` | `reviewed-no-change` | Phase 13P does not change framework, CI, middleware, or host integration contracts. |
 | `docs/SEO/**` | `updated` | Updated `docs/SEO/library/STRUCTURED_DATA_ARCHITECTURE.md` to reflect Phase 13P scoped validation and its non-eligibility boundary. |

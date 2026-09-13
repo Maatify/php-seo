@@ -26,7 +26,7 @@ public contracts, dependencies, or framework integration.
 
 ### reviewed-no-change
 
-- `docs/SEO_LIBRARY_REFERENCE.md`
+- `SEO_PACKAGE_REFERENCE.md`
   - Runtime contracts already exist and Phase 20 did not change the API.
 - `docs/guides/USAGE_GUIDE.md`
   - No new runtime usage contract was introduced; standalone commands are

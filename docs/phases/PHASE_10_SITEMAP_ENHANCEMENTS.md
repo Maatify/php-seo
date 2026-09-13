@@ -65,7 +65,7 @@ Execution Standard.
 | Path | Status | Synchronization result |
 | --- | --- | --- |
 | `README.md` | `updated` | The feature summary now names URL-set/index XML, typed/raw inputs, strict validation, hreflang, image, video, and news support while keeping the overview concise. |
-| `docs/SEO_LIBRARY_REFERENCE.md` | `updated` | The Web renderers, raw validation parity, strict date behavior, News date contract, and separate Shared/Web index DTO roles are explicit. |
+| `SEO_PACKAGE_REFERENCE.md` | `updated` | The Web renderers, raw validation parity, strict date behavior, News date contract, and separate Shared/Web index DTO roles are explicit. |
 | `docs/guides/USAGE_GUIDE.md` | `updated` | The sitemap usage section now states strict URL/date/frequency/priority validation and the intentional News date behavior. |
 | `docs/guides/INTEGRATION_GUIDE.md` | `updated` | Host-owned HTTP behavior and the typed/raw sitemap validation contract are synchronized. |
 | `docs/SEO/**` | `reviewed-no-change` | `docs/SEO/library/**` is the active engineering handbook and currently contains structured-data-specific material with no Phase 10 sitemap claim requiring synchronization; `docs/SEO/v1/**` is historical and remains preserved. |

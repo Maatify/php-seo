@@ -30,7 +30,7 @@ historical evidence.
 | `docs/README.md` | `reviewed-no-change` | Existing authority hierarchy remains accurate. |
 | `docs/SEO/library/README.md` | `reviewed-no-change` | Already links to the normative contract. |
 | `docs/SEO/library/META_GENERATOR_SERVICE_CONTRACT.md` | `reviewed-no-change` | Normative contract already records the adopted decisions and boundaries. |
-| `docs/SEO_LIBRARY_REFERENCE.md` | `updated` | Replaced the stale unresolved-contract language with a concise summary and link to the normative contract. |
+| `SEO_PACKAGE_REFERENCE.md` | `updated` | Replaced the stale unresolved-contract language with a concise summary and link to the normative contract. |
 | `docs/guides/USAGE_GUIDE.md` | `reviewed-no-change` | No direct service contract claim or usage gap requiring synchronization. |
 | `docs/guides/INTEGRATION_GUIDE.md` | `reviewed-no-change` | No new host integration capability or behavior was introduced. |
 | `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md` | `updated` | Added the Phase 24 work and verification snapshot and its completion gate, without marking the Phase Complete. |
@@ -60,7 +60,7 @@ None.
 
 ## Stale claim corrected
 
-The Meta Generator Service section in `docs/SEO_LIBRARY_REFERENCE.md` described
+The Meta Generator Service section in `SEO_PACKAGE_REFERENCE.md` described
 the material output contract as `unknown / needs decision` and disclaimed the
 normative status of trimming, override fallback, canonical precedence, and social
 copying. That current-facing description became stale after WU1. It now links to

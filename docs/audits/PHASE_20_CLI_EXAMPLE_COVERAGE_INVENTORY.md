@@ -13,7 +13,7 @@ The inventory was reviewed against:
 - `src/` public service, builder, renderer, command, and contract families;
 - the feature and practical-example lists in `README.md`; and
 - the architecture, service, Web-layer, and host-responsibility descriptions in
-  `docs/SEO_LIBRARY_REFERENCE.md`.
+  `SEO_PACKAGE_REFERENCE.md`.
 
 The Phase 20 Draft baseline for this inventory is
 `5d1770d86e47b5528affd878901a41b8914fe129`.

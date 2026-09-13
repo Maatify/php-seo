@@ -120,7 +120,7 @@ The library follows a strict layered architecture to ensure clean separation of 
 - **No Controllers:** Routing decisions are strictly the host application's responsibility.
 - **No UI:** The library provides raw strings, arrays, or DTOs. Any HTML rendering is purely optional utility output, avoiding template engine coupling.
 - **No Framework Dependency:** Built with standard PHP, using generic contracts (interfaces) to integrate with frameworks.
-- **No ORM Dependency:** Database interactions are defined by abstract repositories, allowing the host application to use Doctrine, Eloquent, or native PDO.
+- **Package-Owned Persistence:** The host supplies PDO and connection configuration; the package ships concrete PDO repositories and its own schemas, while framework integration remains host-owned.
 
 ## Documentation
 
@@ -129,7 +129,7 @@ and understand which documents are current normative guidance, historical eviden
 audit authority, or future planning material.
 
 The current normative entry points are the [engineering handbook](docs/SEO/library/README.md),
-[library reference](docs/SEO_LIBRARY_REFERENCE.md), [usage guide](docs/guides/USAGE_GUIDE.md),
+[canonical package reference](SEO_PACKAGE_REFERENCE.md), [usage guide](docs/guides/USAGE_GUIDE.md),
 and [integration guide](docs/guides/INTEGRATION_GUIDE.md). Phase records, verification
 reports, completed work-unit blueprints, roadmaps, and proposals remain linked from
 the documentation index for context and evidence.

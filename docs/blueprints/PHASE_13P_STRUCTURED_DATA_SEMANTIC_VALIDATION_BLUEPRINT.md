@@ -641,7 +641,7 @@ must receive one final status: `updated`, `reviewed-no-change`, or
 | Path | Planned review decision |
 | --- | --- |
 | `README.md` | `reviewed-no-change` unless the final public entry point is promoted to the top-level quick-start surface; document the reason either way |
-| `docs/SEO_LIBRARY_REFERENCE.md` | `updated` with the validator entry point, four layers, supported types, and limitations |
+| `SEO_PACKAGE_REFERENCE.md` | `updated` with the validator entry point, four layers, supported types, and limitations |
 | `docs/guides/USAGE_GUIDE.md` | `updated` if a public JSON-LD validation example is added; otherwise `reviewed-no-change` with rationale |
 | `docs/guides/INTEGRATION_GUIDE.md` | `reviewed-no-change` unless integration or CI usage changes; any change requires an explicit update |
 | `docs/SEO/**` | `reviewed-no-change` unless schema/validation guidance or claims need correction |

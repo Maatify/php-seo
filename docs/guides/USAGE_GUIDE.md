@@ -4,6 +4,9 @@
 
 The Maatify SEO library provides robust, framework-agnostic tools to manage SEO metadata, schema generation (JSON-LD), redirects, slug history, and sitemaps.
 
+For the current package contract and public runtime inventory, see the
+[canonical Package Reference](../../SEO_PACKAGE_REFERENCE.md).
+
 **What it provides:**
 *   Value Objects/DTOs for SEO data structures (e.g., `MetaTagsDTO`, `JsonLdSchemaDTO`).
 *   Core logic for schema generation, resolving redirects, and generating in-memory sitemaps.
@@ -14,7 +17,7 @@ The Maatify SEO library provides robust, framework-agnostic tools to manage SEO 
 *   It does **not** handle HTTP requests or responses.
 *   It does **not** provide framework routing, controllers, or middlewares.
 *   It does **not** couple to any specific templating engine (like Twig or Blade).
-*   It does **not** enforce ORM patterns. Database persistence uses direct PDO via provided repositories.
+*   It does **not** enforce ORM patterns. The Host supplies PDO; persistence uses package-provided PDO repositories and shipped schemas.
 
 **Host Application Responsibility:**
 The host application is strictly responsible for managing all HTTP interactions (requests, responses, controllers, routes), utilizing preferred template engines, and providing implementations for the necessary host contracts (like `HostEntityProviderInterface` and `HostUrlGeneratorInterface`). You integrate the SEO library by using its builders and renderers within your existing architecture to get the SEO output, and then you send that output in your own responses.

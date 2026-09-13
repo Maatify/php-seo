@@ -108,7 +108,7 @@ Execution Standard: `updated`, `reviewed-no-change`, or `deferred-with-reason`.
 | Path | Status | Reason / recorded action |
 | --- | --- | --- |
 | `README.md` | `reviewed-no-change` | Existing guide links, example links, and library claims remain accurate. |
-| `docs/SEO_LIBRARY_REFERENCE.md` | `reviewed-no-change` | Phase 13P boundaries, builder contracts, aliases, and validation limitations already match the current code. |
+| `SEO_PACKAGE_REFERENCE.md` | `reviewed-no-change` | Phase 13P boundaries, builder contracts, aliases, and validation limitations already match the current code. |
 | `docs/guides/USAGE_GUIDE.md` | `updated` | Added the Homepage example and synchronized JSON-LD validation wording in WU1. |
 | `docs/guides/INTEGRATION_GUIDE.md` | `reviewed-no-change` | Plain PHP, Slim, Laravel, template, renderer, and host-owned response guidance remains compatible. |
 | `docs/SEO/**` | `reviewed-no-change` | Active architecture documentation matches current behavior; `docs/SEO/v1/**` remains historical and was not rewritten. |

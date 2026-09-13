@@ -90,7 +90,7 @@ and the source behavior is deterministic.
 
 The following current documentation was inspected:
 
-- `docs/SEO_LIBRARY_REFERENCE.md` already lists the Robots renderer and both DTOs.
+- `SEO_PACKAGE_REFERENCE.md` already lists the Robots renderer and both DTOs.
 - `docs/guides/USAGE_GUIDE.md` already provides a current Robots.txt example with
   rules, allow/disallow, crawl-delay, comments, multiple sitemap URLs, and explicit
   host-owned `Content-Type` output.
@@ -268,7 +268,7 @@ repository at that time and record the actual reason.
 | Path | Planned status | Reason / expected action |
 | --- | --- | --- |
 | `README.md` | `reviewed-no-change` | No stale Robots API claim or required discovery link was found. |
-| `docs/SEO_LIBRARY_REFERENCE.md` | `reviewed-no-change` | The current Robots renderer and DTO surface is already documented accurately. |
+| `SEO_PACKAGE_REFERENCE.md` | `reviewed-no-change` | The current Robots renderer and DTO surface is already documented accurately. |
 | `docs/guides/USAGE_GUIDE.md` | `reviewed-no-change` | The existing example already covers current construction, multiple sitemaps, and host-owned output. |
 | `docs/guides/INTEGRATION_GUIDE.md` | `reviewed-no-change` | The existing integration section correctly assigns route, headers, and response ownership to the host. |
 | `docs/SEO/**` | `reviewed-no-change` | No active contradictory Robots contract was found; `docs/SEO/v1/**` remains historical. |

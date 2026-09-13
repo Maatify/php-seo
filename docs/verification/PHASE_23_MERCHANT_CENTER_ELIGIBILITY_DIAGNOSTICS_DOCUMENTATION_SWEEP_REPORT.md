@@ -16,7 +16,7 @@ The Draft includes the Phase 23 Blueprint, WU1–WU3 implementation, and the Pha
 
 - `README.md`
 - `CHANGELOG.md`
-- `docs/SEO_LIBRARY_REFERENCE.md`
+- `SEO_PACKAGE_REFERENCE.md`
 - `docs/guides/USAGE_GUIDE.md`
 - `docs/phases/PHASE_23_MERCHANT_CENTER_ELIGIBILITY_DIAGNOSTICS.md`
 - `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md`

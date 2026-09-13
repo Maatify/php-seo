@@ -16,7 +16,7 @@ public-contract change, dependency, transport, OAuth, or credential handling.
 ### updated
 
 - `README.md`
-- `docs/SEO_LIBRARY_REFERENCE.md`
+- `SEO_PACKAGE_REFERENCE.md`
 - `docs/guides/USAGE_GUIDE.md`
 - `docs/phases/PHASE_22_SEARCH_CONSOLE_EXTERNAL_VERIFICATION.md`
 - `docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md`

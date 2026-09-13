@@ -33,7 +33,7 @@ latest `main` are complete.
   services, and host-owned integration boundaries under `src/`; Phase 8 does not
   require a new public API.
 - `README.md` links to both guides and lists the currently available examples.
-- `docs/SEO_LIBRARY_REFERENCE.md` and
+- `SEO_PACKAGE_REFERENCE.md` and
   `docs/SEO/library/STRUCTURED_DATA_ARCHITECTURE.md` describe the current Phase 13P
   validation and JSON-LD builder behavior. They are not blank documentation areas.
 - No Phase 8-specific phase record or verification report currently exists under
@@ -273,7 +273,7 @@ reason if an implementation or verification result changes it.
 | Path | Planned status | Reason / expected action |
 | --- | --- | --- |
 | `README.md` | `reviewed-no-change` | Existing links and example inventory are accurate; no README claim is contradicted by the WU1 gap. |
-| `docs/SEO_LIBRARY_REFERENCE.md` | `reviewed-no-change` | Current reference already documents the public APIs and Phase 13P boundaries. |
+| `SEO_PACKAGE_REFERENCE.md` | `reviewed-no-change` | Current reference already documents the public APIs and Phase 13P boundaries. |
 | `docs/guides/USAGE_GUIDE.md` | `updated` | Add the Homepage example and correct the stale JSON-LD validation wording. |
 | `docs/guides/INTEGRATION_GUIDE.md` | `reviewed-no-change` | Current host/framework-neutral integration topics are present and use existing APIs. |
 | `docs/SEO/**` | `reviewed-no-change` | Active architecture docs match current behavior; historical `v1` docs remain historical. |

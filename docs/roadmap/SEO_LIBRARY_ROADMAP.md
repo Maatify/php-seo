@@ -33,7 +33,7 @@ Following `MODULE_BUILDING_STANDARD.md`:
 
 ├── README.md
 ├── CHANGELOG.md
-├── docs/SEO_LIBRARY_REFERENCE.md
+├── SEO_PACKAGE_REFERENCE.md
 ├── composer.json
 ├── phpstan.neon
 ├── schema/
@@ -171,7 +171,7 @@ A PDO-based schema is required for specific sub-systems where persistence provid
 - **Phase 4: Sitemap Generation (Complete - Core/Shared)**
   Implement `SitemapGeneratorService` using `XMLWriter` to support dynamic sitemap index and language-specific XMLs.
 - **Phase 5: Documentation & Polish (Complete - Core/Shared)**
-  Finalized `README.md`, `docs/SEO_LIBRARY_REFERENCE.md`, and verified PHPStan level max passes natively.
+  Finalized `README.md`, `SEO_PACKAGE_REFERENCE.md`, and verified PHPStan level max passes natively.
 
 - **Phase 6: Full Module Completion (Complete)**
   - **Phase 6A: Admin Layer (Complete):** Implement admin-specific command, query, and service classes for managing SEO overrides, redirects, and slug history.
@@ -257,7 +257,7 @@ A PDO-based schema is required for specific sub-systems where persistence provid
 
 ## 12. Definition of Done
 
-- All required standard package files are present (`README.md`, `CHANGELOG.md`, `docs/SEO_LIBRARY_REFERENCE.md`, `composer.json`, `phpstan.neon`).
+- All required standard package files are present (`README.md`, `CHANGELOG.md`, `SEO_PACKAGE_REFERENCE.md`, `composer.json`, `phpstan.neon`).
 - The library successfully runs independently with zero external host-table FKs.
 - `phpstan analyse -c phpstan.neon` returns NO errors at `level: max`.
 - Multi-language URL generation and hreflang tag management are fully supported via DTOs and Interfaces.

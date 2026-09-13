@@ -2,6 +2,9 @@
 
 This guide explains how host applications should integrate the Maatify SEO library. The library is strictly framework-neutral and decoupled from any specific routing, presentation, or DI container.
 
+For the current package contract and complete runtime inventory, see the
+[canonical Package Reference](../../SEO_PACKAGE_REFERENCE.md).
+
 ---
 
 ## 1. Overview
@@ -371,9 +374,10 @@ While the SEO library provides a `SeoBindings.php` file mapping interfaces to fa
 
 ## 11. Persistence Integration Guidance
 
-For features requiring database storage (like manual SEO overrides or slug histories), the library expects a plain `PDO` instance.
+For features requiring database storage (such as SEO overrides, redirects, or slug histories), the Host supplies a configured `PDO` instance. The package provides concrete PDO repositories and ships the matching package-owned schemas.
 
-- **Host Provides PDO:** The host app is responsible for establishing the database connection and providing the `PDO` object to the SEO repositories (either manually or via the host's DI container).
+- **Host Provides PDO:** The host app establishes the database connection and provides the `PDO` object; `PdoRedirectRepository`, `PdoSeoOverrideRepository`, and `PdoSlugHistoryRepository` are package implementations.
+- **Package Owns Its Persistence:** Apply the relevant SQL asset from `schema/` for the package-owned table. The Host does not need to implement a parallel Eloquent, Doctrine, or other ORM persistence layer.
 - **No `.env` reading:** The SEO library must not read `.env` files, config files, or environment variables directly.
 - **No Framework Config:** Do not pass Laravel `Config::get()` or Symfony parameter bags into the library's domain layer.
 

@@ -89,7 +89,7 @@ from the Phase Execution Standard.
 | Path | Status | Reason / synchronization result |
 | --- | --- | --- |
 | `README.md` | `reviewed-no-change` | The README's package requirements, examples, and public feature summary remain accurate; Phase 21 adds no public usage API. |
-| `docs/SEO_LIBRARY_REFERENCE.md` | `updated` | Added the current PHP matrix, syntax and structured-data CI gates, existing validation entry point and aliases, scope limitations, external-verification boundary, and release checklist reference. |
+| `SEO_PACKAGE_REFERENCE.md` | `updated` | Added the current PHP matrix, syntax and structured-data CI gates, existing validation entry point and aliases, scope limitations, external-verification boundary, and release checklist reference. |
 | `docs/guides/USAGE_GUIDE.md` | `reviewed-no-change` | No usage or runtime contract changed; existing JSON-LD and validation guidance remains applicable. |
 | `docs/guides/INTEGRATION_GUIDE.md` | `reviewed-no-change` | Phase 21 adds no framework or host integration requirement and no external-service dependency. |
 | `docs/SEO/**` | `reviewed-no-change` | The structured-data architecture guidance already describes the four-type semantic boundary and the absence of Google/Merchant eligibility guarantees; no CI-specific user workflow requires insertion there. |

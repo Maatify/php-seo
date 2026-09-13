@@ -258,7 +258,7 @@ To ensure all PRs are independently stable and verifiable without introducing br
     *   Create `src/Web/JsonLd/Builder/AggregateOfferJsonLdBuilder.php`.
     *   Test: `tests/Phase13OAggregateOfferJsonLdBuilderTest.php`.
 5.  **Work Unit 5 (Fulfills Roadmap 13O-5 / Documentation):**
-    *   Sync `docs/SEO_LIBRARY_REFERENCE.md`.
+    *   Sync `SEO_PACKAGE_REFERENCE.md`.
     *   Create `docs/verification/PHASE_13O_PRODUCT_STRUCTURED_DATA_VERIFICATION_REPORT.md`.
 
 *(Note: Roadmap 13O-4 "Typed Composition" is functionally complete across Work Units 1, 2, 3, and 4).*

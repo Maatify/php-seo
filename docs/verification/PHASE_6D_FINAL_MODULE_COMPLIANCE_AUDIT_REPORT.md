@@ -4,7 +4,7 @@
 The entire SEO library was audited against the Maatify module building standards, including package compliance, structure, schema, exceptions, DTOs, commands, repositories, services, Admin layer, Web layer, and Bootstrap layer.
 
 ## 2. Files/Layers Reviewed
-- `README.md`, `CHANGELOG.md`, `docs/SEO_LIBRARY_REFERENCE.md`, `docs/roadmap/SEO_LIBRARY_ROADMAP.md`
+- `README.md`, `CHANGELOG.md`, `SEO_PACKAGE_REFERENCE.md`, `docs/roadmap/SEO_LIBRARY_ROADMAP.md`
 - `composer.json`, `phpstan.neon`
 - `schema/`
 - `src/` (including `Shared/`, `Admin/`, `Web/`, `Bootstrap/`, `Exception/`)

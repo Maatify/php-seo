@@ -384,7 +384,7 @@ behavior that actually ship.
 | Path | Review decision required for Phase 21 |
 | --- | --- |
 | `README.md` | Confirm CI, validation, examples, and release claims remain accurate; update only if user-facing behavior changes. |
-| `docs/SEO_LIBRARY_REFERENCE.md` | Confirm validation entry points, structured-data scope, and output contracts; update if CI-facing usage is documented there. |
+| `SEO_PACKAGE_REFERENCE.md` | Confirm validation entry points, structured-data scope, and output contracts; update if CI-facing usage is documented there. |
 | `docs/guides/USAGE_GUIDE.md` | Review examples and validation usage; update only for changed user-facing commands or workflows. |
 | `docs/guides/INTEGRATION_GUIDE.md` | Review only if CI integration or optional external tooling changes host integration/usage. |
 | `docs/SEO/**` | Review engineering and structured-data guidance for unsupported claims; update only where Phase 21 changes guidance. |
