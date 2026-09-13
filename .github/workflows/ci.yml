@@ -114,7 +114,13 @@ jobs:
           composer update --no-interaction --prefer-dist --no-progress
           composer check-platform-reqs
           composer audit --no-interaction --abandoned=fail
-          find tests -name '*Test.php' -print0 | sort -z | xargs -0 -n1 php
+          find tests \
+            -type f \
+            -name '*Test.php' \
+            ! -path 'tests/Integration/*' \
+            -print0 \
+            | sort -z \
+            | xargs -0 -n1 php
 
   lowest-dependencies:
     name: Lowest dependencies (PHP 8.2)
@@ -146,7 +152,83 @@ jobs:
           composer check-platform-reqs
           composer audit --no-interaction --abandoned=fail
           vendor/bin/phpstan analyse
-          find tests -name '*Test.php' -print0 | sort -z | xargs -0 -n1 php
+          find tests \
+            -type f \
+            -name '*Test.php' \
+            ! -path 'tests/Integration/*' \
+            -print0 \
+            | sort -z \
+            | xargs -0 -n1 php
+
+  persistence-integration:
+    name: Persistence integration (PHP ${{ matrix.php-version }} / ${{ matrix.dependencies }} dependencies)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php-version: '8.2'
+            dependencies: current
+          - php-version: '8.5'
+            dependencies: current
+          - php-version: '8.2'
+            dependencies: lowest
+    services:
+      mysql:
+        image: mysql:8.4.11
+        env:
+          MYSQL_DATABASE: maatify_seo_test
+          MYSQL_USER: maatify_seo
+          MYSQL_PASSWORD: maatify_seo_test_password
+          MYSQL_ROOT_PASSWORD: maatify_seo_root_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+          --health-start-period=20s
+    env:
+      MAATIFY_SEO_TEST_DB_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=maatify_seo_test;charset=utf8mb4'
+      MAATIFY_SEO_TEST_DB_USER: maatify_seo
+      MAATIFY_SEO_TEST_DB_PASSWORD: maatify_seo_test_password
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: xmlwriter, pdo_mysql
+          tools: composer:v2
+          coverage: none
+
+      - name: Resolve current dependencies
+        if: matrix.dependencies == 'current'
+        run: composer update --no-interaction --prefer-dist --no-progress
+
+      - name: Resolve lowest supported dependencies
+        if: matrix.dependencies == 'lowest'
+        run: |
+          set -euo pipefail
+          composer update \
+            --prefer-lowest \
+            --prefer-stable \
+            --no-interaction \
+            --prefer-dist \
+            --no-progress
+
+      - name: Check platform, audit, and real MySQL persistence
+        run: |
+          set -euo pipefail
+          composer check-platform-reqs
+          composer audit --no-interaction --abandoned=fail
+          bash scripts/ci/mysql-persistence-integration.sh
 
   workflow-lint:
     name: Workflow lint
@@ -169,6 +251,7 @@ jobs:
       - quality
       - test-matrix
       - lowest-dependencies
+      - persistence-integration
       - workflow-lint
     timeout-minutes: 5
     steps:
@@ -177,6 +260,7 @@ jobs:
           QUALITY_RESULT: ${{ needs.quality.result }}
           TEST_MATRIX_RESULT: ${{ needs.test-matrix.result }}
           LOWEST_DEPENDENCIES_RESULT: ${{ needs.lowest-dependencies.result }}
+          PERSISTENCE_INTEGRATION_RESULT: ${{ needs.persistence-integration.result }}
           WORKFLOW_LINT_RESULT: ${{ needs.workflow-lint.result }}
         run: |
           set -euo pipefail
@@ -190,6 +274,10 @@ jobs:
           fi
           if [[ "$LOWEST_DEPENDENCIES_RESULT" != "success" ]]; then
             echo "lowest-dependencies result was $LOWEST_DEPENDENCIES_RESULT" >&2
+            exit 1
+          fi
+          if [[ "$PERSISTENCE_INTEGRATION_RESULT" != "success" ]]; then
+            echo "persistence-integration result was $PERSISTENCE_INTEGRATION_RESULT" >&2
             exit 1
           fi
           if [[ "$WORKFLOW_LINT_RESULT" != "success" ]]; then
