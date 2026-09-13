@@ -65,7 +65,7 @@ Target: `docs/audits/SEO_ARCHITECTURE_STANDARDS_CONTRACT_INTEGRITY_AUDIT.md`
 | F-07 | `crawl-delay` modeled as non-core behavior. | `ALREADY_CANONICAL` | Handled properly in `RobotsRenderer`. | N/A |
 | F-08 | `MetaRobotsBuilder` allows Google `-1` semantics. | `ALREADY_CANONICAL` | Runtime builder allows -1. | N/A |
 | F-09 | `indexifembedded` presence in typed Google robots helpers. | `ALREADY_CANONICAL` | Runtime builder implements this. | N/A |
-| F-10 | `unavailable_after` accepted with proper date validation. | `ALREADY_CANONICAL` | Builder requires valid date format. | N/A |
+| F-10 | `MetaRobotsBuilder::unavailableAfter(string $value)` remains a raw compatibility builder. The builder preserves caller-provided text and does not enforce a closed local date grammar. Missing or whitespace-only values are handled separately by the Google provider-validation path. For non-empty values, provider recognizability uses explicit evidence states (`recognized`, `unrecognized`, `unknown`). `unknown` represents an evidence gap and must not be converted into a fabricated pass or failure. No local parser may claim exhaustive Google-recognized date validation. | `ALREADY_CANONICAL` | Current runtime and provider-validation implementation support this exact contract. | N/A |
 | F-11 | `noarchive` valid to preserve despite stale Google meaning. | `ALREADY_CANONICAL` | Builder supports noarchive. | N/A |
 | F-12 | Core SEO validation conflates validity with heuristics (byte/length). | `ALREADY_CANONICAL` | Stack8/tests enforce Unicode heuristic rules explicitly. | N/A |
 | GDC-01 | Global diagnostics contract for protocol/provider/context diagnostics. | `ALREADY_CANONICAL` | `SearchConsole` and `MerchantCenter` namespaces implement isolated boundaries. | N/A |
