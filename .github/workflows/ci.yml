@@ -49,7 +49,7 @@ jobs:
           set -euo pipefail
           while IFS= read -r -d '' file; do
             php -l "$file"
-          done < <(find src tests examples -type f -name '*.php' -print0 | sort -z)
+          done < <(find src tests examples consumer-harness -type f -name '*.php' -print0 | sort -z)
 
       - name: Check changed-range whitespace
         env:
@@ -230,6 +230,51 @@ jobs:
           composer audit --no-interaction --abandoned=fail
           bash scripts/ci/mysql-persistence-integration.sh
 
+  consumer-verification:
+    name: Consumer verification (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.2', '8.5']
+    services:
+      mysql:
+        image: mysql:8.4.11
+        env:
+          MYSQL_DATABASE: maatify_seo_consumer_test
+          MYSQL_USER: maatify_seo_consumer
+          MYSQL_PASSWORD: maatify_seo_consumer_test_password
+          MYSQL_ROOT_PASSWORD: maatify_seo_consumer_root_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+          --health-start-period=20s
+    env:
+      MAATIFY_SEO_TEST_DB_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=maatify_seo_consumer_test;charset=utf8mb4'
+      MAATIFY_SEO_TEST_DB_USER: maatify_seo_consumer
+      MAATIFY_SEO_TEST_DB_PASSWORD: maatify_seo_consumer_test_password
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: xmlwriter, pdo_mysql
+          tools: composer:v2
+          coverage: none
+
+      - name: Verify installed-package consumer workflow
+        run: bash scripts/ci/consumer-verification.sh
+
   workflow-lint:
     name: Workflow lint
     runs-on: ubuntu-latest
@@ -252,6 +297,7 @@ jobs:
       - test-matrix
       - lowest-dependencies
       - persistence-integration
+      - consumer-verification
       - workflow-lint
     timeout-minutes: 5
     steps:
@@ -261,6 +307,7 @@ jobs:
           TEST_MATRIX_RESULT: ${{ needs.test-matrix.result }}
           LOWEST_DEPENDENCIES_RESULT: ${{ needs.lowest-dependencies.result }}
           PERSISTENCE_INTEGRATION_RESULT: ${{ needs.persistence-integration.result }}
+          CONSUMER_VERIFICATION_RESULT: ${{ needs.consumer-verification.result }}
           WORKFLOW_LINT_RESULT: ${{ needs.workflow-lint.result }}
         run: |
           set -euo pipefail
@@ -278,6 +325,10 @@ jobs:
           fi
           if [[ "$PERSISTENCE_INTEGRATION_RESULT" != "success" ]]; then
             echo "persistence-integration result was $PERSISTENCE_INTEGRATION_RESULT" >&2
+            exit 1
+          fi
+          if [[ "$CONSUMER_VERIFICATION_RESULT" != "success" ]]; then
+            echo "consumer-verification result was $CONSUMER_VERIFICATION_RESULT" >&2
             exit 1
           fi
           if [[ "$WORKFLOW_LINT_RESULT" != "success" ]]; then

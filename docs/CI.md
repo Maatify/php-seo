@@ -4,7 +4,7 @@ CI validates the library against current Composer dependencies, the declared pla
 
 ## Prerequisites
 
-Local parity requires PHP 8.2 or newer with the `xmlwriter` extension, Composer 2, Bash, `curl`, `tar`, and either `sha256sum` or `shasum`. Running real persistence Integration additionally requires `pdo_mysql` and a local MySQL service with a dedicated `_test` database and non-production user. The repository does not track `composer.lock`; dependency checks resolve a fresh compatible set.
+Local parity requires PHP 8.2 or newer with the `xmlwriter` extension, Composer 2, Bash, `curl`, `tar`, `rsync`, and either `sha256sum` or `shasum`. Running real persistence Integration or Consumer Verification additionally requires `pdo_mysql` and a local MySQL service with a dedicated `_test` database and non-production user. The repository does not track `composer.lock`; dependency checks resolve a fresh compatible set.
 
 ## Current dependencies
 
@@ -27,7 +27,7 @@ Then check PHP syntax, analyze source and tests, and run the maintained standalo
 ```bash
 while IFS= read -r -d '' file; do
   php -l "$file"
-done < <(find src tests examples -type f -name '*.php' -print0 | sort -z)
+done < <(find src tests examples consumer-harness -type f -name '*.php' -print0 | sort -z)
 
 vendor/bin/phpstan analyse
 find tests \
@@ -112,10 +112,22 @@ Both endpoints must be available commits. CI fetches full history for this check
 
 ## CI contract
 
-The maintained standalone test matrix covers PHP 8.2, 8.3, 8.4, and 8.5. The real-MySQL persistence matrix covers PHP 8.2/current dependencies, PHP 8.5/current dependencies, and PHP 8.2/lowest dependencies. The stable terminal required check is **CI Gate**; it succeeds only when the quality, complete standalone test matrix, lowest-dependency, persistence-integration, and workflow-lint jobs all succeed.
+The maintained standalone test matrix covers PHP 8.2, 8.3, 8.4, and 8.5. The real-MySQL persistence matrix covers PHP 8.2/current dependencies, PHP 8.5/current dependencies, and PHP 8.2/lowest dependencies. The stable terminal required check is **CI Gate**; it succeeds only when the quality, complete standalone test matrix, lowest-dependency, persistence-integration, Consumer Verification, and workflow-lint jobs all succeed.
 
 Security advisories block CI. Abandoned packages block CI. Vulnerable direct dependencies block CI. Vulnerable transitive dependencies block CI. No security-audit ignore list is approved.
 
 The maintained test runner is the standalone suite invoked with the sorted `find` command above. PHPUnit is not an optional or required runner in this repository.
 
-The Consumer Verification Harness remains pending WU-7. Final package compliance therefore remains incomplete after WU-6 until that Harness is implemented and included in the required aggregate gate.
+## External consumer verification
+
+The consumer harness proves installation and runtime use from two fresh consumer directories. Each run resolves the package through Composer's non-symlink path repository, installs without development dependencies, loads only the consumer's Composer autoloader, and uses the installed package's shipped override schema with real local MySQL. The harness exercises override creation, metadata generation, HTML escaping, soft deletion, fallback metadata, and table cleanup.
+
+Configure `MAATIFY_SEO_TEST_DB_DSN`, `MAATIFY_SEO_TEST_DB_USER`, and `MAATIFY_SEO_TEST_DB_PASSWORD` for a local MySQL test database whose name ends in `_test`, then run:
+
+```bash
+bash scripts/ci/consumer-verification.sh
+```
+
+The harness refuses missing configuration, non-MySQL or non-local DSNs, and databases without the `_test` suffix. It drops and creates only `maa_seo_overrides`, then verifies that this package-owned table is absent after cleanup. It does not use SQLite, mocks, package-root `vendor/`, or a manual source autoloader.
+
+CI runs Consumer Verification on PHP 8.2 and 8.5 against the pinned MySQL fixture. **CI Gate** requires both Consumer Verification matrix jobs, in addition to the existing quality, standalone, lowest-dependency, persistence, and workflow-lint jobs. This harness gate does not establish final package release readiness; WU-8, WU-9, and final compliance review remain separate work.
