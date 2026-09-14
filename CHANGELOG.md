@@ -74,5 +74,5 @@ All notable changes to this project will be documented in this file.
 - Initial foundational release (Phase 1).
 
 [Unreleased]: https://github.com/Maatify/php-seo/compare/v1.0.0-rc.2...HEAD
-[1.0.0-rc.2]: https://github.com/Maatify/php-seo/compare/v1.0.0-rc.1...v1.0.0-rc.2
+[1.0.0-rc.2]: https://github.com/Maatify/php-seo/releases/tag/v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/Maatify/php-seo/releases/tag/v1.0.0-rc.1
