@@ -345,6 +345,35 @@ stack8AssertContains(
 
 $integrationGuide = stack8Read('docs/guides/INTEGRATION_GUIDE.md');
 foreach ([
+    'docs/guides/USAGE_GUIDE.md' => $usageGuide,
+    'docs/guides/INTEGRATION_GUIDE.md' => $integrationGuide,
+] as $renderGuidePath => $renderGuide) {
+    stack8AssertTrue(
+        "{$renderGuidePath} limits RenderSeoPageCommand schemas to JsonSerializable values",
+        preg_match('/`RenderSeoPageCommand::\$schemas` accepts values that implement\s+`JsonSerializable`/', $renderGuide) === 1,
+    );
+    stack8AssertTrue(
+        "{$renderGuidePath} distinguishes JSON-LD builders from schema DTOs",
+        preg_match('/does not implement\s+`JsonSerializable`\s+and cannot be passed directly/', $renderGuide) === 1,
+    );
+    stack8AssertContains(
+        "{$renderGuidePath} materializes builder arrays as JsonLdSchemaDTO values",
+        $renderGuide,
+        'new JsonLdSchemaDTO($productSchemaBuilder->toArray())',
+    );
+    stack8AssertContains(
+        "{$renderGuidePath} passes the serializable DTO to RenderSeoPageCommand",
+        $renderGuide,
+        'schemas: [$productSchema]',
+    );
+    stack8AssertNotContains(
+        "{$renderGuidePath} does not pass a builder directly to RenderSeoPageCommand",
+        $renderGuide,
+        'schemas: [$productSchemaBuilder]',
+    );
+}
+
+foreach ([
     'SeoPagePresetFactory',
     'SeoPageRenderService',
     'MetaGeneratorService',

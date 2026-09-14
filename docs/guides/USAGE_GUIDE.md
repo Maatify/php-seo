@@ -962,9 +962,16 @@ $headHtml = $preset->html;
 
 Use `SeoPageRenderService` when a Host wants a single service call to combine `MetaGeneratorService` output with supplied JSON-LD schemas and optional breadcrumb data. A `RenderSeoPageCommand` carries Host entity identifiers and defaults plus those inputs. `render()` returns a `SeoPagePayloadDTO` containing `MetaTagsDTO` and generated schema DTOs; it does not return an HTTP response or write template output. A `SeoHeadHtmlRenderer` can render that payload after composition.
 
+`RenderSeoPageCommand::$schemas` accepts values that implement `JsonSerializable`. A `JsonLdBuilderInterface` builder does not implement `JsonSerializable` and cannot be passed directly; materialize its array and wrap it in a `JsonLdSchemaDTO` before passing it to the command.
+
 ```php
+use Maatify\Seo\Shared\DTO\Schema\JsonLdSchemaDTO;
+use Maatify\Seo\Web\JsonLd\Builder\ProductJsonLdBuilder;
 use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
 use Maatify\Seo\Web\SeoRender\Command\RenderSeoPageCommand;
+
+$productSchemaBuilder = (new ProductJsonLdBuilder())->setName('Blue Shirt');
+$productSchema = new JsonLdSchemaDTO($productSchemaBuilder->toArray());
 
 $payload = $seoPageRenderService->render(new RenderSeoPageCommand(
     entityType: 'product',
@@ -973,7 +980,7 @@ $payload = $seoPageRenderService->render(new RenderSeoPageCommand(
     defaultTitle: 'Blue Shirt',
     defaultDescription: 'Cotton shirt',
     slug: 'blue-shirt',
-    schemas: [$productSchema], // JsonSerializable package schema/builder inputs
+    schemas: [$productSchema],
 ));
 
 $headHtml = (new SeoHeadHtmlRenderer())->renderPayload($payload);

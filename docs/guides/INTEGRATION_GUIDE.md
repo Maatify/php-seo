@@ -461,16 +461,24 @@ The preset result exposes `metaTags`, `canonicalUrl`, `robots`, `socialTags`,
 
 When a Host instead wants the service orchestration path, it passes a
 `RenderSeoPageCommand` to `SeoPageRenderService::render()`. The command carries
-Host identifiers/defaults plus JSON-serializable schemas and optional
-breadcrumbs. The returned `SeoPagePayloadDTO` carries metadata and generated
-schema DTOs; `SeoHeadHtmlRenderer::renderPayload()` can produce the head HTML.
-Optional redirect resolution returns a `RedirectDecisionDTO` for the Host to
-apply. It remains the Host's responsibility to map that domain decision to an
-HTTP response.
+Host identifiers/defaults plus optional breadcrumbs.
+`RenderSeoPageCommand::$schemas` accepts values that implement
+`JsonSerializable`. A `JsonLdBuilderInterface` builder does not implement
+`JsonSerializable` and cannot be passed directly; materialize it with `toArray()`
+and wrap the result in a `JsonLdSchemaDTO` first. The returned
+`SeoPagePayloadDTO` carries metadata and generated schema DTOs;
+`SeoHeadHtmlRenderer::renderPayload()` can produce the head HTML. Optional
+redirect resolution returns a `RedirectDecisionDTO` for the Host to apply. It
+remains the Host's responsibility to map that domain decision to an HTTP response.
 
 ```php
+use Maatify\Seo\Shared\DTO\Schema\JsonLdSchemaDTO;
+use Maatify\Seo\Web\JsonLd\Builder\ProductJsonLdBuilder;
 use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
 use Maatify\Seo\Web\SeoRender\Command\RenderSeoPageCommand;
+
+$productSchemaBuilder = (new ProductJsonLdBuilder())->setName($product->name);
+$productSchema = new JsonLdSchemaDTO($productSchemaBuilder->toArray());
 
 $payload = $seoPageRenderService->render(new RenderSeoPageCommand(
     entityType: 'product',
@@ -479,7 +487,7 @@ $payload = $seoPageRenderService->render(new RenderSeoPageCommand(
     defaultTitle: $product->name,
     defaultDescription: $product->description,
     slug: $product->slug,
-    schemas: [$productSchema], // a JsonSerializable package builder/DTO
+    schemas: [$productSchema],
 ));
 
 $headHtml = (new SeoHeadHtmlRenderer())->renderPayload($payload);
