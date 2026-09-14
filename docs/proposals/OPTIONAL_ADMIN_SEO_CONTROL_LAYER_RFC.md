@@ -7,8 +7,10 @@
 ## Current Package Capabilities
 
 The current package already provides granular Admin-facing capabilities for SEO
-overrides, redirects, slug history, SERP and social preview DTOs, metadata
-import/export, and validation/reporting utilities. These package services and
+overrides, redirects, SERP and social preview DTOs, metadata import/export, and
+validation/reporting utilities. The Host owns entity and route lifecycle,
+including slug generation, normalization, uniqueness, history, and old-slug
+lookup; SEO does not require a Slug library. These package services and
 factories return typed values; they do not provide an Admin UI, routes,
 controllers, authentication, authorization, or application workflow. The Host
 application owns those surfaces and decides how package results are presented

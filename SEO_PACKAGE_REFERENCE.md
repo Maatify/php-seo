@@ -28,13 +28,12 @@ Services, builders, and renderers return values for the host to use. The host de
 
 ## Persistence contract
 
-The host supplies a configured **PDO**. The package ships concrete **PdoRedirectRepository**, **PdoSeoOverrideRepository**, and **PdoSlugHistoryRepository** implementations in **Maatify\Seo\Shared\Infrastructure\Persistence**, together with package-owned SQL assets:
+The host supplies a configured **PDO**. The package ships concrete **PdoRedirectRepository** and **PdoSeoOverrideRepository** implementations in **Maatify\Seo\Shared\Infrastructure\Persistence**, together with package-owned SQL assets:
 
 | Schema asset | Package-owned table |
 | --- | --- |
 | [schema/maa_seo_redirects.sql](schema/maa_seo_redirects.sql) | maa_seo_redirects |
 | [schema/maa_seo_overrides.sql](schema/maa_seo_overrides.sql) | maa_seo_overrides |
-| [schema/maa_seo_slug_history.sql](schema/maa_seo_slug_history.sql) | maa_seo_slug_history |
 
 These schemas use MySQL semantics, InnoDB, utf8mb4, and utf8mb4_unicode_ci. The repositories operate on these package-owned tables; they do not require Host foreign keys or Host-table joins. Host data remains Host-owned, and the Host does not need to implement a parallel ORM persistence layer. The package uses deleted_at for soft-delete state where applicable; command services expose soft-delete and explicit hard-delete operations.
 
@@ -78,18 +77,17 @@ Provider invalid requests map to **INVALID_ARGUMENT / VALIDATION / 400 / safe**.
 
 ### Shared contracts, commands, and DTOs
 
-**Maatify\Seo\Shared\Contract** provides HostEntityProviderInterface, HostSearchContextInterface, HostUrlGeneratorInterface, RedirectRepositoryInterface, SeoOverrideRepositoryInterface, and SlugHistoryRepositoryInterface. The repository interfaces are implemented by the package's PDO repositories above.
+**Maatify\Seo\Shared\Contract** provides HostEntityProviderInterface, HostSearchContextInterface, HostUrlGeneratorInterface, RedirectRepositoryInterface, and SeoOverrideRepositoryInterface. The repository interfaces are implemented by the package's PDO repositories above.
 
 Commands under **Maatify\Seo\Shared\Command**:
 
-- Base namespace: CreateRedirectCommand, UpdateRedirectCommand, CreateSlugHistoryCommand, GenerateMetaTagsCommand.
+- Base namespace: CreateRedirectCommand, UpdateRedirectCommand, GenerateMetaTagsCommand.
 - Redirect: ResolveRedirectCommand.
 - SEO override: CreateSeoOverrideCommand, UpdateSeoOverrideCommand.
-- Slug history: RecordSlugChangeCommand.
 
 DTOs under **Maatify\Seo\Shared\DTO**:
 
-- Base namespace: MetaTagsDTO, RedirectDTO, SlugHistoryDTO.
+- Base namespace: MetaTagsDTO, RedirectDTO.
 - Redirect: RedirectDecisionDTO.
 - SEO override: SeoOverrideDTO.
 - Schema: BreadcrumbItemDTO, BreadcrumbListDTO, BreadcrumbSchemaDTO, GenericSchemaDTO, JsonLdSchemaDTO, OrganizationSchemaDTO, ProductSchemaDTO, WebPageSchemaDTO, WebsiteSchemaDTO.
@@ -97,9 +95,9 @@ DTOs under **Maatify\Seo\Shared\DTO**:
 
 ### Shared services and persistence implementations
 
-**Maatify\Seo\Shared\Service** provides MetaGeneratorService, RedirectCommandService, RedirectManagerService, RedirectQueryService, SchemaGeneratorService, SeoOverrideCommandService, SeoOverrideQueryService, SitemapGeneratorService, SlugHistoryCommandService, SlugHistoryQueryService, and SlugHistoryService.
+**Maatify\Seo\Shared\Service** provides MetaGeneratorService, RedirectCommandService, RedirectManagerService, RedirectQueryService, SchemaGeneratorService, SeoOverrideCommandService, SeoOverrideQueryService, and SitemapGeneratorService.
 
-The command and query services operate through the repository contracts. The package's PDO repositories provide the concrete persistence implementation. Redirect management can resolve a redirect decision and, when configured with command services, record redirect or gone outcomes; URL generation remains a Host integration. Slug-history services record prior slugs and may coordinate redirect creation. SEO overrides are queried by entity and language, and missing active overrides are reported as not found so the metadata service can retain defaults.
+The command and query services operate through the repository contracts. The package's PDO repositories provide the concrete persistence implementation. Redirect management independently resolves stored redirect decisions and, when configured with command services, records redirect or gone outcomes; URL generation remains a Host integration. SEO overrides are queried by entity and language, and missing active overrides are reported as not found so the metadata service can retain defaults.
 
 ### Admin capabilities
 
@@ -113,9 +111,6 @@ The command and query services operate through the repository contracts. The pac
 - **Maatify\Seo\Admin\SeoOverride\Command**: CreateSeoOverrideCommand, UpdateSeoOverrideCommand.
 - **Maatify\Seo\Admin\SeoOverride\DTO**: AdminSeoOverrideDTO.
 - **Maatify\Seo\Admin\SeoOverride\Service**: AdminSeoOverrideCommandService, AdminSeoOverrideQueryService.
-- **Maatify\Seo\Admin\SlugHistory\Command**: RecordAdminSlugHistoryCommand.
-- **Maatify\Seo\Admin\SlugHistory\DTO**: AdminSlugHistoryDTO.
-- **Maatify\Seo\Admin\SlugHistory\Service**: AdminSlugHistoryCommandService, AdminSlugHistoryQueryService.
 
 These types provide admin-oriented domain operations and preview/import/export results. They do not supply an admin UI, controller, or route.
 
@@ -209,13 +204,17 @@ The runtime contains supporting types that are not presented here as consumer co
 - The service trims robots only; it does not apply additional robots normalization.
 - It mirrors final title/description into the current Open Graph and Twitter title/description fields and the final canonical into Open Graph URL and canonical URL. Open Graph type/image and Twitter card/image remain null in this service output.
 
-## Redirects, slug history, and SEO overrides
+## Redirects and SEO overrides
 
-Redirect, slug-history, and SEO-override command/query services depend on repository interfaces. The package ships corresponding PDO repositories. Their state is stored in the package-owned tables, with soft-delete-aware queries and explicit hard-delete operations where exposed.
+Redirect and SEO-override command/query services depend on repository interfaces. The package ships corresponding PDO repositories. Their state is stored in the package-owned tables, with soft-delete-aware queries and explicit hard-delete operations where exposed.
 
 RedirectManagerService resolves the package's redirect decision from a ResolveRedirectCommand and may record permanent or gone redirect data when the relevant command service is configured. It returns domain results; selecting an HTTP status or emitting a response remains Host work.
 
-SlugHistoryService records a prior slug and can coordinate redirect recording. SEO override lookup is scoped by entity and language; the resulting active override is consumed field-by-field by MetaGeneratorService. The Host continues to own its entities, identity model, and application data.
+Redirect records are independent SEO data: recording or resolving a redirect does not depend on recording a slug change. The Host decides when to create a redirect and applies the returned decision to its HTTP response.
+
+The Host owns entity and route lifecycle, including slug generation, normalization, uniqueness, current values, history, and old-slug lookup. SEO does not require a Slug library or store slug lifecycle data. `HostUrlGeneratorInterface` is an SEO-owned Host port: a Host may use its own routing and data, a framework router, an optional Slug library, or an adapter to generate entity URLs. SEO may pass a Host-provided slug to that port as an input; any connection between SEO and a separate Slug library belongs to the Host or adapter.
+
+SEO override lookup is scoped by entity and language; the resulting active override is consumed field-by-field by MetaGeneratorService. The Host continues to own its entities, identity model, and application data.
 
 ## Structured-data, canonical, and provider boundaries
 

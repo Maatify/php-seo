@@ -2,16 +2,18 @@
 
 ## 1. Overview
 
-The Maatify SEO library provides robust, framework-agnostic tools to manage SEO metadata, schema generation (JSON-LD), redirects, slug history, and sitemaps.
+The Maatify SEO library provides framework-agnostic tools for SEO metadata, schema generation (JSON-LD), redirects, and sitemaps.
 
 For the current package contract and public runtime inventory, see the
 [canonical Package Reference](../../SEO_PACKAGE_REFERENCE.md).
+
+The Host owns entity URLs and slug generation, normalization, uniqueness, current values, history, and old-slug lookup. SEO requires no Slug library. A Host-provided slug may be passed only as an optional URL-generation input through the SEO-owned `HostUrlGeneratorInterface`; any integration with a separate Slug library belongs to the Host or an adapter.
 
 **What it provides:**
 *   Value Objects/DTOs for SEO data structures (e.g., `MetaTagsDTO`, `JsonLdSchemaDTO`).
 *   Core logic for schema generation, resolving redirects, and generating in-memory sitemaps.
 *   Optional rendering helpers to convert DTOs into plain HTML/XML strings.
-*   Admin services and DTOs for overriding SEO metadata, managing redirects, and tracking slug changes.
+*   Admin services and DTOs for overriding SEO metadata and managing redirects.
 
 **What it does NOT provide:**
 *   It does **not** handle HTTP requests or responses.
@@ -45,7 +47,7 @@ package-level contract; this guide is practical usage guidance.
 | render Open Graph and Twitter-compatible tags | [Social metadata](#social-metadata) | [`social-builders.php`](../../examples/social-builders.php) |
 | compose common page metadata and schemas | [Page presets](#page-presets) | [`seo-page-presets.php`](../../examples/seo-page-presets.php) |
 | compose one page payload and then render it | [Page rendering](#page-rendering-orchestration) | [`seo-page-render.php`](../../examples/seo-page-render.php) |
-| resolve redirects, record slug changes, or manage SEO overrides | [Admin-domain utilities](#admin-domain-utilities) | [`redirect-slug-history.php`](../../examples/redirect-slug-history.php), [`seo-override-meta-generation.php`](../../examples/seo-override-meta-generation.php) |
+| manage or resolve redirects and SEO overrides | [Admin-domain utilities](#admin-domain-utilities) | [`redirect-management.php`](../../examples/redirect-management.php), [`seo-override-meta-generation.php`](../../examples/seo-override-meta-generation.php) |
 | build search-result or social preview data | [Admin previews](#admin-domain-utilities) | [`admin-previews.php`](../../examples/admin-previews.php) |
 | import or export package metadata | [Metadata import/export](#admin-domain-utilities) | [`import-export.php`](../../examples/import-export.php) |
 | validate, score, or report on metadata | [Validation](#11-seo-metadata-validation-example) | [`seo-validation.php`](../../examples/seo-validation.php), [`product-seo-audit.php`](../../examples/product-seo-audit.php) |
@@ -1709,13 +1711,13 @@ search engine will honor the declarations.
 
 ### Admin-domain utilities
 
-The package's Admin namespace contains domain operations and data helpers, not an Admin application. `AdminRedirectCommandService` and `AdminRedirectQueryService` create, update, retrieve, list, and delete redirect records; `AdminSeoOverrideCommandService` and `AdminSeoOverrideQueryService` provide corresponding override operations; `AdminSlugHistoryCommandService` and `AdminSlugHistoryQueryService` record and query prior slugs. Redirect decisions and configured status values are domain data for the Host to apply to its HTTP response.
+The package's Admin namespace contains domain operations and data helpers, not an Admin application. `AdminRedirectCommandService` and `AdminRedirectQueryService` create, update, retrieve, list, and delete redirect records; `AdminSeoOverrideCommandService` and `AdminSeoOverrideQueryService` provide corresponding override operations. Redirect decisions and configured status values are domain data for the Host to apply to its HTTP response. Redirect records are independent of slug lifecycle; the Host decides when a route change should create a redirect.
 
-`SerpPreviewFactory` and `SocialPreviewFactory` can consume a preset or `MetaTagsDTO` and return preview DTOs with missing-field warnings. `SeoMetadataExporter` serializes override, redirect, and slug-history data; `SeoMetadataImporter` validates JSON/array payloads and supports dry runs. The executable preview and import/export walkthroughs below show the exact fixture inputs beside selected output.
+`SerpPreviewFactory` and `SocialPreviewFactory` can consume a preset or `MetaTagsDTO` and return preview DTOs with missing-field warnings. `SeoMetadataExporter` serializes override and redirect data; `SeoMetadataImporter` validates JSON/array payloads and supports dry runs. The executable preview and import/export walkthroughs below show the exact fixture inputs beside selected output.
 
 Supply the package repository implementations only when the importer is intended to write those sections; an unconfigured importer can still validate and run a dry run.
 
-The Host still owns Admin UI, routes, controllers, authentication, permissions, and workflow. It chooses which service results to display, when to invoke writes, and how to map domain outcomes to HTTP behavior.
+The Host owns Admin UI, routes, controllers, authentication, permissions, and workflow. It chooses which service results to display, when to invoke writes, and how to map domain outcomes to HTTP behavior.
 
 #### Admin CRUD calls and returned values
 
@@ -1764,7 +1766,7 @@ The serialized `AdminRedirectDTO` after the update has this shape; the runnable 
 }
 ```
 
-`listByEntity()` defaults to active rows; pass `includeDeleted: true` to include soft-deleted redirects. `getById()` can still return a soft-deleted record and reports `isDeleted: true`. Both delete calls return `void`, but their failure cases differ: `softDelete()` throws `SeoNotFoundException` for a missing or already soft-deleted redirect, while `hardDelete()` physically deletes either an active or soft-deleted redirect and throws only when the row is missing or already hard-deleted. `update()` on a soft-deleted redirect also throws `SeoNotFoundException`. After `hardDelete()`, `getById()` throws `SeoNotFoundException`. A duplicate identity is a persistence conflict and, with the PDO adapter, the repository maps the database integrity error to `SeoCodeAlreadyExistsException`. The Host decides whether these outcomes become an Admin validation message, API response, or another UI state. The runnable [`redirect-slug-history.php`](../../examples/redirect-slug-history.php) uses an in-memory fixture for Admin method behavior; it is not evidence of PDO persistence, which is verified separately in the integration guide.
+`listByEntity()` defaults to active rows; pass `includeDeleted: true` to include soft-deleted redirects. `getById()` can still return a soft-deleted record and reports `isDeleted: true`. Both delete calls return `void`, but their failure cases differ: `softDelete()` throws `SeoNotFoundException` for a missing or already soft-deleted redirect, while `hardDelete()` physically deletes either an active or soft-deleted redirect and throws only when the row is missing or already hard-deleted. `update()` on a soft-deleted redirect also throws `SeoNotFoundException`. After `hardDelete()`, `getById()` throws `SeoNotFoundException`. A duplicate identity is a persistence conflict and, with the PDO adapter, the repository maps the database integrity error to `SeoCodeAlreadyExistsException`. The Host decides whether these outcomes become an Admin validation message, API response, or another UI state. The runnable [`redirect-management.php`](../../examples/redirect-management.php) uses an in-memory fixture for Admin method behavior; it is not evidence of PDO persistence, which is verified separately in the integration guide.
 
 For SEO overrides, `AdminSeoOverrideCommandService::create(Admin\SeoOverride\Command\CreateSeoOverrideCommand)` returns an integer ID, `AdminSeoOverrideQueryService::getActiveForEntity()` returns `AdminSeoOverrideDTO`, and `update(Admin\SeoOverride\Command\UpdateSeoOverrideCommand)` returns `void`; query again to observe the updated fields:
 
@@ -1807,116 +1809,24 @@ The updated Admin DTO is:
 
 `isDeleted` is derived from `deletedAt !== null`. `MetaGeneratorService` does not consume this Admin DTO: it later queries the active stored row through `SeoOverrideQueryService` and combines it with Host-supplied metadata. The [`seo-override-meta-generation.php`](../../examples/seo-override-meta-generation.php) example runs Admin create/query/update and then shows the Shared metadata-generation result.
 
-`AdminSlugHistoryCommandService::record(RecordAdminSlugHistoryCommand)` returns an integer; `AdminSlugHistoryQueryService::getById()` / `getActiveBySlug()` returns `AdminSlugHistoryDTO`, and `listActiveForEntity()` returns `list<AdminSlugHistoryDTO>`:
+#### Redirect resolution
+
+`RedirectManagerService` resolves redirect records independently of entity slug changes. The Host supplies the route values for the current request; SEO returns a `RedirectDecisionDTO` for the Host to apply. SEO does not generate slugs, keep their history, or infer redirects from slug changes. A target URL is returned only when the Host URL generator is configured.
 
 ```php
-use Maatify\Seo\Admin\SlugHistory\Command\RecordAdminSlugHistoryCommand;
-
-$historyId = $adminSlugHistoryCommandService->record(new RecordAdminSlugHistoryCommand(
-    entityType: 'admin-example',
-    entityId: 'history-42',
-    languageId: 1,
-    oldSlug: '/admin-old-slug',
-)); // int
-$history = $adminSlugHistoryQueryService->getById($historyId); // AdminSlugHistoryDTO
-$historyRows = $adminSlugHistoryQueryService->listActiveForEntity('admin-example', 'history-42', 1); // list<AdminSlugHistoryDTO>
-```
-
-The queried DTO has this serialized shape:
-
-```json
-{
-  "id": 2,
-  "entity_type": "admin-example",
-  "entity_id": "history-42",
-  "language_id": 1,
-  "old_slug": "/admin-old-slug",
-  "is_deleted": false,
-  "created_at": "2026-09-08T12:00:00+00:00",
-  "deleted_at": null
-}
-```
-
-There is no Admin slug-history update method. The Host decides when its entity changes and whether to record its old slug; this API neither changes that entity nor redirects an HTTP request. These examples use in-memory repositories with a fixed timestamp so their printed output is repeatable. For the production PDO chain, use the schemas and adapters in [Integration Guide §11](INTEGRATION_GUIDE.md#11-persistence-integration-guidance).
-
-#### Redirect resolution and slug history
-
-When a Host changes an entity slug, `SlugHistoryService` can record the old
-slug, optionally create redirect intent, and the resolver can turn an old slug
-into a `RedirectDecisionDTO`. The runnable example uses in-memory repository
-fixtures; a persistent Host can use the package repositories and package-owned
-schemas described in the integration guide.
-
-The fixture records a slug-history DTO and resolves a redirect decision with
-these values:
-
-The Host supplies configured repositories/services and an implementation of
-`HostUrlGeneratorInterface`; the runnable example uses in-memory repositories
-with a fixed `2026-09-08T12:00:00+00:00` timestamp for stable output.
-
-The service calls for the recorded change and subsequent lookup are:
-
-```php
-use Maatify\Seo\Shared\Command\SlugHistory\RecordSlugChangeCommand;
 use Maatify\Seo\Shared\Command\Redirect\ResolveRedirectCommand;
-
-$historyId = $slugHistoryService->recordSlugChange(new RecordSlugChangeCommand(
-    entityType: 'product',
-    entityId: '42',
-    languageId: 1,
-    oldSlug: 'widget-pro',
-    newSlug: 'super-widget-pro',
-    createRedirect: true,
-));
-$history = $slugHistoryQueryService->getById($historyId);
 
 $decision = $redirectManagerService->resolve(new ResolveRedirectCommand(
     entityType: 'product',
     languageId: 1,
     requestedSlug: 'widget-pro',
+    requestedPath: '/products/widget-pro',
 ));
-echo json_encode($history, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
 echo json_encode($decision, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 ```
 
-```json
-{
-  "id": 1,
-  "entity_type": "product",
-  "entity_id": "42",
-  "language_id": 1,
-  "old_slug": "widget-pro",
-  "created_at": "2026-09-08T12:00:00+00:00",
-  "deleted_at": null
-}
-```
-
-```json
-{
-  "should_redirect": true,
-  "http_status": 301,
-  "target_entity_type": "product",
-  "target_entity_id": "42",
-  "target_url": "https://example.com/product/super-widget-pro",
-  "redirect": {
-    "id": 1,
-    "entity_type": "product",
-    "language_id": 1,
-    "requested_slug": "widget-pro",
-    "target_entity_type": "product",
-    "target_entity_id": "42",
-    "http_status": 301,
-    "created_at": "2026-09-08T12:00:00+00:00",
-    "deleted_at": null
-  }
-}
-```
-
-`should_redirect: false` means there is no redirect decision to apply; a
-`should_redirect: true` result carries the configured status and, when
-available, target URL. The package returns this domain decision only. The Host
-loads/owns the target entity lifecycle and sends the HTTP status and `Location`
-response.
+The Host owns entity and route lifecycle, decides when to create a redirect record, and sends the returned HTTP status and `Location` response. The runnable [`redirect-management.php`](../../examples/redirect-management.php) demonstrates Redirect CRUD and resolution without slug lifecycle storage.
 
 #### SEO override DTO and resolution
 
@@ -2026,7 +1936,7 @@ external service displays the page.
 
 `SeoMetadataExporter` emits a versioned JSON-compatible DTO with `schema_version`,
 `exported_at`, and a `data` object containing `seo_overrides`, `redirects`, and
-`slug_history`. The executable [`import-export.php`](../../examples/import-export.php)
+only those SEO-owned sections. The executable [`import-export.php`](../../examples/import-export.php)
 uses these exact inputs and passes the emitted JSON to the importer. No CSV
 format is exposed by this example.
 
@@ -2049,17 +1959,11 @@ $redirects = [[
     'target_entity_id' => '123',
     'http_status' => 301,
 ]];
-$slugHistory = [[
-    'entity_type' => 'category',
-    'entity_id' => '456',
-    'language_id' => 1,
-    'old_slug' => 'old-category',
-]];
 
 $exporter = new SeoMetadataExporter();
-$exportDto = $exporter->export($seoOverrides, $redirects, $slugHistory);
+$exportDto = $exporter->export($seoOverrides, $redirects);
 $exportJson = json_encode($exportDto->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-$importer = new SeoMetadataImporter(null, null, null);
+$importer = new SeoMetadataImporter(null, null);
 $importResult = $importer->importJson($exportJson, true);
 echo $exportJson;
 echo json_encode($importResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
@@ -2069,7 +1973,7 @@ The stable data portion of the executed example's export is:
 
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "2.0",
   "data": {
     "seo_overrides": [{
       "entity_type": "product",
@@ -2085,12 +1989,6 @@ The stable data portion of the executed example's export is:
       "target_entity_type": "product",
       "target_entity_id": "123",
       "http_status": 301
-    }],
-    "slug_history": [{
-      "entity_type": "category",
-      "entity_id": "456",
-      "language_id": 1,
-      "old_slug": "old-category"
     }]
   }
 }
@@ -2101,7 +1999,7 @@ execution returns this dry-run summary and serialized result:
 
 ```text
 Dry Run Status: Enabled
-Created Items: 3
+Created Items: 2
 Updated Items: 0
 Failed Items: 0
 Errors Count: 0
@@ -2109,7 +2007,7 @@ Errors Count: 0
 
 ```json
 {
-  "created": 3,
+  "created": 2,
   "updated": 0,
   "skipped": 0,
   "failed": 0,

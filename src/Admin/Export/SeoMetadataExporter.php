@@ -8,23 +8,20 @@ use Maatify\Seo\Admin\DTO\SeoMetadataExportDTO;
 use Maatify\Seo\Exception\SeoInvalidArgumentException;
 use Maatify\Seo\Shared\DTO\RedirectDTO;
 use Maatify\Seo\Shared\DTO\SeoOverride\SeoOverrideDTO;
-use Maatify\Seo\Shared\DTO\SlugHistoryDTO;
 
 final class SeoMetadataExporter
 {
     /**
      * @param list<SeoOverrideDTO|array<string, mixed>> $seoOverrides
      * @param list<RedirectDTO|array<string, mixed>> $redirects
-     * @param list<SlugHistoryDTO|array<string, mixed>> $slugHistory
      */
-    public function export(array $seoOverrides = [], array $redirects = [], array $slugHistory = []): SeoMetadataExportDTO
+    public function export(array $seoOverrides = [], array $redirects = []): SeoMetadataExportDTO
     {
         return new SeoMetadataExportDTO(
             SeoMetadataExportDTO::SCHEMA_VERSION,
             gmdate('c'),
             $this->normalizeSeoOverrides($seoOverrides),
             $this->normalizeRedirects($redirects),
-            $this->normalizeSlugHistory($slugHistory),
         );
     }
 
@@ -38,12 +35,6 @@ final class SeoMetadataExporter
     public function exportRedirects(array $redirects): SeoMetadataExportDTO
     {
         return $this->export([], $redirects);
-    }
-
-    /** @param list<SlugHistoryDTO|array<string, mixed>> $slugHistory */
-    public function exportSlugHistory(array $slugHistory): SeoMetadataExportDTO
-    {
-        return $this->export([], [], $slugHistory);
     }
 
     /** @param SeoMetadataExportDTO|array<string, mixed> $export */
@@ -82,22 +73,6 @@ final class SeoMetadataExporter
             $normalized[] = $item instanceof RedirectDTO
                 ? $this->normalizeSerializableOutput($item->jsonSerialize(), 'redirects')
                 : $this->normalizeArrayRow($item, 'redirects');
-        }
-
-        return $normalized;
-    }
-
-    /**
-     * @param list<SlugHistoryDTO|array<string, mixed>> $items
-     * @return list<array<string, mixed>>
-     */
-    private function normalizeSlugHistory(array $items): array
-    {
-        $normalized = [];
-        foreach ($items as $item) {
-            $normalized[] = $item instanceof SlugHistoryDTO
-                ? $this->normalizeSerializableOutput($item->jsonSerialize(), 'slug_history')
-                : $this->normalizeArrayRow($item, 'slug_history');
         }
 
         return $normalized;

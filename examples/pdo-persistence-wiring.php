@@ -40,7 +40,7 @@ if (
 }
 
 if (!str_starts_with($dsn, 'mysql:')
-    || !preg_match('/(?:^|;)host=(?:127\.0\.0\.1|localhost)(?:;|$)/', $dsn)
+    || !preg_match('/(?:^|[;:])host=(?:127\.0\.0\.1|localhost)(?:;|$)/', $dsn)
     || !preg_match('/(?:^|;)dbname=[A-Za-z0-9_]+_test(?:;|$)/', $dsn)
     || !preg_match('/(?:^|;)charset=utf8mb4(?:;|$)/', $dsn)
 ) {

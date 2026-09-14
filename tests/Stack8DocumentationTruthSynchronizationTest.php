@@ -201,7 +201,7 @@ foreach ([
     'Robots and sitemaps',
     'Structured data and JSON-LD',
     'Core validation and companion profiles',
-    'Redirects, slug history, and SEO overrides',
+    'Redirects and SEO overrides',
     'Persistence and package-owned schemas',
     'Admin previews, operations, and import/export',
     'Page presets and page rendering',
@@ -360,13 +360,12 @@ foreach ([
     'SocialPreviewBuilder',
     'AdminRedirectCommandService',
     'AdminSeoOverrideCommandService',
-    'AdminSlugHistoryCommandService',
     'SerpPreviewFactory',
     'SocialPreviewFactory',
     'SeoMetadataImporter',
     'SeoMetadataExporter',
     'RedirectDecisionDTO',
-    'SlugHistoryService',
+    'RedirectManagerService',
     'SeoOverrideQueryService',
     'SerpPreviewDTO',
     'SocialPreviewDTO',
@@ -430,7 +429,6 @@ foreach ([
     'GoogleHreflangClusterValidator',
     'AdminRedirectCommandService',
     'AdminSeoOverrideCommandService',
-    'AdminSlugHistoryCommandService',
     'SerpPreviewFactory',
     'SeoMetadataImporter',
     'SearchConsoleInspectionService',
@@ -450,10 +448,8 @@ foreach ([
     'Host creates and configures PDO',
     'new PdoRedirectRepository($pdo)',
     'new PdoSeoOverrideRepository($pdo)',
-    'new PdoSlugHistoryRepository($pdo)',
     'schema/maa_seo_redirects.sql',
     'schema/maa_seo_overrides.sql',
-    'schema/maa_seo_slug_history.sql',
     'Result shape verified by the maintained MySQL integration test',
     'do not begin, commit, or roll back transactions',
 ] as $persistenceInvariant) {
@@ -468,8 +464,6 @@ foreach ([
     'AdminRedirectQueryService',
     'AdminSeoOverrideCommandService',
     'AdminSeoOverrideQueryService',
-    'AdminSlugHistoryCommandService',
-    'AdminSlugHistoryQueryService',
     'getActiveByRequestedSlug',
     'listByEntity',
     'softDelete',
@@ -597,7 +591,6 @@ foreach ([
     'package-owned tables',
     'maa_seo_redirects',
     'maa_seo_overrides',
-    'maa_seo_slug_history',
     'Consumer Verification Harness',
     'SeoExceptionInterface extends Throwable',
     'INVALID_ARGUMENT',
@@ -609,6 +602,50 @@ foreach ([
 }
 stack8AssertContains('MetaGeneratorService links its current resolved contract', $reference, 'META_GENERATOR_SERVICE_CONTRACT.md');
 stack8AssertNotContains('canonical Package Reference has no unresolved MetaGenerator contract wording', $reference, 'unknown / needs decision');
+
+foreach ([
+    'README.md' => $readme,
+    'SEO_PACKAGE_REFERENCE.md' => $reference,
+    'docs/README.md' => $docsIndex,
+    'docs/SEO/library/README.md' => $libraryHandbook,
+    'docs/guides/USAGE_GUIDE.md' => $usageGuide,
+    'docs/guides/INTEGRATION_GUIDE.md' => $integrationGuide,
+    'docs/proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md' => $adminRfc,
+] as $currentSlugOwnershipDocPath => $currentSlugOwnershipDoc) {
+    foreach ([
+        'SlugHistory',
+        'AdminSlugHistory',
+        'PdoSlugHistoryRepository',
+        'maa_seo_slug_history',
+        'slug_history',
+        'RecordSlugChangeCommand',
+    ] as $removedSlugOwnershipSurface) {
+        stack8AssertNotContains(
+            "{$currentSlugOwnershipDocPath} does not describe removed SEO surface {$removedSlugOwnershipSurface}",
+            $currentSlugOwnershipDoc,
+            $removedSlugOwnershipSurface,
+        );
+    }
+}
+stack8AssertContains(
+    'Package Reference states that SEO does not own slug lifecycle data',
+    $reference,
+    'SEO does not require a Slug library or store slug lifecycle data.',
+);
+stack8AssertContains(
+    'Package Reference preserves the SEO-owned Host URL port boundary',
+    $reference,
+    '`HostUrlGeneratorInterface` is an SEO-owned Host port',
+);
+stack8AssertContains(
+    'Package Reference leaves optional Slug integration to the Host or adapter',
+    $reference,
+    'any connection between SEO and a separate Slug library belongs to the Host or adapter.',
+);
+stack8AssertFalse(
+    'removed package-owned slug-history schema is absent',
+    is_file(dirname(__DIR__) . '/schema/maa_seo_slug_history.sql'),
+);
 
 $roadmap = stack8Read('docs/roadmap/ROADMAP.md');
 preg_match_all('/^## .+$/m', $roadmap, $roadmapHeadings);

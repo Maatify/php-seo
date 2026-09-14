@@ -378,11 +378,12 @@ While the SEO library provides a `SeoBindings.php` file mapping interfaces to fa
 
 The Host creates and configures PDO from its own configuration, then injects that object into the package repository. The package does not read `.env`, create the Host database connection, own Host configuration, or install/migrate its schema.
 
+The Host owns entity URLs and slug generation, normalization, uniqueness, current values, history, and old-slug lookup. SEO does not require a Slug library or persist slug lifecycle data. It accepts a Host-provided slug only as an optional input to its SEO-owned `HostUrlGeneratorInterface`; if the Host uses a separate Slug library, the Host or an adapter connects it to SEO.
+
 Apply the package-owned SQL asset before constructing the selected repository:
 
 - Redirects: [`schema/maa_seo_redirects.sql`](../../schema/maa_seo_redirects.sql)
 - SEO overrides: [`schema/maa_seo_overrides.sql`](../../schema/maa_seo_overrides.sql)
-- Slug history: [`schema/maa_seo_slug_history.sql`](../../schema/maa_seo_slug_history.sql)
 
 The representative redirect chain is `Host PDO -> PdoRedirectRepository -> RedirectCommandService / RedirectQueryService -> operation -> RedirectDTO`:
 
@@ -419,22 +420,16 @@ The same wiring pattern applies to the other stored domains:
 
 ```php
 use Maatify\Seo\Shared\Infrastructure\Persistence\PdoSeoOverrideRepository;
-use Maatify\Seo\Shared\Infrastructure\Persistence\PdoSlugHistoryRepository;
 use Maatify\Seo\Shared\Service\SeoOverrideCommandService;
 use Maatify\Seo\Shared\Service\SeoOverrideQueryService;
-use Maatify\Seo\Shared\Service\SlugHistoryCommandService;
-use Maatify\Seo\Shared\Service\SlugHistoryQueryService;
 
 $overrideRepository = new PdoSeoOverrideRepository($pdo);
 $overrideCommands = new SeoOverrideCommandService($overrideRepository);
 $overrideQueries = new SeoOverrideQueryService($overrideRepository);
 
-$slugHistoryRepository = new PdoSlugHistoryRepository($pdo);
-$slugHistoryCommands = new SlugHistoryCommandService($slugHistoryRepository);
-$slugHistoryQueries = new SlugHistoryQueryService($slugHistoryRepository);
 ```
 
-The override repository's `create()` returns an ID and its query services return `SeoOverrideDTO`; slug-history `create()` returns an ID and its query services return `SlugHistoryDTO` or lists of those DTOs. These repositories do not begin, commit, or roll back transactions; if the Host needs a transaction, it controls the PDO transaction boundary. A missing row returned by a repository becomes `SeoNotFoundException` in the corresponding query service. A SQLSTATE class `23` integrity failure on repository `create()` is translated to `SeoCodeAlreadyExistsException`; other PDO failures, including a missing table or unavailable database, propagate as `PDOException`. Repository update/delete calls return `bool`; command services expose `void` and throw `SeoNotFoundException` when the repository reports no affected row. Across redirect, override, and slug-history PDO repositories, soft delete sets `deleted_at` only when it is currently null, so a missing or already soft-deleted row returns `false` and the command service throws `SeoNotFoundException`. `hardDelete()` physically deletes by ID without checking `deleted_at`, so it succeeds for either active or soft-deleted rows; a missing or already hard-deleted row returns `false` and becomes `SeoNotFoundException`. `getById()` can still read a soft-deleted row in all three families. Redirect and override `findByEntity()` lists accept `includeDeleted: true`; slug-history `findActiveBySlug()` and `findActiveForEntity()` expose only active records, and the latter has no `includeDeleted` option. Redirect and override updates require `deleted_at IS NULL`; slug history has no update operation.
+The override repository's `create()` returns an ID and its query services return `SeoOverrideDTO`. These repositories do not begin, commit, or roll back transactions; if the Host needs a transaction, it controls the PDO transaction boundary. A missing row returned by a repository becomes `SeoNotFoundException` in the corresponding query service. A SQLSTATE class `23` integrity failure on repository `create()` is translated to `SeoCodeAlreadyExistsException`; other PDO failures, including a missing table or unavailable database, propagate as `PDOException`. Repository update/delete calls return `bool`; command services expose `void` and throw `SeoNotFoundException` when the repository reports no affected row. Soft delete sets `deleted_at` only when it is currently null, so a missing or already soft-deleted row returns `false`; `hardDelete()` physically deletes by ID without checking `deleted_at`. `getById()` can still read a soft-deleted row. Redirect and override `findByEntity()` lists accept `includeDeleted: true`, and updates require `deleted_at IS NULL`.
 
 The package does not read `.env` files, config files, environment variables, or framework configuration. Do not pass Laravel `Config::get()` or Symfony parameter bags into the package domain layer; resolve those in the Host and pass the configured PDO object.
 
@@ -598,23 +593,19 @@ $redirectId = $adminRedirectCommands->create(new CreateAdminRedirectCommand(
 $redirect = $adminRedirectQueries->getById($redirectId); // AdminRedirectDTO
 ```
 
-`update()` returns `void`; query it again to obtain the updated `AdminRedirectDTO`. It cannot update a soft-deleted redirect because the repository update matches only rows with `deleted_at IS NULL`, so the command service throws `SeoNotFoundException`. `listByEntity()` returns `list<AdminRedirectDTO>`. `softDelete()` and `hardDelete()` return `void`: `softDelete()` throws `SeoNotFoundException` for a missing or already soft-deleted redirect; `hardDelete()` succeeds for an active or soft-deleted redirect and throws only when the row is missing or was already hard-deleted. The Admin redirect command/query example demonstrates `softDelete()`, querying the deleted DTO, successful `hardDelete()`, and `SeoNotFoundException` on the subsequent `getById()`. `AdminSeoOverrideCommandService` and `AdminSeoOverrideQueryService` follow the same pattern around `SeoOverrideCommandService` and `SeoOverrideQueryService`, returning an integer from `create()`, `void` from `update()`, and `AdminSeoOverrideDTO` / lists from queries. `AdminSlugHistoryCommandService` and `AdminSlugHistoryQueryService` return an integer from `record()` and `AdminSlugHistoryDTO` / lists from queries; there is no update operation. Other current Admin helpers include `SerpPreviewFactory`, `SocialPreviewFactory`, `SeoMetadataImporter`, and `SeoMetadataExporter`.
+`update()` returns `void`; query it again to obtain the updated `AdminRedirectDTO`. It cannot update a soft-deleted redirect because the repository update matches only rows with `deleted_at IS NULL`, so the command service throws `SeoNotFoundException`. `listByEntity()` returns `list<AdminRedirectDTO>`. `softDelete()` and `hardDelete()` return `void`: `softDelete()` throws `SeoNotFoundException` for a missing or already soft-deleted redirect; `hardDelete()` succeeds for an active or soft-deleted redirect and throws only when the row is missing or was already hard-deleted. The Admin redirect command/query example demonstrates `softDelete()`, querying the deleted DTO, successful `hardDelete()`, and `SeoNotFoundException` on the subsequent `getById()`. `AdminSeoOverrideCommandService` and `AdminSeoOverrideQueryService` follow the same pattern around `SeoOverrideCommandService` and `SeoOverrideQueryService`, returning an integer from `create()`, `void` from `update()`, and `AdminSeoOverrideDTO` / lists from queries. Other current Admin helpers include `SerpPreviewFactory`, `SocialPreviewFactory`, `SeoMetadataImporter`, and `SeoMetadataExporter`.
 
 The other Admin service constructors wrap their corresponding Shared services from the persistence wiring above:
 
 ```php
 use Maatify\Seo\Admin\SeoOverride\Service\AdminSeoOverrideCommandService;
 use Maatify\Seo\Admin\SeoOverride\Service\AdminSeoOverrideQueryService;
-use Maatify\Seo\Admin\SlugHistory\Service\AdminSlugHistoryCommandService;
-use Maatify\Seo\Admin\SlugHistory\Service\AdminSlugHistoryQueryService;
 
 $adminOverrideCommands = new AdminSeoOverrideCommandService($overrideCommands);
 $adminOverrideQueries = new AdminSeoOverrideQueryService($overrideQueries);
-$adminSlugHistoryCommands = new AdminSlugHistoryCommandService($slugHistoryCommands);
-$adminSlugHistoryQueries = new AdminSlugHistoryQueryService($slugHistoryQueries);
 ```
 
-`AdminSeoOverrideQueryService` manages stored override records. It does not generate page metadata: `MetaGeneratorService` later consumes the active override through `SeoOverrideQueryService` (the Shared lower-level contract) when the Host requests metadata generation. Slug-history recording does not update the Host entity, initiate an HTTP redirect, or define its lifecycle; those decisions remain in the Host. Redirect services store redirect intent and status as domain data, and the Host emits the corresponding HTTP response. The services return DTOs, identifiers, validation errors, dry-run counts, or domain decisions for the Host to use. Preview factories return preview DTOs and missing-field warnings rather than an Admin screen or provider-rendered search result.
+`AdminSeoOverrideQueryService` manages stored override records. It does not generate page metadata: `MetaGeneratorService` later consumes the active override through `SeoOverrideQueryService` (the Shared lower-level contract) when the Host requests metadata generation. Redirect services store redirect intent and status independently of entity slug changes, and the Host emits the corresponding HTTP response. The Host remains responsible for when entity URLs and slugs change and for any relationship between those changes and redirect records. The services return DTOs, identifiers, validation errors, dry-run counts, or domain decisions for the Host to use. Preview factories return preview DTOs and missing-field warnings rather than an Admin screen or provider-rendered search result.
 
 The Host owns Admin UI, routes/controllers, authentication, authorization,
 permissions, and application workflow. It decides who may invoke an operation,
@@ -626,7 +617,7 @@ importable rows without writing them; a non-dry-run import requires the
 relevant repositories. Missing repositories are counted as skipped, while
 repository failures are returned in the result's failure count and errors.
 Maintained test `Batch2AdminPreviewsMigrationsTest` asserts the dry-run count
-and flag. Executed output is available in the [Admin CRUD examples](../../examples/redirect-slug-history.php) and
+and flag. Executed output is available in the [Redirect example](../../examples/redirect-management.php) and
 [override example](../../examples/seo-override-meta-generation.php),
 [preview example](../../examples/admin-previews.php), and
 [import/export example](../../examples/import-export.php).

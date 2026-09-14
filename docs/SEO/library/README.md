@@ -20,6 +20,12 @@ unless represented by an explicit current package contract. This includes
 routing structure, product lifecycle, HTTP status decisions,
 internal-linking strategy, and site-specific multilingual URL policy.
 
+The Host owns entity URLs and slug lifecycle, including generation,
+normalization, uniqueness, history, and old-slug lookup. SEO does not require a
+Slug library; a Host-provided slug may be supplied only as input to its
+`HostUrlGeneratorInterface`. Any integration with a separate Slug library
+belongs to the Host or an adapter.
+
 Use the [official documentation index](../../README.md) to see the complete
 authority hierarchy.
 
@@ -38,7 +44,7 @@ area without repeating that inventory.
 | Robots and sitemaps | [Usage Guide](../../guides/USAGE_GUIDE.md), [Integration Guide](../../guides/INTEGRATION_GUIDE.md) |
 | Structured data and JSON-LD | [Structured Data Architecture](STRUCTURED_DATA_ARCHITECTURE.md), [Usage Guide](../../guides/USAGE_GUIDE.md) |
 | Core validation and companion profiles | [Usage Guide](../../guides/USAGE_GUIDE.md), [SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md) |
-| Redirects, slug history, and SEO overrides | [Integration Guide](../../guides/INTEGRATION_GUIDE.md), [SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md) |
+| Redirects and SEO overrides | [Integration Guide](../../guides/INTEGRATION_GUIDE.md), [SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md) |
 | Persistence and package-owned schemas | [Integration Guide](../../guides/INTEGRATION_GUIDE.md), [SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md) |
 | Admin previews, operations, and import/export | [Usage Guide](../../guides/USAGE_GUIDE.md), [Integration Guide](../../guides/INTEGRATION_GUIDE.md) |
 | Page presets and page rendering | [Usage Guide](../../guides/USAGE_GUIDE.md), [Integration Guide](../../guides/INTEGRATION_GUIDE.md) |

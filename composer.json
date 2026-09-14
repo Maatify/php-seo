@@ -1,6 +1,6 @@
 {
     "name": "maatify/php-seo",
-    "description": "Standalone SEO library for metadata, JSON-LD, sitemaps, hreflang, redirects, slug history, and SEO validation.",
+    "description": "Standalone SEO library for metadata, JSON-LD, sitemaps, hreflang, redirects, and SEO validation.",
     "keywords": [
         "seo",
         "metadata",

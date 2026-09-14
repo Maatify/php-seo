@@ -5,19 +5,15 @@ declare(strict_types=1);
 use Maatify\Seo\Exception\SeoCodeAlreadyExistsException;
 use Maatify\Seo\Exception\SeoNotFoundException;
 use Maatify\Seo\Shared\Command\CreateRedirectCommand;
-use Maatify\Seo\Shared\Command\CreateSlugHistoryCommand;
 use Maatify\Seo\Shared\Command\SeoOverride\CreateSeoOverrideCommand;
 use Maatify\Seo\Shared\Command\SeoOverride\UpdateSeoOverrideCommand;
 use Maatify\Seo\Shared\Command\UpdateRedirectCommand;
 use Maatify\Seo\Shared\Infrastructure\Persistence\PdoRedirectRepository;
 use Maatify\Seo\Shared\Infrastructure\Persistence\PdoSeoOverrideRepository;
-use Maatify\Seo\Shared\Infrastructure\Persistence\PdoSlugHistoryRepository;
 use Maatify\Seo\Shared\Service\RedirectCommandService;
 use Maatify\Seo\Shared\Service\RedirectQueryService;
 use Maatify\Seo\Shared\Service\SeoOverrideCommandService;
 use Maatify\Seo\Shared\Service\SeoOverrideQueryService;
-use Maatify\Seo\Shared\Service\SlugHistoryCommandService;
-use Maatify\Seo\Shared\Service\SlugHistoryQueryService;
 
 require_once dirname(__DIR__) . '/bootstrap.php';
 
@@ -27,7 +23,6 @@ function mysqlPersistenceOwnedTables(): array
     return [
         'maa_seo_redirects',
         'maa_seo_overrides',
-        'maa_seo_slug_history',
     ];
 }
 
@@ -164,12 +159,11 @@ function mysqlPersistenceAssertNoResidue(PDO $pdo): void
     $statement = $pdo->prepare(
         'SELECT TABLE_NAME FROM information_schema.TABLES '
         . 'WHERE TABLE_SCHEMA = DATABASE() '
-        . 'AND TABLE_NAME IN (:redirect_table, :override_table, :history_table)',
+        . 'AND TABLE_NAME IN (:redirect_table, :override_table)',
     );
     $statement->execute([
         'redirect_table' => 'maa_seo_redirects',
         'override_table' => 'maa_seo_overrides',
-        'history_table' => 'maa_seo_slug_history',
     ]);
 
     /** @var list<array<string, mixed>> $remainingTables */
@@ -332,61 +326,6 @@ function mysqlPersistenceVerifyOverrides(PDO $pdo): void
     );
 }
 
-function mysqlPersistenceVerifySlugHistory(PDO $pdo): void
-{
-    $repository = new PdoSlugHistoryRepository($pdo);
-    $commands = new SlugHistoryCommandService($repository);
-    $queries = new SlugHistoryQueryService($repository);
-
-    $firstHistoryId = $commands->create(new CreateSlugHistoryCommand('article', 'article-20', 1, '/old-first'));
-    mysqlPersistenceAssertTrue($firstHistoryId > 0, 'First slug history creation returns a positive inserted ID.');
-    $secondHistoryId = $commands->create(new CreateSlugHistoryCommand('article', 'article-20', 1, '/old-second'));
-    mysqlPersistenceAssertTrue($secondHistoryId > 0, 'Second slug history creation returns a positive inserted ID.');
-
-    $history = $queries->getById($firstHistoryId);
-    mysqlPersistenceAssertSame('/old-first', $history->oldSlug, 'Slug history read-by-ID hydrates the persisted slug.');
-    $activeHistory = $queries->getActiveBySlug('article', 1, '/old-first');
-    mysqlPersistenceAssertSame($firstHistoryId, $activeHistory->id, 'Active slug-history lookup finds the persisted row.');
-
-    $entityHistory = $queries->getActiveForEntity('article', 'article-20', 1);
-    mysqlPersistenceAssertSame(
-        [$secondHistoryId, $firstHistoryId],
-        array_map(static fn ($item): int => $item->id, $entityHistory),
-        'Active entity slug history is ordered by descending ID.',
-    );
-
-    mysqlPersistenceAssertThrows(
-        SeoCodeAlreadyExistsException::class,
-        static function () use ($commands): void {
-            $commands->create(new CreateSlugHistoryCommand('article', 'article-20', 1, '/old-first'));
-        },
-        'Duplicate slug-history identity maps to SeoCodeAlreadyExistsException',
-    );
-
-    $commands->softDelete($firstHistoryId);
-    mysqlPersistenceAssertThrows(
-        SeoNotFoundException::class,
-        static function () use ($queries): void {
-            $queries->getActiveBySlug('article', 1, '/old-first');
-        },
-        'Soft-deleted slug history disappears from active lookup',
-    );
-    mysqlPersistenceAssertSame(
-        [$secondHistoryId],
-        array_map(static fn ($item): int => $item->id, $queries->getActiveForEntity('article', 'article-20', 1)),
-        'Soft-deleted slug history disappears from active entity listing.',
-    );
-
-    $commands->hardDelete($firstHistoryId);
-    mysqlPersistenceAssertThrows(
-        SeoNotFoundException::class,
-        static function () use ($queries, $firstHistoryId): void {
-            $queries->getById($firstHistoryId);
-        },
-        'Hard-deleted slug history is no longer found by ID',
-    );
-}
-
 $dsn = mysqlPersistenceRequiredEnvironmentValue('MAATIFY_SEO_TEST_DB_DSN');
 $user = mysqlPersistenceRequiredEnvironmentValue('MAATIFY_SEO_TEST_DB_USER');
 $password = mysqlPersistenceRequiredEnvironmentValue('MAATIFY_SEO_TEST_DB_PASSWORD');
@@ -420,7 +359,6 @@ try {
     $schemaFiles = [
         'maa_seo_redirects' => $repositoryRoot . '/schema/maa_seo_redirects.sql',
         'maa_seo_overrides' => $repositoryRoot . '/schema/maa_seo_overrides.sql',
-        'maa_seo_slug_history' => $repositoryRoot . '/schema/maa_seo_slug_history.sql',
     ];
 
     foreach ($schemaFiles as $table => $schemaFile) {
@@ -437,7 +375,6 @@ try {
     mysqlPersistenceVerifySchemas($pdo);
     mysqlPersistenceVerifyRedirects($pdo);
     mysqlPersistenceVerifyOverrides($pdo);
-    mysqlPersistenceVerifySlugHistory($pdo);
 } finally {
     try {
         if ($pdo->inTransaction()) {

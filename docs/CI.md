@@ -65,7 +65,7 @@ find tests \
 
 ## Real MySQL persistence Integration
 
-The standalone suite excludes `tests/Integration/*`; the Integration test is a separate, fail-closed gate. It requires a real MySQL server and the PHP `pdo_mysql` extension. SQLite, mocks, and fakes are not valid substitutes. The test uses the three shipped SQL files, cleans up only the package-owned tables, verifies no residue, and must not be pointed at a production database.
+The standalone suite excludes `tests/Integration/*`; the Integration test is a separate, fail-closed gate. It requires a real MySQL server and the PHP `pdo_mysql` extension. SQLite, mocks, and fakes are not valid substitutes. The test uses the two shipped SQL files, cleans up only the package-owned tables, verifies no residue, and must not be pointed at a production database.
 
 Create a dedicated local test database and a non-production user with rights scoped to that database. For example, connect as a local MySQL administrator and run:
 
@@ -84,7 +84,7 @@ export MAATIFY_SEO_TEST_DB_PASSWORD='maatify_seo_test_password'
 bash scripts/ci/mysql-persistence-integration.sh
 ```
 
-All three environment variables are required. The runner executes the Integration test twice against the same database; each run creates the shipped schemas, verifies persistence, cleans the three package tables, and checks `information_schema` for residue. Missing configuration, an invalid DSN, an unavailable service, or a failing assertion is an error, never a skip.
+All three environment variables are required. The runner executes the Integration test twice against the same database; each run creates the shipped schemas, verifies persistence, cleans the two package tables, and checks `information_schema` for residue. Missing configuration, an invalid DSN, an unavailable service, or a failing assertion is an error, never a skip.
 
 CI uses the official `mysql:8.4.11` image as a reproducible test fixture. This fixture version does not declare the package's minimum supported MySQL version. The required persistence matrix covers PHP 8.2 with current dependencies, PHP 8.5 with current dependencies, and PHP 8.2 with lowest supported dependencies.
 

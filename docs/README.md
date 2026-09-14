@@ -49,3 +49,8 @@ Governance
 When a claim concerns current package behavior, check the executable truth and
 the canonical package contract. Supporting documentation explains those
 contracts and gives integration guidance.
+
+The Host owns entity URLs and the slug lifecycle, including generation,
+normalization, uniqueness, history, and old-slug lookup. SEO accepts an optional
+Host-provided slug only through its URL-generation port and does not require a
+Slug library. If a Host uses one, integration belongs to the Host or an adapter.
