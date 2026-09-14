@@ -376,12 +376,67 @@ While the SEO library provides a `SeoBindings.php` file mapping interfaces to fa
 
 ## 11. Persistence Integration Guidance
 
-For features requiring database storage (such as SEO overrides, redirects, or slug histories), the Host supplies a configured `PDO` instance. The package provides concrete PDO repositories and ships the matching package-owned schemas.
+The Host creates and configures PDO from its own configuration, then injects that object into the package repository. The package does not read `.env`, create the Host database connection, own Host configuration, or install/migrate its schema.
 
-- **Host Provides PDO:** The host app establishes the database connection and provides the `PDO` object; `PdoRedirectRepository`, `PdoSeoOverrideRepository`, and `PdoSlugHistoryRepository` are package implementations.
-- **Package Owns Its Persistence:** Apply the relevant SQL asset from `schema/` for the package-owned table. The Host does not need to implement a parallel Eloquent, Doctrine, or other ORM persistence layer.
-- **No `.env` reading:** The SEO library must not read `.env` files, config files, or environment variables directly.
-- **No Framework Config:** Do not pass Laravel `Config::get()` or Symfony parameter bags into the library's domain layer.
+Apply the package-owned SQL asset before constructing the selected repository:
+
+- Redirects: [`schema/maa_seo_redirects.sql`](../../schema/maa_seo_redirects.sql)
+- SEO overrides: [`schema/maa_seo_overrides.sql`](../../schema/maa_seo_overrides.sql)
+- Slug history: [`schema/maa_seo_slug_history.sql`](../../schema/maa_seo_slug_history.sql)
+
+The representative redirect chain is `Host PDO -> PdoRedirectRepository -> RedirectCommandService / RedirectQueryService -> operation -> RedirectDTO`:
+
+```php
+use Maatify\Seo\Shared\Command\CreateRedirectCommand;
+use Maatify\Seo\Shared\Infrastructure\Persistence\PdoRedirectRepository;
+use Maatify\Seo\Shared\Service\RedirectCommandService;
+use Maatify\Seo\Shared\Service\RedirectQueryService;
+use PDO;
+
+// The Host owns these connection values and PDO lifecycle.
+$pdo = new PDO($hostDsn, $hostUser, $hostPassword, [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_EMULATE_PREPARES => false,
+]);
+
+$repository = new PdoRedirectRepository($pdo);
+$commands = new RedirectCommandService($repository);
+$queries = new RedirectQueryService($repository);
+
+$id = $commands->create(new CreateRedirectCommand(
+    entityType: 'article',
+    languageId: 1,
+    requestedSlug: '/old-redirect',
+    targetEntityType: 'article',
+    targetEntityId: 'post-10',
+));
+$redirect = $queries->getById($id);
+```
+
+`create()` returns the inserted integer ID. `getById()` returns a `RedirectDTO` with `id`, `entityType`, `languageId`, `requestedSlug`, `targetEntityType`, `targetEntityId`, `httpStatus`, `createdAt`, and nullable `deletedAt`. The maintained real-MySQL test [`tests/Integration/MySqlPersistenceIntegrationTest.php`](../../tests/Integration/MySqlPersistenceIntegrationTest.php) verifies a positive ID and the persisted values `article`, `1`, `/old-redirect`, `article`, `post-10`, and `301`; the database generates the exact ID and timestamp. **Result shape verified by the maintained MySQL integration test.** [`examples/pdo-persistence-wiring.php`](../../examples/pdo-persistence-wiring.php) runs this chain only when a dedicated local MySQL test database and the already-installed redirects table are available.
+
+The same wiring pattern applies to the other stored domains:
+
+```php
+use Maatify\Seo\Shared\Infrastructure\Persistence\PdoSeoOverrideRepository;
+use Maatify\Seo\Shared\Infrastructure\Persistence\PdoSlugHistoryRepository;
+use Maatify\Seo\Shared\Service\SeoOverrideCommandService;
+use Maatify\Seo\Shared\Service\SeoOverrideQueryService;
+use Maatify\Seo\Shared\Service\SlugHistoryCommandService;
+use Maatify\Seo\Shared\Service\SlugHistoryQueryService;
+
+$overrideRepository = new PdoSeoOverrideRepository($pdo);
+$overrideCommands = new SeoOverrideCommandService($overrideRepository);
+$overrideQueries = new SeoOverrideQueryService($overrideRepository);
+
+$slugHistoryRepository = new PdoSlugHistoryRepository($pdo);
+$slugHistoryCommands = new SlugHistoryCommandService($slugHistoryRepository);
+$slugHistoryQueries = new SlugHistoryQueryService($slugHistoryRepository);
+```
+
+The override repository's `create()` returns an ID and its query services return `SeoOverrideDTO`; slug-history `create()` returns an ID and its query services return `SlugHistoryDTO` or lists of those DTOs. These repositories do not begin, commit, or roll back transactions; if the Host needs a transaction, it controls the PDO transaction boundary. A missing row returned by a repository becomes `SeoNotFoundException` in the corresponding query service. A SQLSTATE class `23` integrity failure on repository `create()` is translated to `SeoCodeAlreadyExistsException`; other PDO failures, including a missing table or unavailable database, propagate as `PDOException`. Repository update/delete calls return `bool`; command services expose `void` and throw `SeoNotFoundException` when the repository reports no affected row. Soft delete sets `deleted_at`, removes the record from default active lookups/lists, and leaves it available through `getById()` or a list with `includeDeleted: true`; hard delete physically removes it.
+
+The package does not read `.env` files, config files, environment variables, or framework configuration. Do not pass Laravel `Config::get()` or Symfony parameter bags into the package domain layer; resolve those in the Host and pass the configured PDO object.
 
 ---
 
@@ -519,24 +574,60 @@ The [canonical/robots example](../../examples/meta-robots-canonical.php) and
 
 ### 12.4 Admin-domain integration
 
-The current package Admin layer provides `AdminRedirectCommandService` and
-`AdminRedirectQueryService`, `AdminSeoOverrideCommandService` and
-`AdminSeoOverrideQueryService`, and `AdminSlugHistoryCommandService` and
-`AdminSlugHistoryQueryService`; it also provides `SerpPreviewFactory`,
-`SocialPreviewFactory`, `SeoMetadataImporter`, and `SeoMetadataExporter`. They
-return DTOs, identifiers, validation errors, dry-run counts, or domain
-decisions for the Host to use. For example, redirect
-operations store redirect intent/status as domain data; the Host emits the
-corresponding HTTP response. Preview factories return preview DTOs and
-missing-field warnings rather than an Admin screen or provider-rendered search
-result.
+The Admin services are constructed around the Shared services, which use the same repository adapter described in [Persistence Integration](#11-persistence-integration-guidance). For redirects, the complete dependency chain is:
+
+```php
+use Maatify\Seo\Admin\Redirect\Command\CreateAdminRedirectCommand;
+use Maatify\Seo\Admin\Redirect\Service\AdminRedirectCommandService;
+use Maatify\Seo\Admin\Redirect\Service\AdminRedirectQueryService;
+use Maatify\Seo\Shared\Infrastructure\Persistence\PdoRedirectRepository;
+use Maatify\Seo\Shared\Service\RedirectCommandService;
+use Maatify\Seo\Shared\Service\RedirectQueryService;
+
+$redirectRepository = new PdoRedirectRepository($pdo);
+$adminRedirectCommands = new AdminRedirectCommandService(new RedirectCommandService($redirectRepository));
+$adminRedirectQueries = new AdminRedirectQueryService(new RedirectQueryService($redirectRepository));
+
+$redirectId = $adminRedirectCommands->create(new CreateAdminRedirectCommand(
+    entityType: 'article',
+    languageId: 1,
+    requestedSlug: '/old-article',
+    targetEntityType: 'article',
+    targetEntityId: 'post-10',
+)); // int
+$redirect = $adminRedirectQueries->getById($redirectId); // AdminRedirectDTO
+```
+
+`update()` returns `void`; query it again to obtain the updated `AdminRedirectDTO`. `listByEntity()` returns `list<AdminRedirectDTO>`. `softDelete()` and `hardDelete()` also return `void`; a missing, already soft-deleted, or already hard-deleted target is reported by `SeoNotFoundException`. The Admin redirect command/query example shows the serialized DTO fields and deletion sequence. `AdminSeoOverrideCommandService` and `AdminSeoOverrideQueryService` follow the same pattern around `SeoOverrideCommandService` and `SeoOverrideQueryService`, returning an integer from `create()`, `void` from `update()`, and `AdminSeoOverrideDTO` / lists from queries. `AdminSlugHistoryCommandService` and `AdminSlugHistoryQueryService` return an integer from `record()` and `AdminSlugHistoryDTO` / lists from queries; there is no update operation. Other current Admin helpers include `SerpPreviewFactory`, `SocialPreviewFactory`, `SeoMetadataImporter`, and `SeoMetadataExporter`.
+
+The other Admin service constructors wrap their corresponding Shared services from the persistence wiring above:
+
+```php
+use Maatify\Seo\Admin\SeoOverride\Service\AdminSeoOverrideCommandService;
+use Maatify\Seo\Admin\SeoOverride\Service\AdminSeoOverrideQueryService;
+use Maatify\Seo\Admin\SlugHistory\Service\AdminSlugHistoryCommandService;
+use Maatify\Seo\Admin\SlugHistory\Service\AdminSlugHistoryQueryService;
+
+$adminOverrideCommands = new AdminSeoOverrideCommandService($overrideCommands);
+$adminOverrideQueries = new AdminSeoOverrideQueryService($overrideQueries);
+$adminSlugHistoryCommands = new AdminSlugHistoryCommandService($slugHistoryCommands);
+$adminSlugHistoryQueries = new AdminSlugHistoryQueryService($slugHistoryQueries);
+```
+
+`AdminSeoOverrideQueryService` manages stored override records. It does not generate page metadata: `MetaGeneratorService` later consumes the active override through `SeoOverrideQueryService` (the Shared lower-level contract) when the Host requests metadata generation. Slug-history recording does not update the Host entity, initiate an HTTP redirect, or define its lifecycle; those decisions remain in the Host. Redirect services store redirect intent and status as domain data, and the Host emits the corresponding HTTP response. The services return DTOs, identifiers, validation errors, dry-run counts, or domain decisions for the Host to use. Preview factories return preview DTOs and missing-field warnings rather than an Admin screen or provider-rendered search result.
 
 The Host owns Admin UI, routes/controllers, authentication, authorization,
 permissions, and application workflow. It decides who may invoke an operation,
 how to present the DTOs, and when to persist or apply the result. Import/export
 can work with the package's DTOs and configured repositories; they do not
-provide bulk Admin workflows or Host-specific entity mapping automatically.
-Executed output is available in the [redirect/slug-history example](../../examples/redirect-slug-history.php),
+provide bulk Admin workflows or Host-specific entity mapping automatically. A
+dry-run `SeoMetadataImporter::importArray($payload, true)` validates and counts
+importable rows without writing them; a non-dry-run import requires the
+relevant repositories. Missing repositories are counted as skipped, while
+repository failures are returned in the result's failure count and errors.
+Maintained test `Batch2AdminPreviewsMigrationsTest` asserts the dry-run count
+and flag. Executed output is available in the [Admin CRUD examples](../../examples/redirect-slug-history.php) and
+[override example](../../examples/seo-override-meta-generation.php),
 [preview example](../../examples/admin-previews.php), and
 [import/export example](../../examples/import-export.php).
 
@@ -575,10 +666,51 @@ show sample payloads and mapped package DTOs without making network calls.
 
 ## 13. Error Handling
 
-- **Library Exceptions:** The SEO library throws specific library exceptions (e.g., `SeoNotFoundException`, `SeoConflictException`) when operations fail.
-- **Host Responsibility:** The host application is responsible for catching these exceptions, logging them, and converting them into appropriate HTTP status codes (like 404 Not Found or 400 Bad Request).
-- For Search Console and Merchant Center, use the package exception taxonomy for application error handling. The transport exception's `httpStatus` property is the provider response code; it is not the exception's shared application HTTP status. See [Current Page and Domain Integration](#125-search-console-and-merchant-center).
-- The library should never call `http_response_code()` or throw HTTP-specific framework exceptions (like `Symfony\Component\HttpKernel\Exception\NotFoundHttpException`).
+The package returns validation diagnostics for content findings such as missing or short metadata. Invalid command/configuration values throw `SeoInvalidArgumentException`; missing query results throw `SeoNotFoundException`; an integrity conflict from a PDO create is reported as `SeoCodeAlreadyExistsException`. Those outcomes are different: ordinary SEO warnings do not become exceptions. The package does not send an HTTP response.
+
+For example, a Host can catch a missing redirect separately and choose its own API/UI outcome:
+
+```php
+use Maatify\Seo\Exception\SeoNotFoundException;
+
+try {
+    $redirect = $adminRedirectQueries->getById(17);
+} catch (SeoNotFoundException $exception) {
+    error_log($exception::class . ': ' . $exception->getMessage());
+    $hostOutcome = ['httpStatus' => 404, 'code' => 'seo_redirect_not_found'];
+}
+```
+
+Invalid command input and a duplicate stored identity have distinct catches. The duplicate case below matches the maintained MySQL integration test, which first inserts the same `(entity_type, language_id, requested_slug)` and then asserts the second create throws `SeoCodeAlreadyExistsException`:
+
+```php
+use Maatify\Seo\Exception\SeoCodeAlreadyExistsException;
+use Maatify\Seo\Exception\SeoInvalidArgumentException;
+use Maatify\Seo\Shared\Command\CreateRedirectCommand;
+
+try {
+    $commands->create(new CreateRedirectCommand('article', 1, '/old', null, null, 302));
+} catch (SeoInvalidArgumentException $exception) {
+    error_log($exception::class . ': ' . $exception->getMessage());
+    $hostOutcome = ['httpStatus' => 400, 'code' => 'invalid_seo_input'];
+}
+
+try {
+    // This key already exists in the maintained Integration fixture.
+    $commands->create(new CreateRedirectCommand('article', 1, '/old-redirect', 'article', 'post-duplicate'));
+} catch (SeoCodeAlreadyExistsException $exception) {
+    error_log($exception::class . ': ' . $exception->getMessage());
+    $hostOutcome = ['httpStatus' => 409, 'code' => 'seo_redirect_conflict'];
+}
+```
+
+`SeoConflictException` is also part of the package's public exception taxonomy and its classification is tested, but the inspected current redirect/override/slug operations do not throw that generic class. The PDO duplicate path specifically throws `SeoCodeAlreadyExistsException`; catch the concrete type the operation documents instead of assuming all conflicts share one concrete class.
+
+The inherited `MaatifyException` API on the concrete SEO exception classes exposes `getErrorCode()`, `getCategory()`, `getHttpStatus()`, `isSafe()`, `isRetryable()`, and `getMeta()`. The `SeoExceptionInterface` marker itself only extends `Throwable`; code typed only to that marker should not assume those additional methods. The maintained `ExceptionArchitectureTest.php` verifies package classifications including Not Found `404`, invalid argument `400`, and conflict `409`. Treat those as package classifications available to Host policy, not a mandate that every operation map to the same response in every application. Log internal failures as appropriate and choose the user-facing response/message in the Host; do not expose internal exception messages automatically.
+
+Provider failures have a separate status boundary. Search Console and Merchant Center invalid request exceptions represent package request validation (classification `400`, before a transport call); malformed provider response exceptions represent a system/mapping failure (classification `500`); transport exceptions represent a failed provider request and expose the provider's HTTP status in their public `httpStatus` property. For a Search Console `403`, `$exception->httpStatus` is `403` while the inherited `$exception->getHttpStatus()` is the package system classification `500`. A provider HTTP 403 is evidence about the provider request. It does not automatically become the Host application's HTTP 403. The Host chooses its own response policy; the executable [`provider-failure-handling.php`](../../examples/provider-failure-handling.php) uses a local transport fixture, displays provider `403` / package `500`, and selects Host `502` without contacting Google.
+
+The library should never call `http_response_code()` or throw HTTP-specific framework exceptions (like `Symfony\Component\HttpKernel\Exception\NotFoundHttpException`).
 
 ---
 

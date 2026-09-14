@@ -35,6 +35,14 @@ use Maatify\Seo\Shared\Service\RedirectQueryService;
 use Maatify\Seo\Shared\Service\SlugHistoryCommandService;
 use Maatify\Seo\Shared\Service\SlugHistoryQueryService;
 use Maatify\Seo\Shared\Service\SlugHistoryService;
+use Maatify\Seo\Admin\Redirect\Command\CreateAdminRedirectCommand;
+use Maatify\Seo\Admin\Redirect\Command\UpdateAdminRedirectCommand;
+use Maatify\Seo\Admin\Redirect\Service\AdminRedirectCommandService;
+use Maatify\Seo\Admin\Redirect\Service\AdminRedirectQueryService;
+use Maatify\Seo\Admin\SlugHistory\Command\RecordAdminSlugHistoryCommand;
+use Maatify\Seo\Admin\SlugHistory\Service\AdminSlugHistoryCommandService;
+use Maatify\Seo\Admin\SlugHistory\Service\AdminSlugHistoryQueryService;
+use Maatify\Seo\Exception\SeoNotFoundException;
 
 final class InMemorySlugHistoryRepository implements SlugHistoryRepositoryInterface
 {
@@ -341,3 +349,44 @@ if (!$decision instanceof RedirectDecisionDTO || $decision->targetUrl === null) 
 }
 
 echo "Target URL: {$decision->targetUrl}\n";
+
+$adminSlugCommands = new AdminSlugHistoryCommandService($slugHistoryCommandService);
+$adminSlugQueries = new AdminSlugHistoryQueryService($slugHistoryQueryService);
+$adminHistoryId = $adminSlugCommands->record(new RecordAdminSlugHistoryCommand(
+    entityType: 'admin-example',
+    entityId: 'history-42',
+    languageId: 1,
+    oldSlug: '/admin-old-slug',
+));
+$adminHistory = $adminSlugQueries->getById($adminHistoryId);
+echo "\n4. Admin slug-history API\n";
+echo 'record() returned ID: ' . $adminHistoryId . "\n";
+printJsonSection('AdminSlugHistoryDTO returned by getById()', $adminHistory);
+echo 'listActiveForEntity() count: ' . count($adminSlugQueries->listActiveForEntity('admin-example', 'history-42', 1)) . "\n";
+
+$adminRedirectCommands = new AdminRedirectCommandService($redirectCommandService);
+$adminRedirectQueries = new AdminRedirectQueryService($redirectQueryService);
+$adminRedirectId = $adminRedirectCommands->create(new CreateAdminRedirectCommand(
+    entityType: 'admin-example',
+    languageId: 1,
+    requestedSlug: '/admin-old-path',
+    targetEntityType: 'product',
+    targetEntityId: '42',
+));
+$adminRedirectCommands->update(new UpdateAdminRedirectCommand($adminRedirectId, 'product', '43', 301));
+$adminRedirect = $adminRedirectQueries->getActiveByRequestedSlug('admin-example', 1, '/admin-old-path');
+echo "\n5. Admin redirect API\n";
+echo 'create() returned ID: ' . $adminRedirectId . "\n";
+printJsonSection('AdminRedirectDTO returned after update and active query', $adminRedirect);
+echo 'listByEntity() count: ' . count($adminRedirectQueries->listByEntity('admin-example', 1)) . "\n";
+
+$adminRedirectCommands->softDelete($adminRedirectId);
+$softDeletedRedirect = $adminRedirectQueries->getById($adminRedirectId);
+echo 'softDelete() returns void; getById().isDeleted: ' . ($softDeletedRedirect->isDeleted ? 'true' : 'false') . "\n";
+echo 'active list count after soft delete: ' . count($adminRedirectQueries->listByEntity('admin-example', 1)) . "\n";
+$adminRedirectCommands->hardDelete($adminRedirectId);
+try {
+    $adminRedirectQueries->getById($adminRedirectId);
+} catch (SeoNotFoundException $exception) {
+    echo 'getById() after hardDelete(): ' . $exception::class . "\n";
+}

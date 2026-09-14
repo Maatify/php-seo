@@ -446,6 +446,63 @@ foreach ([
         $integrationCapability,
     );
 }
+foreach ([
+    'Host creates and configures PDO',
+    'new PdoRedirectRepository($pdo)',
+    'new PdoSeoOverrideRepository($pdo)',
+    'new PdoSlugHistoryRepository($pdo)',
+    'schema/maa_seo_redirects.sql',
+    'schema/maa_seo_overrides.sql',
+    'schema/maa_seo_slug_history.sql',
+    'Result shape verified by the maintained MySQL integration test',
+    'do not begin, commit, or roll back transactions',
+] as $persistenceInvariant) {
+    stack8AssertContains(
+        "Integration Guide documents persistence invariant {$persistenceInvariant}",
+        $integrationGuide,
+        $persistenceInvariant,
+    );
+}
+foreach ([
+    'AdminRedirectCommandService',
+    'AdminRedirectQueryService',
+    'AdminSeoOverrideCommandService',
+    'AdminSeoOverrideQueryService',
+    'AdminSlugHistoryCommandService',
+    'AdminSlugHistoryQueryService',
+    'getActiveByRequestedSlug',
+    'listByEntity',
+    'softDelete',
+    'hardDelete',
+    'isDeleted',
+] as $adminCrudInvariant) {
+    stack8AssertContains(
+        "Usage Guide documents Admin API invariant {$adminCrudInvariant}",
+        $usageGuide,
+        $adminCrudInvariant,
+    );
+}
+stack8AssertContains(
+    'Integration Guide keeps provider status distinct from Host response status',
+    $integrationGuide,
+    'A provider HTTP 403 is evidence about the provider request. It does not automatically become the Host application\'s HTTP 403.',
+);
+foreach ([
+    '"is_valid": false',
+    '"is_healthy": false',
+    '"deductions"',
+    '"context"',
+    'SeoValidationReportExporter::toJson($report)',
+    'SeoValidationBatchReportExporter::toJson($batch)',
+    '"averageScore": 97.5',
+    'SEO batch validation completed with warnings.',
+] as $reportOutputInvariant) {
+    stack8AssertContains(
+        "Usage Guide documents report output invariant {$reportOutputInvariant}",
+        $usageGuide,
+        $reportOutputInvariant,
+    );
+}
 foreach (['Host owns Admin UI', 'authentication, authorization', 'application workflow'] as $hostOwnedAdminSurface) {
     stack8AssertContains(
         "Integration Guide keeps Host ownership of {$hostOwnedAdminSurface}",

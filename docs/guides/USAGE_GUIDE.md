@@ -1717,6 +1717,128 @@ Supply the package repository implementations only when the importer is intended
 
 The Host still owns Admin UI, routes, controllers, authentication, permissions, and workflow. It chooses which service results to display, when to invoke writes, and how to map domain outcomes to HTTP behavior.
 
+#### Admin CRUD calls and returned values
+
+The Admin services accept Admin command DTOs and return identifiers, `void`, Admin DTOs, or lists of Admin DTOs. Their repository wiring is shown in [Admin-domain integration](INTEGRATION_GUIDE.md#124-admin-domain-integration); the calls below use those `Admin*Service` APIs directly.
+
+```php
+use Maatify\Seo\Admin\Redirect\Command\CreateAdminRedirectCommand;
+use Maatify\Seo\Admin\Redirect\Command\UpdateAdminRedirectCommand;
+
+$redirectId = $adminRedirectCommands->create(new CreateAdminRedirectCommand(
+    entityType: 'admin-example',
+    languageId: 1,
+    requestedSlug: '/admin-old-path',
+    targetEntityType: 'product',
+    targetEntityId: '42',
+)); // int
+
+$adminRedirectCommands->update(new UpdateAdminRedirectCommand(
+    id: $redirectId,
+    targetEntityType: 'product',
+    targetEntityId: '43',
+    httpStatus: 301,
+)); // void
+
+$redirect = $adminRedirectQueries->getActiveByRequestedSlug('admin-example', 1, '/admin-old-path'); // AdminRedirectDTO
+$redirects = $adminRedirectQueries->listByEntity('admin-example', 1); // list<AdminRedirectDTO>
+$adminRedirectCommands->softDelete($redirectId); // void
+$deleted = $adminRedirectQueries->getById($redirectId); // DTO remains queryable; isDeleted is true
+$adminRedirectCommands->hardDelete($redirectId); // void; physical deletion
+```
+
+The serialized `AdminRedirectDTO` after the update has this shape; the runnable example assigns ID `2` because its deterministic in-memory fixture already created one redirect:
+
+```json
+{
+  "id": 2,
+  "entity_type": "admin-example",
+  "language_id": 1,
+  "requested_slug": "/admin-old-path",
+  "target_entity_type": "product",
+  "target_entity_id": "43",
+  "http_status": 301,
+  "is_deleted": false,
+  "created_at": "2026-09-08T12:00:00+00:00",
+  "deleted_at": null
+}
+```
+
+`listByEntity()` defaults to active rows; pass `includeDeleted: true` to include soft-deleted redirects. `getById()` can still return a soft-deleted record and reports `isDeleted: true`. Both delete calls return `void`; if the target cannot be changed/deleted, the service throws `SeoNotFoundException`. `getById()` after hard delete also throws `SeoNotFoundException`. A duplicate identity is a persistence conflict and, with the PDO adapter, the repository maps the database integrity error to `SeoCodeAlreadyExistsException`. The Host decides whether these outcomes become an Admin validation message, API response, or another UI state. The runnable [`redirect-slug-history.php`](../../examples/redirect-slug-history.php) uses an in-memory fixture for Admin method behavior; it is not evidence of PDO persistence, which is verified separately in the integration guide.
+
+For SEO overrides, `AdminSeoOverrideCommandService::create(Admin\SeoOverride\Command\CreateSeoOverrideCommand)` returns an integer ID, `AdminSeoOverrideQueryService::getActiveForEntity()` returns `AdminSeoOverrideDTO`, and `update(Admin\SeoOverride\Command\UpdateSeoOverrideCommand)` returns `void`; query again to observe the updated fields:
+
+```php
+use Maatify\Seo\Admin\SeoOverride\Command\CreateSeoOverrideCommand as AdminCreateSeoOverrideCommand;
+use Maatify\Seo\Admin\SeoOverride\Command\UpdateSeoOverrideCommand as AdminUpdateSeoOverrideCommand;
+
+$overrideId = $adminOverrideCommandService->create(new AdminCreateSeoOverrideCommand(
+    entityType: 'product',
+    entityId: '42',
+    languageId: 1,
+    metaTitle: 'Manual Product Title | Example Store',
+    metaDescription: 'Manual product description supplied by the SEO override workflow.',
+)); // int
+$override = $adminOverrideQueryService->getActiveForEntity('product', '42', 1); // AdminSeoOverrideDTO
+$adminOverrideCommandService->update(new AdminUpdateSeoOverrideCommand(
+    id: $overrideId,
+    metaTitle: 'Updated Product Title | Example Store',
+    metaDescription: 'Updated product description supplied by the Admin SEO override workflow.',
+)); // void
+$updatedOverride = $adminOverrideQueryService->getById($overrideId);
+```
+
+The updated Admin DTO is:
+
+```json
+{
+  "id": 1,
+  "entity_type": "product",
+  "entity_id": "42",
+  "language_id": 1,
+  "meta_title": "Updated Product Title | Example Store",
+  "meta_description": "Updated product description supplied by the Admin SEO override workflow.",
+  "is_deleted": false,
+  "created_at": "2026-09-08T12:00:00+00:00",
+  "updated_at": "2026-09-08T12:05:00+00:00",
+  "deleted_at": null
+}
+```
+
+`isDeleted` is derived from `deletedAt !== null`. `MetaGeneratorService` does not consume this Admin DTO: it later queries the active stored row through `SeoOverrideQueryService` and combines it with Host-supplied metadata. The [`seo-override-meta-generation.php`](../../examples/seo-override-meta-generation.php) example runs Admin create/query/update and then shows the Shared metadata-generation result.
+
+`AdminSlugHistoryCommandService::record(RecordAdminSlugHistoryCommand)` returns an integer; `AdminSlugHistoryQueryService::getById()` / `getActiveBySlug()` returns `AdminSlugHistoryDTO`, and `listActiveForEntity()` returns `list<AdminSlugHistoryDTO>`:
+
+```php
+use Maatify\Seo\Admin\SlugHistory\Command\RecordAdminSlugHistoryCommand;
+
+$historyId = $adminSlugHistoryCommandService->record(new RecordAdminSlugHistoryCommand(
+    entityType: 'admin-example',
+    entityId: 'history-42',
+    languageId: 1,
+    oldSlug: '/admin-old-slug',
+)); // int
+$history = $adminSlugHistoryQueryService->getById($historyId); // AdminSlugHistoryDTO
+$historyRows = $adminSlugHistoryQueryService->listActiveForEntity('admin-example', 'history-42', 1); // list<AdminSlugHistoryDTO>
+```
+
+The queried DTO has this serialized shape:
+
+```json
+{
+  "id": 2,
+  "entity_type": "admin-example",
+  "entity_id": "history-42",
+  "language_id": 1,
+  "old_slug": "/admin-old-slug",
+  "is_deleted": false,
+  "created_at": "2026-09-08T12:00:00+00:00",
+  "deleted_at": null
+}
+```
+
+There is no Admin slug-history update method. The Host decides when its entity changes and whether to record its old slug; this API neither changes that entity nor redirects an HTTP request. These examples use in-memory repositories with a fixed timestamp so their printed output is repeatable. For the production PDO chain, use the schemas and adapters in [Integration Guide §11](INTEGRATION_GUIDE.md#11-persistence-integration-guidance).
+
 #### Redirect resolution and slug history
 
 When a Host changes an entity slug, `SlugHistoryService` can record the old
@@ -2012,209 +2134,292 @@ When implementing the Maatify SEO library, ensure you adhere strictly to the fol
 *   **Do not commit `composer.lock`.** As a library package, `composer.lock` should not be tracked to allow proper dependency resolution in host environments.
 *   **Do not rely on the `spatie/schema-org` package unless installed.** The library does not enforce this package as a required dependency. The provided adapter checks for class existence before relying on the object methods, allowing the host application to opt-in independently.
 
-### Validation Report Builder
+### Single validation report
 
-The `SeoValidationReportBuilder` combines validation (`SeoMetaValidator`) and scoring (`SeoValidationScoreCalculator`) into a comprehensive report object (`SeoValidationReportDTO`). This provides a single, easy-to-use interface for both processes while preserving original metadata input and any context you wish to pass through.
-
-#### Building a Report
-
-You can provide metadata, validation options, score options, and custom context. The `SeoValidationPreset` helper is a great fit here:
+`SeoValidationReportBuilder::build()` runs the existing metadata validator and score calculator and returns `SeoValidationReportDTO`. This exact input is used by the runnable [`seo-validation.php`](../../examples/seo-validation.php) example:
 
 ```php
 use Maatify\Seo\Web\Validation\SeoValidationReportBuilder;
-use Maatify\Seo\Web\Validation\SeoValidationPreset;
-
-$metaData = [
-    'title' => 'Missing Canonical URL Example',
-    'description' => 'This page has a title and description, but is missing a canonical URL.',
-];
-
-$preset = SeoValidationPreset::strict();
 
 $report = SeoValidationReportBuilder::build(
-    meta: $metaData,
-    validationOptions: $preset['validationOptions'],
-    scoreOptions: $preset['scoreOptions'],
+    meta: ['title' => '', 'description' => 'Short'],
     context: [
-        'url' => 'https://example.com/products/demo',
+        'url' => 'https://example.com/products/42',
         'entityType' => 'product',
-        'entityId' => 123,
-        'language' => 'en',
-        'source' => 'qa',
+        'entityId' => 42,
+        'source' => 'admin-audit',
     ],
 );
 ```
 
-> **Note:** Providing invalid types or configuration values in `validationOptions` or `scoreOptions` will throw `SeoInvalidArgumentException`. The `SeoValidationReportBuilder` does not mutate your original metadata array/object, does not change the behavior of the `SeoMetaValidator` or `SeoValidationScoreCalculator`, and does not emit HTTP headers, routes, controllers, or responses. It is fully framework-neutral.
+The DTO's exact JSON serialization follows. The keys are snake_case because `SeoValidationReportDTO::jsonSerialize()` delegates to `toArray()`:
 
-#### Reading the Report
+```json
+{
+  "is_valid": false,
+  "is_healthy": false,
+  "score": 70,
+  "grade": "C",
+  "error_count": 1,
+  "warning_count": 1,
+  "info_count": 0,
+  "issues": [
+    {"code": "missing_title", "severity": "error", "message": "Meta title is required.", "field": "title"},
+    {"code": "description_too_short", "severity": "warning", "message": "Description is shorter than the recommended length.", "field": "description"}
+  ],
+  "errors": [
+    {"code": "missing_title", "severity": "error", "message": "Meta title is required.", "field": "title"}
+  ],
+  "warnings": [
+    {"code": "description_too_short", "severity": "warning", "message": "Description is shorter than the recommended length.", "field": "description"}
+  ],
+  "info": [],
+  "deductions": [
+    {"code": "missing_title", "severity": "error", "field": "title", "points": 25},
+    {"code": "description_too_short", "severity": "warning", "field": "description", "points": 5}
+  ],
+  "context": {
+    "url": "https://example.com/products/42",
+    "entityType": "product",
+    "entityId": 42,
+    "source": "admin-audit"
+  },
+  "summary": {"status": "fail", "message": "SEO validation failed."}
+}
+```
 
-The `$report` (`SeoValidationReportDTO`) provides several ways to consume the result:
+Here `isValid` is false because one error exists; `isHealthy` is false because the score is below the default healthy threshold. The warning remains a returned diagnostic and contributes a five-point deduction; it does not throw. `context` is carried through as provided. `toArray()` returns this same snake_case shape, and `SeoValidationReportExporter::toJson($report)` JSON-encodes the same DTO data using pretty, unescaped slash/Unicode defaults. It is the JSON representation above, not a separate report schema.
 
-- `$report->isValid`: Boolean. `false` if any errors exist.
-- `$report->isHealthy`: Boolean. `false` if the score is below the `healthyMinimumScore`.
-- `$report->score`: Integer (0-100).
-- `$report->grade`: String (A, B, C, D, or F).
-- `$report->errorCount`, `$report->warningCount`, `$report->infoCount`: Integers.
-- `$report->issues`, `$report->errors`, `$report->warnings`, `$report->info`: Arrays of issue shapes (`code`, `severity`, `message`, `field`).
-- `$report->deductions`: Array of applied point deductions shapes (`code`, `severity`, `field`, `points`).
-- `$report->context`: Your optional `context` array is preserved exactly as-is. Typical keys might be `url`, `entityType`, `entityId`, `language`, or `source`.
-- `$report->summary`: An array with `status` and `message` keys indicating the overall validation status.
+`toSummaryArray()` deliberately uses camelCase keys and omits issue detail:
 
-#### Summary Status Rules
+```json
+{
+  "isValid": false,
+  "isHealthy": false,
+  "score": 70,
+  "grade": "C",
+  "errorCount": 1,
+  "warningCount": 1,
+  "infoCount": 0,
+  "status": "fail",
+  "message": "SEO validation failed."
+}
+```
 
-The `$report->summary['status']` and `$report->summary['message']` are determined using the following rules:
-- **`fail`**: If the validation has errors (`isValid` is false). Message: `SEO validation failed.`
-- **`warning`**: If there are no errors, but warnings exist OR the score is not healthy. Message: `SEO validation completed with warnings.`
-- **`pass`**: If valid, healthy, and no warnings exist. Message: `SEO validation passed.`
+`toMarkdown()` returns the following executed text for that same report:
 
-#### Exporting the Report
+```markdown
+# SEO Validation Report
 
+## Summary
+- Status: fail
+- Message: SEO validation failed.
+- Score: 70
+- Grade: C
+- Valid: false
+- Healthy: false
+- Errors: 1
+- Warnings: 1
+- Info: 0
 
-### Validation Batch Report Builder
+## Issues
 
-The `SeoValidationBatchReportBuilder` allows you to build SEO validation reports for multiple pages/products/entities in one framework-neutral batch. It provides aggregate counts, score stats, and summary status. It is particularly useful for QA crawls, admin dashboards, audits, CI reports, and bulk product/category checks.
+### Errors
+- missing_title (field: title): Meta title is required.
 
-It accepts an `$items` array which must be a non-empty list. Each item is an associative array that requires a `meta` key (array or object) and accepts an optional `context` array. The builder can also accept a `$sharedContext` array, which is merged into each item's context. If an item provides context keys that overlap with the shared context, the item's context overrides the shared context.
+### Warnings
+- description_too_short (field: description): Description is shorter than the recommended length.
+
+### Info
+- None
+
+## Deductions
+- missing_title (error, field: title): -25 points
+- description_too_short (warning, field: description): -5 points
+
+## Context
+- url: https://example.com/products/42
+- entityType: product
+- entityId: 42
+- source: admin-audit
+```
+
+Invalid `validationOptions` or `scoreOptions` throw `SeoInvalidArgumentException`; ordinary missing/short content returns issue records. The builder does not mutate input metadata or emit HTTP output. JSON encoding failure from the exporter also throws `SeoInvalidArgumentException`.
+
+### Batch report
+
+`SeoValidationBatchReportBuilder::build()` requires a non-empty list of associative items; each item must contain `meta` as an array or object and can carry its own `context`. The builder merges `sharedContext` first and item context second, so item values override shared values:
 
 ```php
 use Maatify\Seo\Web\Validation\SeoValidationBatchReportBuilder;
-use Maatify\Seo\Web\Validation\SeoValidationPreset;
 
-$preset = SeoValidationPreset::standard();
 $batch = SeoValidationBatchReportBuilder::build(
     items: [
         [
             'meta' => [
-                'title' => 'Product A',
-                'description' => 'Product A description long enough for SEO snippets.',
-                'canonical' => 'https://example.com/products/a',
+                'title' => 'A useful product page title',
+                'description' => 'This useful product page description is long enough for ordinary search result snippets.',
+                'canonical' => 'https://example.com/products/useful',
+                'robots' => 'index,follow',
             ],
-            'context' => [
-                'url' => 'https://example.com/products/a',
-                'entityType' => 'product',
-                'entityId' => 101,
-            ],
+            'context' => ['url' => 'https://example.com/products/useful', 'entityType' => 'product', 'entityId' => 42],
         ],
         [
-            'meta' => [
-                'title' => 'Product B',
-                'description' => 'Product B description long enough for SEO snippets.',
-                'canonical' => 'https://example.com/products/b',
-            ],
-            'context' => [
-                'url' => 'https://example.com/products/b',
-                'entityType' => 'product',
-                'entityId' => 102,
-            ],
+            'meta' => ['title' => 'A useful product page title'],
+            'context' => ['url' => 'https://example.com/products/missing-description', 'entityType' => 'product', 'entityId' => 43],
         ],
     ],
-    validationOptions: $preset['validationOptions'],
-    scoreOptions: $preset['scoreOptions'],
-    sharedContext: [
-        'language' => 'en',
-        'source' => 'qa-crawl',
-    ],
+    sharedContext: ['language' => 'en', 'source' => 'admin-audit'],
 );
-
-$array = $batch->toArray();
-$json = json_encode($batch, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 ```
 
-The output DTO (`SeoValidationBatchReportDTO`) contains counts (`totalCount`, `validCount`, `invalidCount`), score stats (`averageScore`, `minScore`, `maxScore`), and summary rules: it fails if any report is invalid, warns if all reports are valid but any report is unhealthy or has warnings, and passes when all reports are valid, healthy, and warning-free.
+This two-item case has one passing item and one item with a missing-description warning. The complete `SeoValidationBatchReportDTO` serialization, including both full per-report shapes, is:
 
-### Validation Batch Report Exporter
-
-The `SeoValidationBatchReportExporter` can export the batch DTO into arrays, JSON, summary arrays, and Markdown. It does not mutate the batch DTO, does not call validator/score/report/batch builder internally, and emits no HTTP output.
-
-`toArray()` returns the full batch DTO data using existing batch serialization.
-`toJson()` returns a JSON string, uses readable defaults, respects custom JSON flags, and throws `SeoInvalidArgumentException` if encoding fails.
-`toSummaryArray()` returns compact batch status/counts/score stats/message data.
-`toMarkdown()` returns a plain Markdown batch report with summary, status, message, valid/healthy flags, total/valid/invalid counts, healthy/unhealthy counts, error/warning/info counts, average/min/max score, per-report summaries, and report context when present.
-
-```php
-use Maatify\Seo\Web\Validation\SeoValidationBatchReportBuilder;
-use Maatify\Seo\Web\Validation\SeoValidationBatchReportExporter;
-use Maatify\Seo\Web\Validation\SeoValidationPreset;
-
-$preset = SeoValidationPreset::standard();
-$batch = SeoValidationBatchReportBuilder::build(
-    items: [
-        [
-            'meta' => [
-                'title' => 'Product A',
-                'description' => 'Product A description long enough for SEO snippets.',
-                'canonical' => 'https://example.com/products/a',
-            ],
-            'context' => [
-                'url' => 'https://example.com/products/a',
-                'entityType' => 'product',
-                'entityId' => 101,
-            ],
-        ],
-        [
-            'meta' => [
-                'title' => 'Product B',
-                'description' => 'Product B description long enough for SEO snippets.',
-                'canonical' => 'https://example.com/products/b',
-            ],
-            'context' => [
-                'url' => 'https://example.com/products/b',
-                'entityType' => 'product',
-                'entityId' => 102,
-            ],
-        ],
-    ],
-    validationOptions: $preset['validationOptions'],
-    scoreOptions: $preset['scoreOptions'],
-    sharedContext: [
-        'language' => 'en',
-        'source' => 'qa-crawl',
-    ],
-);
-
-// Full array export
-$fullArray = SeoValidationBatchReportExporter::toArray($batch);
-
-// JSON string export
-$json = SeoValidationBatchReportExporter::toJson($batch);
-
-// Compact summary array
-$summary = SeoValidationBatchReportExporter::toSummaryArray($batch);
-
-// Markdown export
-// Note: Do not hardcode full markdown output if it is too long. Show short representative output only.
-$markdown = SeoValidationBatchReportExporter::toMarkdown($batch);
+```json
+{
+  "is_valid": true,
+  "is_healthy": false,
+  "total_count": 2,
+  "valid_count": 2,
+  "invalid_count": 0,
+  "healthy_count": 2,
+  "unhealthy_count": 0,
+  "error_count": 0,
+  "warning_count": 1,
+  "info_count": 0,
+  "average_score": 97.5,
+  "min_score": 95,
+  "max_score": 100,
+  "reports": [
+    {
+      "is_valid": true,
+      "is_healthy": true,
+      "score": 100,
+      "grade": "A",
+      "error_count": 0,
+      "warning_count": 0,
+      "info_count": 0,
+      "issues": [],
+      "errors": [],
+      "warnings": [],
+      "info": [],
+      "deductions": [],
+      "context": {"language": "en", "source": "admin-audit", "url": "https://example.com/products/useful", "entityType": "product", "entityId": 42},
+      "summary": {"status": "pass", "message": "SEO validation passed."}
+    },
+    {
+      "is_valid": true,
+      "is_healthy": true,
+      "score": 95,
+      "grade": "A",
+      "error_count": 0,
+      "warning_count": 1,
+      "info_count": 0,
+      "issues": [
+        {"code": "missing_description", "severity": "warning", "message": "Meta description is recommended.", "field": "description"}
+      ],
+      "errors": [],
+      "warnings": [
+        {"code": "missing_description", "severity": "warning", "message": "Meta description is recommended.", "field": "description"}
+      ],
+      "info": [],
+      "deductions": [
+        {"code": "missing_description", "severity": "warning", "field": "description", "points": 5}
+      ],
+      "context": {"language": "en", "source": "admin-audit", "url": "https://example.com/products/missing-description", "entityType": "product", "entityId": 43},
+      "summary": {"status": "warning", "message": "SEO validation completed with warnings."}
+    }
+  ],
+  "summary": {"status": "warning", "message": "SEO batch validation completed with warnings."}
+}
 ```
 
-```php
-$batch->summary['status']; // pass | warning | fail
-$batch->totalCount;
-$batch->validCount;
-$batch->invalidCount;
-$batch->averageScore;
-$batch->reports[0]->summary['message'];
+The aggregate counts are `totalCount=2`, `validCount=2`, `invalidCount=0`, `healthyCount=2`, `unhealthyCount=0`, `errorCount=0`, `warningCount=1`, and `infoCount=0`; score statistics are average `97.5`, min `95`, max `100`. At batch level `isHealthy` is false when warnings exist, even though both per-item reports are individually healthy. The summary status is `warning` because the batch contains a warning.
+
+The compact `toSummaryArray()` result is:
+
+```json
+{
+  "isValid": true,
+  "isHealthy": false,
+  "totalCount": 2,
+  "validCount": 2,
+  "invalidCount": 0,
+  "healthyCount": 2,
+  "unhealthyCount": 0,
+  "errorCount": 0,
+  "warningCount": 1,
+  "infoCount": 0,
+  "averageScore": 97.5,
+  "minScore": 95,
+  "maxScore": 100,
+  "status": "warning",
+  "message": "SEO batch validation completed with warnings."
+}
 ```
 
-> **Note:** The `SeoValidationBatchReportBuilder` uses `SeoValidationReportBuilder::build(...)` internally for each item. It does not mutate the input data. It is completely framework-neutral and emits no HTTP headers, routes, controllers, or responses. Existing validation, score, report builder, exporter, preset, and robots behaviors remain unchanged; sitemap DTO URL generation now preserves the supported extended child collections through the canonical XML path.
+`SeoValidationBatchReportExporter::toJson($batch)` JSON-encodes the same complete nested DTO serialization shown above; it is not the compact summary. `toMarkdown()` returns a plain-text summary with per-report results and context:
 
-You can easily export the report into various formats using the `SeoValidationReportExporter`:
+```markdown
+# SEO Validation Batch Report
 
-```php
-use Maatify\Seo\Web\Validation\SeoValidationReportExporter;
+## Summary
+- Status: warning
+- Message: SEO batch validation completed with warnings.
+- Valid: true
+- Healthy: false
+- Total: 2
+- Valid Count: 2
+- Invalid Count: 0
+- Healthy Count: 2
+- Unhealthy Count: 0
+- Errors: 0
+- Warnings: 1
+- Info: 0
+- Average Score: 97.5
+- Min Score: 95
+- Max Score: 100
 
-// Export as a complete array (same as calling $report->toArray())
-$array = SeoValidationReportExporter::toArray($report);
+## Reports
 
-// Export as a JSON string
-$json = SeoValidationReportExporter::toJson($report);
+### Report 1
+- Status: pass
+- Message: SEO validation passed.
+- Score: 100
+- Grade: A
+- Valid: true
+- Healthy: true
+- Errors: 0
+- Warnings: 0
+- Info: 0
+- Context:
+  - language: en
+  - source: admin-audit
+  - url: https://example.com/products/useful
+  - entityType: product
+  - entityId: 42
 
-// Export as a compact summary array for quick logging or dashboard APIs
-$summary = SeoValidationReportExporter::toSummaryArray($report);
-
-// Export as human-readable Markdown for CI/CD output or pull request comments
-$markdown = SeoValidationReportExporter::toMarkdown($report);
+### Report 2
+- Status: warning
+- Message: SEO validation completed with warnings.
+- Score: 95
+- Grade: A
+- Valid: true
+- Healthy: true
+- Errors: 0
+- Warnings: 1
+- Info: 0
+- Context:
+  - language: en
+  - source: admin-audit
+  - url: https://example.com/products/missing-description
+  - entityType: product
+  - entityId: 43
 ```
+
+For a dashboard or CI gate, use the summary counts/status to choose the Host action and inspect `reports` for item-level details. `fail` means at least one report is invalid; `warning` means all are valid but the batch is unhealthy or has warnings; `pass` means all are valid and healthy and there are no warnings. Empty/non-list batches, missing `meta`, invalid `meta` types, or non-array context throw `SeoInvalidArgumentException`; content warnings/errors remain diagnostics inside each report. The batch builder and exporters do not send HTTP output or mutate the input.
+
+All report and batch outputs above are execution-verified by [`examples/seo-validation.php`](../../examples/seo-validation.php) and covered by maintained report-builder and exporter tests.
 
 ## 15. Optional Search Console Indexed-Result Verification
 

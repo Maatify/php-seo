@@ -19,35 +19,59 @@ if (is_file($autoload)) {
     });
 }
 
+use Maatify\Seo\Web\Validation\SeoValidationBatchReportBuilder;
+use Maatify\Seo\Web\Validation\SeoValidationBatchReportExporter;
 use Maatify\Seo\Web\Validation\SeoValidationReportBuilder;
 use Maatify\Seo\Web\Validation\SeoValidationReportExporter;
 
-$pageMetadata = [
-    'title' => 'SEO Validation Example Page',
-    'description' => 'Short example description.',
-    'canonical' => 'https://example.com/guides/seo-validation',
-    'robots' => 'index,follow',
-    'openGraph' => [
-        'title' => 'SEO Validation Example Page',
-        'description' => 'A representative OpenGraph description for this example page.',
-        'image' => 'https://cdn.example.com/images/seo-validation.jpg',
-    ],
-    'twitter' => [
-        'card' => 'summary_large_image',
-        'title' => 'SEO Validation Example Page',
-        'description' => 'A representative Twitter description for this example page.',
-    ],
-];
-
 $report = SeoValidationReportBuilder::build(
-    meta: $pageMetadata,
+    meta: ['title' => '', 'description' => 'Short'],
     context: [
-        'page' => 'https://example.com/guides/seo-validation',
-        'source' => 'standalone usage example',
+        'url' => 'https://example.com/products/42',
+        'entityType' => 'product',
+        'entityId' => 42,
+        'source' => 'admin-audit',
     ],
 );
 
-echo "\n==============================\n";
-echo "Page SEO Validation\n";
-echo "==============================\n";
+echo "\n==============================\nSingle report DTO JSON\n==============================\n";
+echo SeoValidationReportExporter::toJson($report) . "\n";
+echo "\nSingle report summary array\n";
+echo json_encode(SeoValidationReportExporter::toSummaryArray($report), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n";
+echo "\nSingle report Markdown\n";
 echo SeoValidationReportExporter::toMarkdown($report);
+
+$validMetadata = [
+    'title' => 'A useful product page title',
+    'description' => 'This useful product page description is long enough for ordinary search result snippets.',
+    'canonical' => 'https://example.com/products/useful',
+    'robots' => 'index,follow',
+];
+$batch = SeoValidationBatchReportBuilder::build(
+    items: [
+        [
+            'meta' => $validMetadata,
+            'context' => [
+                'url' => 'https://example.com/products/useful',
+                'entityType' => 'product',
+                'entityId' => 42,
+            ],
+        ],
+        [
+            'meta' => ['title' => 'A useful product page title'],
+            'context' => [
+                'url' => 'https://example.com/products/missing-description',
+                'entityType' => 'product',
+                'entityId' => 43,
+            ],
+        ],
+    ],
+    sharedContext: ['language' => 'en', 'source' => 'admin-audit'],
+);
+
+echo "\n==============================\nBatch report DTO JSON\n==============================\n";
+echo SeoValidationBatchReportExporter::toJson($batch) . "\n";
+echo "\nBatch report summary array\n";
+echo json_encode(SeoValidationBatchReportExporter::toSummaryArray($batch), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n";
+echo "\nBatch report Markdown\n";
+echo SeoValidationBatchReportExporter::toMarkdown($batch);
