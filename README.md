@@ -10,6 +10,11 @@
 [![PHPStan](https://img.shields.io/badge/PHPStan-Level%20Max-4E8CAE?style=for-the-badge)](docs/CI.md)
 [![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-blueviolet?style=for-the-badge)](https://github.com/Maatify)
 
+[![Packagist](https://img.shields.io/badge/Packagist-maatify%2Fphp--seo-F28D1A?style=for-the-badge)](https://packagist.org/packages/maatify/php-seo)
+[![Monthly Downloads](https://img.shields.io/packagist/dm/maatify/php-seo?style=for-the-badge)](https://packagist.org/packages/maatify/php-seo)
+[![Total Downloads](https://img.shields.io/packagist/dt/maatify/php-seo?style=for-the-badge)](https://packagist.org/packages/maatify/php-seo)
+[![Install](https://img.shields.io/badge/Install-composer%20require%20maatify%2Fphp--seo-blue?style=for-the-badge)](https://packagist.org/packages/maatify/php-seo)
+
 [![Changelog](https://img.shields.io/badge/Changelog-View-blue?style=for-the-badge)](CHANGELOG.md)
 [![Package Reference](https://img.shields.io/badge/Package%20Reference-Read-blue?style=for-the-badge)](SEO_PACKAGE_REFERENCE.md)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blue?style=for-the-badge)](SECURITY.md)
@@ -27,7 +32,7 @@ Framework-agnostic SEO tools for PHP: metadata, structured data, sitemaps, valid
 
 The Host also owns entity URLs and the full slug lifecycle: generation, normalization, uniqueness, current values, history, and old-slug lookup. SEO does not require a Slug library; it can receive an optional Host-provided slug only as an input to `HostUrlGeneratorInterface`. If a Host uses a separate Slug library, the Host or an adapter connects it to SEO.
 
-The package is **Pre-Stable / Development** and is being prepared for a corrected SemVer Release Candidate lifecycle. This status does not claim that a corrected RC or Stable release has been published.
+The package remains **Pre-Stable**. The Release Candidate represented by this release tree is **v1.0.0-rc.2**; it is a pre-release of the intended `v1.0.0` Stable line and does not establish a supported Stable release line. External publication and installability are determined by the actual tag and Composer distribution channel.
 
 ## Key Features
 
@@ -50,9 +55,15 @@ The package is **Pre-Stable / Development** and is being prepared for a correcte
 
 ## Installation and Current Access
 
-The Composer identity is `maatify/php-seo`. The repository is currently in Pre-Stable / Development. As of 2026-09-13, Packagist has no record for this identity, and no other external Composer distribution has been verified. Therefore, no public `composer require` command is provided yet.
+The Composer identity is `maatify/php-seo`, and the package is available on [Packagist](https://packagist.org/packages/maatify/php-seo).
 
-To work from the repository checkout:
+For the `v1.0.0-rc.2` Release Candidate:
+
+```bash
+composer require maatify/php-seo:1.0.0-rc.2
+```
+
+To work from the repository checkout instead:
 
 ```bash
 git clone https://github.com/Maatify/php-seo.git
@@ -109,7 +120,7 @@ The repository configures these verification gates:
 - Consumer Verification Harness on PHP 8.2 and PHP 8.5.
 - GitHub Actions workflow lint and the terminal required check, `CI Gate`.
 
-These are configured checks. Their presence does not establish that a particular CI run passed, that a corrected RC is published, or that the package is eligible for Stable release.
+These are configured checks. Their presence does not establish that a particular CI run passed, that `v1.0.0-rc.2` is externally published, or that the package is eligible for Stable release.
 
 ## License
 
