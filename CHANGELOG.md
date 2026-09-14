@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- **Changed:** Removed SEO ownership of slug lifecycle and history, including the public Slug History runtime, Admin, persistence, and schema surfaces. The Host owns slug lifecycle; SEO does not require a Slug library.
+- **Changed:** Updated the Admin metadata import/export schema from `1.0` to `2.0`; current import/export data contains only SEO overrides and redirects.
 - **Changed:** Adopted and pinned the PHP engineering standards set and synchronized repository governance with the current authorities.
 - **Changed:** Normalized the Composer package identity to `maatify/php-seo`.
 - **Changed:** Migrated package exceptions to the shared `maatify/exceptions` taxonomy while preserving the package's established exception contracts.
