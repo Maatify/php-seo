@@ -32,8 +32,8 @@ package-level contract; this guide is practical usage guidance.
 | If you need to… | Start here | Runnable example |
 | --- | --- | --- |
 | render a complete HTML `<head>` | [Basic head rendering](#2-basic-seo-head-rendering-example) | [`basic-head-render.php`](../../examples/basic-head-render.php) |
-| keep metadata as reusable DTO data or render separate head sections | [Rendered output DTO](#3-rendered-output-dto-example) | [`observable-output-showcase.php`](../../examples/observable-output-showcase.php) |
-| build metadata fluently | [Fluent builder](#4-fluentseobuilder-example) | [`basic-head-render.php`](../../examples/basic-head-render.php) |
+| keep metadata as reusable DTO data or render separate head sections | [Rendered output DTO](#3-rendered-output-dto-example) | [`basic-head-render.php`](../../examples/basic-head-render.php) |
+| build metadata fluently | [Fluent builder](#4-fluentseobuilder-example) | [`observable-output-showcase.php`](../../examples/observable-output-showcase.php) |
 | resolve defaults, SEO overrides, and a Host-generated canonical | [Meta generation](#metadata-orchestration-with-metageneratorservice) | [`seo-override-meta-generation.php`](../../examples/seo-override-meta-generation.php) |
 | generate JSON-LD or Product/Offer/variant structures | [JSON-LD](#5-json-ld-examples), [advanced product data](#6-advanced-product-structured-data) | [`jsonld-builders.php`](../../examples/jsonld-builders.php), [`advanced-product-structured-data.php`](../../examples/advanced-product-structured-data.php) |
 | adapt optional Spatie schema objects | [Spatie adapter](#7-optional-spatie-schema-adapter-example) | [`schema-output.php`](../../examples/schema-output.php) |
@@ -73,26 +73,27 @@ use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
 
 // 1. Prepare your data
 $metaTags = new MetaTagsDTO(
-    title: 'My Awesome Product',
-    description: 'The best product you will ever buy.',
-    canonicalUrl: 'https://example.com/products/awesome-product',
+    title: 'My Basic Webpage - Example.com',
+    description: 'This is a basic example of rendering SEO head tags.',
+    canonicalUrl: 'https://example.com/basic-page',
     robots: 'index,follow',
-    openGraphTitle: 'My Awesome Product',
-    openGraphDescription: 'The best product you will ever buy.',
-    openGraphUrl: 'https://example.com/products/awesome-product',
-    openGraphType: 'product',
-    openGraphImage: 'https://cdn.example.com/images/awesome-product.jpg',
+    openGraphTitle: 'My Basic Webpage',
+    openGraphDescription: 'This is a basic example of rendering SEO head tags via OpenGraph.',
+    openGraphUrl: 'https://example.com/basic-page',
+    openGraphType: 'website',
+    openGraphImage: 'https://example.com/images/basic-page.jpg',
     twitterCard: 'summary_large_image',
-    twitterTitle: 'My Awesome Product',
-    twitterDescription: 'The best product you will ever buy.',
-    twitterImage: 'https://cdn.example.com/images/awesome-product-twitter.jpg'
+    twitterTitle: 'My Basic Webpage',
+    twitterDescription: 'This is a basic example of rendering SEO head tags.',
+    twitterImage: 'https://example.com/images/basic-page.jpg'
 );
 
 $schemas = [
     [
         '@context' => 'https://schema.org',
-        '@type' => 'Product',
-        'name' => 'My Awesome Product',
+        '@type' => 'WebPage',
+        'name' => 'My Basic Webpage',
+        'description' => 'This is a basic example of rendering SEO head tags.',
     ]
 ];
 
@@ -104,8 +105,8 @@ $headHtml = $renderer->render($metaTags, $schemas);
 echo $headHtml;
 ```
 
-Running [`basic-head-render.php`](../../examples/basic-head-render.php) produces
-the following representative tags from those inputs. The renderer escapes HTML
+The inputs above match [`basic-head-render.php`](../../examples/basic-head-render.php).
+Running that fixture produces the following tags. The renderer escapes HTML
 attribute/text values; line breaks and attribute ordering are not an API
 contract.
 
@@ -135,6 +136,11 @@ send the final HTTP response; it does not write to the response itself.
 
 If you prefer to inject individual sections of the SEO markup into different parts of your template layout, you can use the `renderDto()` method to obtain a `SeoHeadHtmlDTO`.
 
+The complete serialized `SeoHeadHtmlDTO` has five keys: `meta_html`,
+`open_graph_html`, `twitter_card_html`, `json_ld_html`, and `full_html`. The
+JSON output below is a selected view of the four individual sections for the
+basic-head fixture; `full_html` is the concatenation shown in section 2.
+
 ```php
 use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
 
@@ -151,8 +157,9 @@ echo $dto->jsonLdHtml;       // Outputs the rendered JSON-LD script section
 echo $dto->fullHtml;         // Output the concatenated complete head HTML
 ```
 
-For [`basic-head-render.php`](../../examples/basic-head-render.php), the
-serialized DTO returns these four section values:
+These selected individual section values use the exact inputs from the
+preceding basic-head snippet and the runnable
+[`basic-head-render.php`](../../examples/basic-head-render.php) fixture:
 
 ```json
 {
@@ -182,20 +189,53 @@ values. The builders return plain DTO-shaped values or rendered tag strings;
 they do not submit metadata to a social platform or prove platform-specific
 card acceptance.
 
-[`social-builders.php`](../../examples/social-builders.php) renders tags such as:
+The following inputs from [`social-builders.php`](../../examples/social-builders.php)
+produce the selected Open Graph and Twitter-compatible tags shown below. The
+console section labels and the fixture's separate `SocialPreviewBuilder`
+output are omitted here:
+
+```php
+use Maatify\Seo\Web\Social\OpenGraphBuilder;
+use Maatify\Seo\Web\Social\TwitterCardBuilder;
+
+$og = new OpenGraphBuilder();
+$og->setTitle('Independent OpenGraph Title')
+   ->setDescription('Independent description.')
+   ->setType('article')
+   ->setUrl('https://example.com/article')
+   ->setImage('https://example.com/og-image.jpg')
+   ->setSiteName('My Awesome Blog');
+
+$tc = new TwitterCardBuilder();
+$tc->setCard('summary_large_image')
+   ->setTitle('Independent Twitter Title')
+   ->setDescription('Twitter specific description.')
+   ->setImage('https://example.com/twitter-image.jpg')
+   ->setSite('@my_twitter_handle');
+
+echo $og->toHtml();
+echo $tc->toHtml();
+```
+
+**Open Graph output:**
 
 ```html
 <meta property="og:title" content="Independent OpenGraph Title">
 <meta property="og:description" content="Independent description.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://example.com/article">
-<meta property="og:image" content="https://example.com/og-image.jpg">
 <meta property="og:site_name" content="My Awesome Blog">
+<meta property="og:image" content="https://example.com/og-image.jpg">
+```
+
+**Twitter Card output:**
+
+```html
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@my_twitter_handle">
 <meta name="twitter:title" content="Independent Twitter Title">
 <meta name="twitter:description" content="Twitter specific description.">
 <meta name="twitter:image" content="https://example.com/twitter-image.jpg">
-<meta name="twitter:site" content="@my_twitter_handle">
 ```
 
 These are generated compatibility tags. In particular, the package does not
@@ -208,40 +248,43 @@ claim verified Twitter/X provider conformance.
 The `FluentSeoBuilder` provides a convenient, chainable API for constructing your SEO data without needing to instantiate DTOs manually upfront.
 
 ```php
+use Maatify\Seo\Shared\DTO\Schema\JsonLdSchemaDTO;
 use Maatify\Seo\Web\Builder\FluentSeoBuilder;
 
+$schemaDto = new JsonLdSchemaDTO([
+    '@context' => 'https://schema.org',
+    '@type' => 'Organization',
+    'name' => 'Maatify SEO',
+]);
+
 $builder = (new FluentSeoBuilder())
-    ->title('About Us')
-    ->description('Learn more about our company.')
-    ->canonical('https://example.com/about')
+    ->title('Builder Output Showcase')
+    ->description('Built through FluentSeoBuilder.')
+    ->canonical('https://example.test/builder')
     ->robots('index,follow')
-    ->openGraphTitle('About Us - Example Co.')
-    ->openGraphDescription('Discover the history of our company.')
-    ->openGraphUrl('https://example.com/about')
+    ->openGraphTitle('Builder OG title')
+    ->openGraphDescription('Builder OG description')
     ->openGraphType('website')
-    ->openGraphImage('https://example.com/og-about.jpg')
+    ->openGraphUrl('https://example.test/builder')
+    ->openGraphImage('https://cdn.example.test/builder-og.png')
     ->twitterCard('summary_large_image')
-    ->twitterTitle('About Us')
-    ->twitterDescription('Discover the history of our company.')
-    ->schema([
-        '@context' => 'https://schema.org',
-        '@type' => 'Organization',
-        'name' => 'Example Co.',
-        'url' => 'https://example.com',
-    ]);
+    ->twitterTitle('Builder Twitter title')
+    ->twitterDescription('Builder Twitter description')
+    ->twitterImage('https://cdn.example.test/builder-twitter.png');
 
-// Render a complete HTML string
-$fullHtml = $builder->render();
+$builder->schema($schemaDto)->render();
+$fullHtml = $builder->schemas([[
+    '@context' => 'https://schema.org',
+    '@type' => 'BreadcrumbList',
+    'name' => 'Builder breadcrumbs',
+]])->render();
 
-// Or get a SeoHeadHtmlDTO
-$dto = $builder->renderDto();
+// $fullHtml is the observable result below.
 ```
 
-Use `FluentSeoBuilder` when one call site owns a compact per-page chain. Use a
-`MetaTagsDTO` and individual renderers when the Host already has DTO data or
-needs to place head sections separately. The executed
+The code above uses the same metadata and schema values as the executed
 [`observable-output-showcase.php`](../../examples/observable-output-showcase.php)
-renders this builder result:
+fixture; its second render produces:
 
 ```html
 <title>Builder Output Showcase</title>
@@ -260,6 +303,13 @@ renders this builder result:
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Maatify SEO"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","name":"Builder breadcrumbs"}</script>
 ```
+
+Use `FluentSeoBuilder` when one call site owns a compact per-page chain. Use a
+`MetaTagsDTO` and individual renderers when the Host already has DTO data or
+needs to place head sections separately.
+
+The builder also exposes `renderDto()` when the Host needs individual output
+sections.
 
 ### Homepage SEO Example
 
@@ -323,19 +373,34 @@ The library can generate structured data script tags using either raw associativ
 
 The library provides fluent builders for common schema types (e.g., `Article`, `Product`, `Organization`, `WebSite`).
 
+The executed [`jsonld-builders.php`](../../examples/jsonld-builders.php)
+fixture uses these Product-builder inputs and emits the following script:
+
 ```php
-use Maatify\Seo\Web\JsonLd\Builder\WebSiteJsonLdBuilder;
+use Maatify\Seo\Web\JsonLd\Builder\ProductJsonLdBuilder;
 use Maatify\Seo\Web\Render\JsonLdScriptRenderer;
 
-$builder = new WebSiteJsonLdBuilder();
-$schemaArray = $builder
-    ->setName('Maatify Demo')
-    ->setUrl('https://example.com')
-    ->setSearchAction('https://example.com/search?q={search_term_string}')
-    ->toArray();
+$productBuilder = new ProductJsonLdBuilder();
+$productBuilder
+    ->setName('Maatify Demo Product')
+    ->setDescription('A demo product showcasing the JSON-LD Builder.')
+    ->setSku('DEMO-PROD-01')
+    ->setBrand('Maatify')
+    ->setImage('https://example.com/images/product.jpg')
+    ->setCategory('Software')
+    ->setUrl('https://example.com/products/demo-product')
+    ->setCurrency('USD')
+    ->setPrice('29.99')
+    ->setAvailability('https://schema.org/InStock')
+    ->setCondition('https://schema.org/NewCondition')
+    ->setAggregateRating(4.9, 150);
 
 $renderer = new JsonLdScriptRenderer();
-echo $renderer->render($schemaArray);
+echo $renderer->render($productBuilder->toArray());
+```
+
+```html
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"Maatify Demo Product","description":"A demo product showcasing the JSON-LD Builder.","sku":"DEMO-PROD-01","brand":{"@type":"Brand","name":"Maatify"},"image":"https://example.com/images/product.jpg","category":"Software","url":"https://example.com/products/demo-product","offers":{"@type":"Offer","priceCurrency":"USD","price":"29.99","availability":"https://schema.org/InStock","itemCondition":"https://schema.org/NewCondition"},"aggregateRating":{"@type":"AggregateRating","ratingValue":4.9,"reviewCount":150}}</script>
 ```
 
 ### Using a raw associative array:
@@ -371,15 +436,8 @@ $schemaDto = new JsonLdSchemaDTO([
 echo $renderer->render($schemaDto);
 ```
 
-The renderer returns a `<script type="application/ld+json">` string. For
-example, the public builder example emits a Product node with a nested Offer
-and AggregateRating:
-
-```html
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"Maatify Demo Product","description":"A demo product showcasing the JSON-LD Builder.","sku":"DEMO-PROD-01","brand":{"@type":"Brand","name":"Maatify"},"image":"https://example.com/images/product.jpg","category":"Software","url":"https://example.com/products/demo-product","offers":{"@type":"Offer","priceCurrency":"USD","price":"29.99","availability":"https://schema.org/InStock","itemCondition":"https://schema.org/NewCondition"},"aggregateRating":{"@type":"AggregateRating","ratingValue":4.9,"reviewCount":150}}</script>
-```
-
-Builders produce schema-shaped data; `toArray()` exposes that data,
+The renderer returns a `<script type="application/ld+json">` string. Builders
+produce schema-shaped data; `toArray()` exposes that data,
 `JsonLdSchemaDTO` is the package's serializable wrapper, and
 `JsonLdScriptRenderer` encodes and HTML-safe renders it. Generation and the
 package's scoped structural/property-range checks do not establish Google Rich
@@ -407,16 +465,30 @@ Using `setOffers()` allows you to inject fully typed builders:
 use Maatify\Seo\Web\JsonLd\Builder\ProductJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\OfferJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\OrganizationJsonLdBuilder;
+use Maatify\Seo\Web\Render\JsonLdScriptRenderer;
 
-$seller = (new OrganizationJsonLdBuilder())->setName('My Store');
+$seller = (new OrganizationJsonLdBuilder())->setName('My Awesome Store');
 $offer = (new OfferJsonLdBuilder())
-    ->setPrice('19.99')
+    ->setPrice('29.99')
     ->setPriceCurrency('USD')
+    ->setAvailability('https://schema.org/InStock')
     ->setSeller($seller);
 
 $product = (new ProductJsonLdBuilder())
-    ->setName('Widget')
+    ->setName('Premium Widget')
+    ->setDescription('A very nice widget.')
+    ->setGtin('0123456789012')
+    ->setMpn('PW-01')
     ->setOffers($offer);
+
+echo (new JsonLdScriptRenderer())->render($product->toArray());
+```
+
+The runnable [`advanced-product-structured-data.php`](../../examples/advanced-product-structured-data.php)
+fixture returns this Product + Offer script for those inputs:
+
+```html
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"Premium Widget","description":"A very nice widget.","gtin":"0123456789012","mpn":"PW-01","offers":{"@type":"Offer","price":"29.99","priceCurrency":"USD","availability":"https://schema.org/InStock","seller":{"@type":"Organization","name":"My Awesome Store"}}}</script>
 ```
 
 ### Product with AggregateOffer
@@ -426,16 +498,30 @@ To indicate a price range, use the `AggregateOfferJsonLdBuilder`:
 ```php
 use Maatify\Seo\Web\JsonLd\Builder\ProductJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\AggregateOfferJsonLdBuilder;
+use Maatify\Seo\Web\JsonLd\Builder\OfferJsonLdBuilder;
+use Maatify\Seo\Web\Render\JsonLdScriptRenderer;
 
 $aggregateOffer = (new AggregateOfferJsonLdBuilder())
     ->setLowPrice('10.00')
     ->setHighPrice('50.00')
     ->setPriceCurrency('USD')
-    ->setOfferCount(5);
+    ->setOfferCount(15)
+    ->setOffers(
+        (new OfferJsonLdBuilder())->setPrice('29.99')->setPriceCurrency('USD'),
+        (new OfferJsonLdBuilder())->setPrice('34.99')->setPriceCurrency('CAD'),
+    );
 
 $product = (new ProductJsonLdBuilder())
     ->setName('Widget Collection')
     ->setOffers($aggregateOffer);
+
+echo (new JsonLdScriptRenderer())->render($product->toArray());
+```
+
+The same fixture emits this AggregateOffer when given the input above:
+
+```html
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"Widget Collection","offers":{"@type":"AggregateOffer","lowPrice":"10.00","highPrice":"50.00","priceCurrency":"USD","offerCount":15,"offers":[{"@type":"Offer","price":"29.99","priceCurrency":"USD"},{"@type":"Offer","price":"34.99","priceCurrency":"CAD"}]}}</script>
 ```
 
 ### Multiple Offers
@@ -443,12 +529,26 @@ $product = (new ProductJsonLdBuilder())
 You can use `addOffer()` to build a list, or pass variadic arguments/arrays to `setOffers()`:
 
 ```php
-$product->setOffers($offer1, $offer2);
-// or
-$product->addOffer($offer1)->addOffer($offer2);
-// Raw arrays are also accepted. Their keys (including explicit @context) are preserved,
-// but resolution remains recursive for any nested JsonLdBuilderInterface instances inside them:
-$product->addOffer(['@type' => 'Offer', 'price' => '5.00', 'priceCurrency' => 'USD']);
+use Maatify\Seo\Web\JsonLd\Builder\OfferJsonLdBuilder;
+use Maatify\Seo\Web\JsonLd\Builder\ProductJsonLdBuilder;
+use Maatify\Seo\Web\Render\JsonLdScriptRenderer;
+
+$offer1 = (new OfferJsonLdBuilder())->setPrice('29.99')->setPriceCurrency('USD');
+$offer2 = (new OfferJsonLdBuilder())->setPrice('34.99')->setPriceCurrency('CAD');
+
+$product = (new ProductJsonLdBuilder())
+    ->setName('International Widget')
+    ->addOffer($offer1)
+    ->addOffer($offer2)
+    ->addOffer(['@type' => 'Offer', 'price' => '24.99', 'priceCurrency' => 'EUR']);
+
+echo (new JsonLdScriptRenderer())->render($product->toArray());
+```
+
+This exact `addOffer()` sequence in the runnable fixture returns:
+
+```html
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"International Widget","offers":[{"@type":"Offer","price":"29.99","priceCurrency":"USD"},{"@type":"Offer","price":"34.99","priceCurrency":"CAD"},{"@type":"Offer","price":"24.99","priceCurrency":"EUR"}]}</script>
 ```
 
 ### ProductGroup and Product Variants
@@ -458,6 +558,7 @@ To represent a parent product containing multiple variants, use `ProductGroupJso
 ```php
 use Maatify\Seo\Web\JsonLd\Builder\ProductGroupJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\ProductJsonLdBuilder;
+use Maatify\Seo\Web\Render\JsonLdScriptRenderer;
 
 $redVariant = (new ProductJsonLdBuilder())
     ->setSku('TS-RED-L')
@@ -470,10 +571,19 @@ $blueVariant = (new ProductJsonLdBuilder())
     ->setSize('M');
 
 $productGroup = (new ProductGroupJsonLdBuilder())
-    ->setName('T-Shirt Line')
+    ->setName('Classic T-Shirt Line')
     ->setProductGroupID('TSHIRT-BASE')
+    ->setBrand('Maatify Apparel')
     ->setVariesBy(['https://schema.org/color', 'https://schema.org/size'])
     ->setHasVariant($redVariant, $blueVariant);
+
+echo (new JsonLdScriptRenderer())->render($productGroup->toArray());
+```
+
+The fixture renders this ProductGroup for those exact inputs:
+
+```html
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ProductGroup","name":"Classic T-Shirt Line","productGroupID":"TSHIRT-BASE","brand":{"@type":"Brand","name":"Maatify Apparel"},"variesBy":["https://schema.org/color","https://schema.org/size"],"hasVariant":[{"@type":"Product","sku":"TS-RED-L","color":"Red","size":"L"},{"@type":"Product","sku":"TS-BLU-M","color":"Blue","size":"M"}]}</script>
 ```
 
 ### Linking Child to Parent (Variant Relationship)
@@ -482,47 +592,29 @@ If you are rendering the child `Product` schema page, you can declare its relati
 
 ```php
 use Maatify\Seo\Web\JsonLd\Builder\ProductJsonLdBuilder;
-use Maatify\Seo\Web\JsonLd\Builder\ProductGroupJsonLdBuilder;
+use Maatify\Seo\Web\Render\JsonLdScriptRenderer;
 
-// Using a typed ProductGroup Builder as the parent
-$parentGroup = (new ProductGroupJsonLdBuilder())
-    ->setProductGroupID('TSHIRT-BASE')
-    ->setName('T-Shirt Line');
-
-// Example writing the `isVariantOf` property
-$childVariant1 = (new ProductJsonLdBuilder())
-    ->setName('Red T-Shirt')
+$childProduct = (new ProductJsonLdBuilder())
     ->setSku('TS-RED-L')
-    ->setIsVariantOf($parentGroup); // Embeds the typed parent node (or if given a string, it becomes a ProductGroup node with productGroupID)
+    ->setColor('Red')
+    ->setSize('L')
+    ->setIsVariantOf('TSHIRT-BASE');
 
-// Example writing the `inProductGroupWithID` property
-$childVariant2 = (new ProductJsonLdBuilder())
-    ->setName('Blue T-Shirt')
-    ->setSku('TS-BLU-L')
-    ->setInProductGroupWithID('TSHIRT-BASE'); // Writes the string ID directly
+echo (new JsonLdScriptRenderer())->render($childProduct->toArray());
+```
+
+That exact child-variant input returns this JSON-LD script:
+
+```html
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","sku":"TS-RED-L","color":"Red","size":"L","isVariantOf":{"@type":"ProductGroup","productGroupID":"TSHIRT-BASE"}}</script>
 ```
 
 *Note: The builders ensure that nested `@context` tags are automatically stripped from typed builders during output, while the root builder retains its context. Raw array contexts are not touched. Builders and `SchemaGeneratorService` provide generic Schema.org generation; they are independent of Google Rich Results and Merchant eligibility. The current validation boundary is scoped structural and property-range semantic validation for selected types, not complete provider eligibility proof.*
 
-The executed advanced example renders the composed values, including these
-nested shapes:
-
-```json
-{"@context":"https://schema.org","@type":"Product","name":"Premium Widget","description":"A very nice widget.","gtin":"0123456789012","mpn":"PW-01","offers":{"@type":"Offer","price":"29.99","priceCurrency":"USD","availability":"https://schema.org/InStock","seller":{"@type":"Organization","name":"My Awesome Store"}}}
-```
-
-```json
-{"@context":"https://schema.org","@type":"Product","name":"Widget Collection","offers":{"@type":"AggregateOffer","lowPrice":"10.00","highPrice":"50.00","priceCurrency":"USD","offerCount":15,"offers":[{"@type":"Offer","price":"29.99","priceCurrency":"USD"},{"@type":"Offer","price":"34.99","priceCurrency":"CAD"}]}}
-```
-
-```json
-{"@context":"https://schema.org","@type":"ProductGroup","name":"Classic T-Shirt Line","productGroupID":"TSHIRT-BASE","brand":{"@type":"Brand","name":"Maatify Apparel"},"variesBy":["https://schema.org/color","https://schema.org/size"],"hasVariant":[{"@type":"Product","sku":"TS-RED-L","color":"Red","size":"L"},{"@type":"Product","sku":"TS-BLU-M","color":"Blue","size":"M"}]}
-```
-
-Both are JSON bodies inside the renderer's JSON-LD script element. See
+These outputs are the complete script strings printed by the runnable fixture;
+they are not hand-built JSON projections. See
 [`advanced-product-structured-data.php`](../../examples/advanced-product-structured-data.php)
-for the complete Product + Offer, multiple-offer, AggregateOffer, and variant
-rendered samples.
+for the corresponding executable scenarios.
 
 ---
 
@@ -533,30 +625,25 @@ If your project utilizes the popular `spatie/schema-org` package, the SEO librar
 **Note:** The `spatie/schema-org` dependency is strictly optional and not required by the Maatify SEO library. It is provided via `composer suggest`.
 
 ```php
-use Maatify\Seo\Web\Builder\FluentSeoBuilder;
+use Maatify\Seo\Web\Render\JsonLdScriptRenderer;
 use Maatify\Seo\Web\Schema\SpatieSchemaAdapter;
-use Spatie\SchemaOrg\Schema; // Only if you have installed spatie/schema-org in your host app
 
-// Assuming you have a Spatie schema object
-// (We use a fake local object structure here for demonstration)
+// Same local toArray() fixture values as schema-output.php.
 $localSchemaObject = new class {
     public function toArray(): array {
         return [
             '@context' => 'https://schema.org',
-            '@type' => 'Product',
-            'name' => 'Adapted Product'
+            '@type' => 'Person',
+            'name' => 'John Doe'
         ];
     }
 };
 
 $adapter = new SpatieSchemaAdapter();
+$adaptedSchema = $adapter->toJsonLdSchemaDTO($localSchemaObject);
+$html = (new JsonLdScriptRenderer())->render($adaptedSchema);
 
-// Use the adapter with the fluent builder:
-$builder = (new FluentSeoBuilder())
-    ->title('Product View')
-    ->spatieSchema($localSchemaObject, $adapter);
-
-echo $builder->render();
+echo $html;
 ```
 
 The adapter converts a supported Spatie object to the package's native
@@ -565,12 +652,8 @@ JSON-LD script string as for package builders. The runnable
 [`schema-output.php`](../../examples/schema-output.php) uses a local fake object
 with `toArray()` so it remains runnable without installing Spatie; an
 application that passes an actual Spatie object must install the optional
-dependency itself.
-
-For the local `toArray()`-shaped object used by
-[`schema-output.php`](../../examples/schema-output.php), the adapter yields a
-native `JsonLdSchemaDTO` containing `@type: Person` and `name: John Doe`; the
-renderer returns:
+dependency itself. The code above uses the same local `toArray()` values as
+[`schema-output.php`](../../examples/schema-output.php) and renders this script:
 
 ```html
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"John Doe"}</script>
@@ -585,116 +668,75 @@ To easily render sitemap entries to XML strings without modifying core services,
 ```php
 use Maatify\Seo\Shared\DTO\Sitemap\SitemapAlternateUrlDTO;
 use Maatify\Seo\Shared\DTO\Sitemap\SitemapImageDTO;
-use Maatify\Seo\Shared\DTO\Sitemap\SitemapVideoDTO;
 use Maatify\Seo\Shared\DTO\Sitemap\SitemapNewsDTO;
 use Maatify\Seo\Shared\DTO\Sitemap\SitemapUrlDTO;
+use Maatify\Seo\Shared\DTO\Sitemap\SitemapVideoDTO;
 use Maatify\Seo\Web\Sitemap\SitemapXmlStringRenderer;
 
-$renderer = new SitemapXmlStringRenderer();
-
-// Example with SitemapUrlDTO, Alternate URLs (Hreflang), Images, and Videos
-$urlDto = new SitemapUrlDTO(
-    loc: 'https://example.com/en/page-1',
-    lastmod: '2023-10-01',
-    changefreq: 'monthly',
-    priority: 0.5,
+$extendedDto = new SitemapUrlDTO(
+    loc: 'https://example.com/en/article',
+    lastmod: '2026-07-01T10:00:00+00:00',
+    changefreq: 'weekly',
+    priority: 0.7,
     alternates: [
-        new SitemapAlternateUrlDTO('en', 'https://example.com/en/page-1'),
-        new SitemapAlternateUrlDTO('es', 'https://example.com/es/page-1'),
+        new SitemapAlternateUrlDTO('en', 'https://example.com/en/article'),
+        new SitemapAlternateUrlDTO('x-default', 'https://example.com/article'),
     ],
     images: [
-        new SitemapImageDTO(
-            loc: 'https://example.com/image.jpg',
-        )
+        new SitemapImageDTO(loc: 'https://cdn.example.com/article.jpg'),
     ],
     videos: [
         new SitemapVideoDTO(
-            thumbnailLoc: 'https://example.com/thumbnail.jpg',
-            title: 'Sample Video',
-            description: 'A sample video description',
-            contentLoc: 'https://example.com/video.mp4',
-            playerLoc: 'https://example.com/player',
-            duration: 600,
-            publicationDate: '2023-10-01T12:00:00+00:00'
-        )
+            thumbnailLoc: 'https://cdn.example.com/article-video.jpg',
+            title: 'Article video',
+            description: 'A representative article video',
+            contentLoc: 'https://cdn.example.com/article-video.mp4',
+            duration: 120,
+            publicationDate: '2026-07-01',
+        ),
     ],
     news: [
         new SitemapNewsDTO(
             publicationName: 'Example Daily',
             publicationLanguage: 'en',
-            publicationDate: '2023-10-01',
-            title: 'Breaking News'
-        )
-    ]
+            publicationDate: '2026-07-01',
+            title: 'Example article',
+        ),
+    ],
 );
-echo $renderer->renderUrlEntry($urlDto);
-// Output includes local xmlns:xhtml, xmlns:image, xmlns:video, and xmlns:news:
-// <url xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
-//   <loc>https://example.com/en/page-1</loc>
-//   <lastmod>2023-10-01</lastmod>
-//   <changefreq>monthly</changefreq>
-//   <priority>0.5</priority>
-//   <xhtml:link rel="alternate" hreflang="en" href="https://example.com/en/page-1"/>
-//   <xhtml:link rel="alternate" hreflang="es" href="https://example.com/es/page-1"/>
-//   <image:image>
-//     <image:loc>https://example.com/image.jpg</image:loc>
-//   </image:image>
-//   <video:video>
-//     <video:thumbnail_loc>https://example.com/thumbnail.jpg</video:thumbnail_loc>
-//     <video:title>Sample Video</video:title>
-//     <video:description>A sample video description</video:description>
-//     <video:content_loc>https://example.com/video.mp4</video:content_loc>
-//     <video:player_loc>https://example.com/player</video:player_loc>
-//     <video:duration>600</video:duration>
-//     <video:publication_date>2023-10-01T12:00:00+00:00</video:publication_date>
-//   </video:video>
-//   <news:news>
-//     <news:publication>
-//       <news:name>Example Daily</news:name>
-//       <news:language>en</news:language>
-//     </news:publication>
-//     <news:publication_date>2023-10-01</news:publication_date>
-//     <news:title>Breaking News</news:title>
-//   </news:news>
-// </url>
 
-// Example with associative array
+$renderer = new SitemapXmlStringRenderer();
+echo $renderer->renderUrlEntry($extendedDto);
+```
+
+This input is the extended DTO in the runnable
+[`sitemap-output.php`](../../examples/sitemap-output.php) fixture. The resulting
+single URL entry is:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<url xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"><loc>https://example.com/en/article</loc><lastmod>2026-07-01T10:00:00+00:00</lastmod><changefreq>weekly</changefreq><priority>0.7</priority><xhtml:link rel="alternate" hreflang="en" href="https://example.com/en/article"/><xhtml:link rel="alternate" hreflang="x-default" href="https://example.com/article"/><image:image><image:loc>https://cdn.example.com/article.jpg</image:loc></image:image><video:video><video:thumbnail_loc>https://cdn.example.com/article-video.jpg</video:thumbnail_loc><video:title>Article video</video:title><video:description>A representative article video</video:description><video:content_loc>https://cdn.example.com/article-video.mp4</video:content_loc><video:duration>120</video:duration><video:publication_date>2026-07-01</video:publication_date></video:video><news:news><news:publication><news:name>Example Daily</news:name><news:language>en</news:language></news:publication><news:publication_date>2026-07-01</news:publication_date><news:title>Example article</news:title></news:news></url>
+```
+
+For a two-entry URL set, the runnable fixture uses these exact core values:
+
+```php
+$urlDto = new SitemapUrlDTO('https://example.com/page-1', '2023-11-01', 'daily', 1.0);
 $arrayEntry = [
     'loc' => 'https://example.com/page-2',
-    'lastmod' => '2023-10-02',
+    'lastmod' => '2023-11-02',
     'changefreq' => 'weekly',
     'priority' => '0.8',
-    'alternates' => [
-        ['hreflang' => 'x-default', 'url' => 'https://example.com/page-2'],
-        ['hreflang' => 'de', 'url' => 'https://example.com/de/page-2'],
-    ],
-    'images' => [
-        ['loc' => 'https://example.com/image2.jpg']
-    ],
-    'videos' => [
-        [
-            'thumbnailLoc' => 'https://example.com/thumbnail2.jpg',
-            'title' => 'Video 2',
-            'description' => 'Description 2',
-            'contentLoc' => 'https://example.com/video2.mp4'
-        ]
-    ],
-    'news' => [
-        [
-            'publicationName' => 'Tech Weekly',
-            'publicationLanguage' => 'en',
-            'publicationDate' => '2023-10-02',
-            'title' => 'New SEO Tools'
-        ]
-    ]
 ];
-echo $renderer->renderUrlEntry($arrayEntry);
 
-// Rendering an entire URL Set (passing multiple URLs)
-$xmlOutput = $renderer->renderUrlSet([$urlDto, $arrayEntry]);
-// For the minimal URL-set example, the executed renderer returns:
-// <?xml version="1.0" encoding="UTF-8"?>
-// <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.com/page-1</loc><lastmod>2023-11-01</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url><url><loc>https://example.com/page-2</loc><lastmod>2023-11-02</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url></urlset>
+echo $renderer->renderUrlSet([$urlDto, $arrayEntry]);
+```
+
+It returns this URL-set:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.com/page-1</loc><lastmod>2023-11-01</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url><url><loc>https://example.com/page-2</loc><lastmod>2023-11-02</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url></urlset>
 ```
 
 > **Note:** The `xmlns:xhtml="http://www.w3.org/1999/xhtml"` namespace is dynamically added to the root `<urlset>` (or `<url>` if rendering a single entry) only when `alternates` are present. Similarly, `xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"` is added only when `images` exist, `xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"` is added only when `videos` exist, and `xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"` is added only when `news` exists. They are included together when alternate URLs, images, videos, and news exist together. If none are supplied, the sitemap output remains clean and unchanged. Existing URL-set, hreflang, and image sitemap output without videos or news remains exactly as it was.
@@ -704,14 +746,6 @@ $xmlOutput = $renderer->renderUrlSet([$urlDto, $arrayEntry]);
 > **Google Image compatibility:** `SitemapImageDTO` still accepts and renders `title`, `caption`, `geoLocation`, and `license` for public/output compatibility. Google-deprecates these fields; they are not presented here as current indexing/search enhancements and have no Stack 4 runtime diagnostic. Current examples therefore use `loc` only.
 
 > **URL validation:** `SitemapUrlDTO::isValidLastmod()` and the Web URL/Index rendering contracts accept `YYYY-MM-DD`, full-seconds date-times, and fractional-seconds date-times with a required `Z` or numeric offset, while rejecting invalid calendar/time values and zone-less or partial date-times. Strict `SitemapVideoDTO` and raw-video `publicationDate` remain limited to `YYYY-MM-DD` and full-seconds date-times; fractional seconds are rejected there. News `publicationDate` intentionally remains an emitted-as-provided, non-empty string. Stack 4 candidate validators separately apply the fixed provider lexical forms and caller-supplied evidence to Sitemap/Google extension inputs; they do not alter rendering output or infer remote facts.
-
-The executed extended-entry example shows the generated structure for alternate
-languages, image, video, and news children (one complete `<url>` element):
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<url xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"><loc>https://example.com/en/article</loc><lastmod>2026-07-01T10:00:00+00:00</lastmod><changefreq>weekly</changefreq><priority>0.7</priority><xhtml:link rel="alternate" hreflang="en" href="https://example.com/en/article"/><xhtml:link rel="alternate" hreflang="x-default" href="https://example.com/article"/><image:image><image:loc>https://cdn.example.com/article.jpg</image:loc></image:image><video:video><video:thumbnail_loc>https://cdn.example.com/article-video.jpg</video:thumbnail_loc><video:title>Article video</video:title><video:description>A representative article video</video:description><video:content_loc>https://cdn.example.com/article-video.mp4</video:content_loc><video:duration>120</video:duration><video:publication_date>2026-07-01</video:publication_date></video:video><news:news><news:publication><news:name>Example Daily</news:name><news:language>en</news:language></news:publication><news:publication_date>2026-07-01</news:publication_date><news:title>Example article</news:title></news:news></url>
-```
 
 This is XML generation from supplied DTOs. The Host serves it from a route or
 file and handles HTTP headers, sitemap discovery, and provider submission.
@@ -728,14 +762,14 @@ use Maatify\Seo\Web\Sitemap\SitemapIndexXmlStringRenderer;
 
 $renderer = new SitemapIndexXmlStringRenderer();
 
-// Example with SitemapIndexEntryDTO
-$dto = new SitemapIndexEntryDTO('https://example.com/sitemap-products.xml', '2023-10-01');
+// These are the same two entries as sitemap-output.php.
+$dto = new SitemapIndexEntryDTO('https://example.com/sitemap-pages.xml', '2026-07-01');
 echo $renderer->renderEntry($dto);
 
 // Example with associative array
 $arrayEntry = [
-    'loc' => 'https://example.com/sitemap-articles.xml',
-    'lastmod' => '2023-10-02',
+    'loc' => 'https://example.com/sitemap-news.xml',
+    'lastmod' => '2026-07-02',
 ];
 echo $renderer->renderEntry($arrayEntry);
 
@@ -743,7 +777,9 @@ echo $renderer->renderEntry($arrayEntry);
 echo $renderer->renderIndex([$dto, $arrayEntry]);
 ```
 
-The executed example returns this complete sitemap index XML:
+The exact entries in [`sitemap-output.php`](../../examples/sitemap-output.php)
+produce this complete sitemap index. This shows the final `renderIndex()`
+result; the two separate `renderEntry()` results are omitted:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -770,24 +806,14 @@ $txt = new RobotsTxtDTO(
     rules: [
         new RobotsRuleDTO(
             userAgent: '*',
-            allow: ['/'],
+            allow: ['/public/'],
             disallow: ['/admin/', '/private/'],
-            crawlDelay: 10, // Non-standard crawler extension; not RFC core or Google-supported.
-            comments: ['Global rule for all bots']
-        ),
-        new RobotsRuleDTO(
-            userAgent: 'BadBot',
-            disallow: ['/']
+            crawlDelay: 2, // Non-standard crawler extension; not RFC core or Google-supported.
+            comments: ['Crawler access rules for the public site']
         )
     ],
-    sitemaps: [
-        'https://example.com/sitemap.xml',
-        'https://example.com/sitemap-images.xml'
-    ],
-    comments: [
-        'Welcome to my robots.txt',
-        'Created dynamically'
-    ]
+    sitemaps: ['https://example.com/sitemap.xml'],
+    comments: ['Generated by the Maatify SEO robots.txt example']
 );
 
 // Returns a correctly formatted robots.txt plain string.
@@ -796,8 +822,8 @@ $txt = new RobotsTxtDTO(
 echo $renderer->render($txt);
 ```
 
-For the fixture in [`robots-output.php`](../../examples/robots-output.php),
-the complete text is:
+Those exact rule, delay, and comment inputs match
+[`robots-output.php`](../../examples/robots-output.php) and produce this text:
 
 ```text
 # Generated by the Maatify SEO robots.txt example
@@ -844,27 +870,44 @@ robots-meta diagnostic can report whether the caller supplied evidence that the
 directive is recognized.
 
 ```php
-$robots = (new MetaRobotsBuilder())
+use Maatify\Seo\Web\Robots\MetaRobotsBuilder;
+
+$noIndexHtml = (new MetaRobotsBuilder())
+    ->noIndex()
+    ->noFollow()
+    ->noArchive()
+    ->maxSnippet(50)
+    ->toHtml();
+echo $noIndexHtml;
+```
+
+This input is the restricted-page case in
+[`meta-robots-canonical.php`](../../examples/meta-robots-canonical.php). Its
+executed HTML output is:
+
+```html
+<meta name="robots" content="noindex, nofollow, noarchive, max-snippet:50">
+```
+
+The `content` attribute is `noindex, nofollow, noarchive, max-snippet:50`.
+
+The same fixture also runs this distinct compatibility call:
+
+```php
+use Maatify\Seo\Web\Robots\MetaRobotsBuilder;
+
+$unavailableAfter = (new MetaRobotsBuilder())
     ->noIndex()
     ->noFollow()
     ->maxSnippet(50)
     ->unavailableAfter('31-Dec-2026 23:59:59 GMT');
-
-$content = $robots->build();
-$html = $robots->toHtml();
+echo $unavailableAfter->build();
 ```
 
-The executed example's restricted directive has these exact values:
-
-```text
-content: noindex, nofollow, noarchive, max-snippet:50
-html:    <meta name="robots" content="noindex, nofollow, noarchive, max-snippet:50">
-```
-
-The raw compatibility call above builds `noindex, nofollow, max-snippet:50,
-unavailable_after:31-Dec-2026 23:59:59 GMT`; it is the caller's responsibility
-to choose a value understood by the target crawler. See
-[`meta-robots-canonical.php`](../../examples/meta-robots-canonical.php).
+It returns `noindex, nofollow, max-snippet:50, unavailable_after:31-Dec-2026
+23:59:59 GMT`. The caller chooses a value understood by the target crawler;
+the builder prefixes the supplied string without validating or normalizing its
+date format.
 
 ---
 
@@ -900,42 +943,43 @@ Merchant eligibility remains a separate provider boundary.
 ### Basic Validation
 
 ```php
-use Maatify\Seo\Web\Validation\SeoMetaValidator;
+use Maatify\Seo\Web\Validation\SeoValidationReportBuilder;
+use Maatify\Seo\Web\Validation\SeoValidationReportExporter;
 
-$metaData = [
-    'title' => 'My Page',
-    'description' => 'A short description.',
-    'canonical' => 'not-a-valid-url',
-    'robots' => 'index, noindex', // Conflict!
+$pageMetadata = [
+    'title' => 'SEO Validation Example Page',
+    'description' => 'Short example description.',
+    'canonical' => 'https://example.com/guides/seo-validation',
+    'robots' => 'index,follow',
     'openGraph' => [
-        'title' => 'OG Title',
-        // Missing og:description and og:image
-    ]
+        'title' => 'SEO Validation Example Page',
+        'description' => 'A representative OpenGraph description for this example page.',
+        'image' => 'https://cdn.example.com/images/seo-validation.jpg',
+    ],
+    'twitter' => [
+        'card' => 'summary_large_image',
+        'title' => 'SEO Validation Example Page',
+        'description' => 'A representative Twitter description for this example page.',
+    ],
 ];
 
-$result = SeoMetaValidator::validate($metaData);
+$report = SeoValidationReportBuilder::build(
+    meta: $pageMetadata,
+    context: [
+        'page' => 'https://example.com/guides/seo-validation',
+        'source' => 'standalone usage example',
+    ],
+);
+$markdown = SeoValidationReportExporter::toMarkdown($report);
+echo $markdown;
+```
 
-// Check overall status
-if (!$result->isValid) {
-    echo "There are SEO errors.\n";
-}
-if ($result->hasWarnings) {
-    echo "There are SEO warnings.\n";
-}
+The executed [`seo-validation.php`](../../examples/seo-validation.php) prints
+a longer Markdown report. This selected summary is taken from that output:
 
-// Inspect specific issues
-foreach ($result->errors as $error) {
-    // e.g., invalid_canonical: "Canonical URL must be a valid absolute URL."
-    echo "[{$error->severity}] {$error->code}: {$error->message} (Field: {$error->field})\n";
-}
-
-foreach ($result->warnings as $warning) {
-    // e.g., robots_index_conflict, missing_og_description, missing_og_image, title_too_short
-    echo "[{$warning->severity}] {$warning->code}: {$warning->message}\n";
-}
-
-// Access all issues together
-$allIssues = $result->issues;
+```text
+status=warning  valid=true  score=95  grade=A  warnings=1  errors=0
+description_too_short (warning, field: description), deduction: -5
 ```
 
 ### Calculating a Validation Score
@@ -1059,17 +1103,68 @@ $customScoreDto = SeoValidationScoreCalculator::score($result, $scoreOptions);
 
 > **Note:** Providing invalid options (like a string instead of an integer penalty, or a penalty below 0) to `SeoValidationScoreCalculator::score()` will throw a `SeoInvalidArgumentException`. The score helper is strictly framework-neutral and emits no headers, responses, routes, or controllers.
 
-The maintained examples show that validation, warnings, and scoring are separate
-values. [`seo-validation.php`](../../examples/seo-validation.php) returns a
-valid result with one heuristic warning:
+The [`product-seo-audit.php`](../../examples/product-seo-audit.php) fixture
+uses this metadata and Product JSON-LD input. The malformed `offers.price`
+value is deliberate so the scoped validator can report the bad nested shape:
 
-```text
-status=warning  valid=true  score=95  grade=A  warnings=1  errors=0
-description_too_short (warning, field: description), deduction: -5
+```php
+use Maatify\Seo\Shared\DTO\MetaTagsDTO;
+use Maatify\Seo\Shared\DTO\Schema\ProductSchemaDTO;
+use Maatify\Seo\Web\Validation\SeoValidationReportBuilder;
+use Maatify\Seo\Web\Validation\SeoValidationReportExporter;
+
+$metaTags = new MetaTagsDTO(
+    title: 'Super Widget Pro - Product SEO Audit',
+    description: 'A representative product page used to demonstrate the Product SEO audit pipeline.',
+    canonicalUrl: 'https://example.com/products/super-widget-pro',
+    robots: 'index,follow',
+    openGraphTitle: 'Super Widget Pro',
+    openGraphDescription: 'The Super Widget Pro is a representative product for this audit.',
+    openGraphUrl: 'https://example.com/products/super-widget-pro',
+    openGraphType: 'product',
+    openGraphImage: 'https://cdn.example.com/images/super-widget-pro.jpg',
+    twitterCard: 'summary_large_image',
+    twitterTitle: 'Super Widget Pro',
+    twitterDescription: 'Product SEO audit example for the Super Widget Pro.',
+    twitterImage: 'https://cdn.example.com/images/super-widget-pro-twitter.jpg',
+);
+$productSchema = new ProductSchemaDTO(
+    name: 'Super Widget Pro',
+    description: 'The Super Widget Pro is a representative product for SEO auditing.',
+    sku: 'WIDGET-PRO-100',
+    brandName: 'WidgetCorp',
+    additionalProperties: [
+        'image' => 'https://cdn.example.com/images/super-widget-pro.jpg',
+        'category' => 'Widgets',
+        'offers' => [
+            '@type' => 'Offer',
+            'price' => ['unexpected' => 'shape'],
+            'priceCurrency' => 'USD',
+            'availability' => 'https://schema.org/InStock',
+        ],
+    ],
+);
+$auditInput = $metaTags->jsonSerialize();
+$auditInput['jsonLd'] = [$productSchema->jsonSerialize()];
+$report = SeoValidationReportBuilder::build(
+    meta: $auditInput,
+    context: [
+        'page' => 'https://example.com/products/super-widget-pro',
+        'audit' => 'Product SEO',
+        'structuredData' => 'Product JSON-LD',
+        'validationPipeline' => 'SeoValidationReportBuilder -> SeoMetaValidator',
+    ],
+);
+$reportData = SeoValidationReportExporter::toArray($report);
+$structuredDataFindings = array_filter(
+    $reportData['issues'],
+    static fn (array $issue): bool => is_string($issue['field']) && str_starts_with($issue['field'], 'jsonLd'),
+);
+$markdown = SeoValidationReportExporter::toMarkdown($report);
+echo $markdown;
 ```
 
-[`product-seo-audit.php`](../../examples/product-seo-audit.php) intentionally
-supplies malformed nested Product offer data; the package report returns:
+This selected summary comes from the executed report output:
 
 ```text
 status=fail  valid=false  score=75  grade=C  warnings=0  errors=1
@@ -1095,7 +1190,59 @@ Use the matching raw-input or cluster DTO for each profile. Results identify the
 
 [`protocol-provider-diagnostics.php`](../../examples/protocol-provider-diagnostics.php)
 runs representative checks and prints each diagnostic's `code`, `severity`,
-`origin`, `profile`, `field`, and `evidence_state`. The executed fixture reports:
+`origin`, `profile`, `field`, and `evidence_state`. These exact candidate inputs
+and selected validator calls are used by that fixture:
+
+```php
+use Maatify\Seo\Web\Validation\DTO\SeoValidationContextDTO;
+use Maatify\Seo\Web\Validation\Input\RobotsMetaValidationInputDTO;
+use Maatify\Seo\Web\Validation\Input\RobotsTxtValidationInputDTO;
+use Maatify\Seo\Web\Validation\Input\Sitemap\SitemapImageValidationInputDTO;
+use Maatify\Seo\Web\Validation\Input\Sitemap\SitemapValidationDocumentDTO;
+use Maatify\Seo\Web\Validation\Input\Sitemap\SitemapUrlValidationInputDTO;
+use Maatify\Seo\Web\Validation\Profile\GoogleCanonicalValidator;
+use Maatify\Seo\Web\Validation\Profile\GoogleRobotsMetaValidator;
+use Maatify\Seo\Web\Validation\Profile\GoogleRobotsTxtValidator;
+use Maatify\Seo\Web\Validation\Profile\GoogleSitemapValidator;
+use Maatify\Seo\Web\Validation\Profile\OpenGraphProtocolValidator;
+use Maatify\Seo\Web\Validation\Profile\Rfc9309RobotsValidator;
+
+$context = new SeoValidationContextDTO([
+    'robots_meta.unavailable_after_recognizability' => 'unknown',
+    'google_sitemap.host_verification' => 'unknown',
+]);
+$recognizedContext = new SeoValidationContextDTO([
+    'robots_meta.unavailable_after_recognizability' => 'recognized',
+]);
+$unrecognizedContext = new SeoValidationContextDTO([
+    'robots_meta.unavailable_after_recognizability' => 'unrecognized',
+]);
+$robotsInput = new RobotsTxtValidationInputDTO("User-agent: *\nDisallow: *\nCrawl-delay: 2\n");
+$robotsMetaInput = new RobotsMetaValidationInputDTO(['unavailable_after:31-Dec-2026 23:59:59 GMT']);
+$sitemapDocument = new SitemapValidationDocumentDTO('urlset', [
+    new SitemapUrlValidationInputDTO(
+        loc: 'https://example.com/guides/seo',
+        images: [new SitemapImageValidationInputDTO(loc: 'https://cdn.example.com/images/seo.png')],
+    ),
+]);
+
+$results = [
+    'rfc9309_robots' => (new Rfc9309RobotsValidator())->validate($robotsInput, $context),
+    'google_robots_txt' => (new GoogleRobotsTxtValidator())->validate($robotsInput, $context),
+    'google_robots_meta_recognized' => (new GoogleRobotsMetaValidator())->validate($robotsMetaInput, $recognizedContext),
+    'google_robots_meta_unrecognized' => (new GoogleRobotsMetaValidator())->validate($robotsMetaInput, $unrecognizedContext),
+    'google_robots_meta_unknown' => (new GoogleRobotsMetaValidator())->validate($robotsMetaInput, $context),
+    'google_sitemap' => (new GoogleSitemapValidator())->validate($sitemapDocument, $context),
+    'google_canonical' => (new GoogleCanonicalValidator())->validate('/guides/seo', $context),
+    'open_graph' => (new OpenGraphProtocolValidator())->validate([
+        'openGraph' => ['title' => 'SEO guide'],
+    ], context: $context),
+];
+```
+
+The table is a selected projection of those fixture results; the same fixture
+also executes sitemap-protocol, image-sitemap, and hreflang checks, omitted
+from this compact view:
 
 | Input/profile | Returned diagnostic |
 | --- | --- |
@@ -1149,11 +1296,10 @@ $result = $generator->generateUrlSitemap($urls);
 // You must take the result output and stream it or respond with it in your host application controller.
 // The service itself does not emit an HTTP response.
 $xmlContent = $result->xml;
+echo $xmlContent;
 ```
 
-For those two entries, the executed service returns a
-`SitemapGenerationResultDTO` whose observable values include `entry_count = 2`,
-`type = urlset`, and this XML string:
+For those two entries, the executed service's `result->xml` is:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1233,34 +1379,51 @@ Always pass the pre-rendered HTML string (or the `SeoHeadHtmlDTO`) to your templ
 
 `MetaGeneratorService` turns Host-supplied page defaults and the active SEO override for an entity/language into a `MetaTagsDTO`. Missing active overrides leave the defaults in place. When configured with a Host implementation of `HostUrlGeneratorInterface`, it can use the Host-generated entity URL if the command has no non-blank explicit canonical. The Host owns route and URL policy; the service contract documents exact precedence, fallback, exception, and output semantics.
 
+This input is the override-present case in
+[`seo-override-meta-generation.php`](../../examples/seo-override-meta-generation.php).
+The runnable fixture configures in-memory override services and a Host URL
+generator before executing it; here those configured services are represented
+by `$overrideCommandService` and `$metaGeneratorService`.
+
 ```php
 use Maatify\Seo\Shared\Command\GenerateMetaTagsCommand;
+use Maatify\Seo\Shared\Command\SeoOverride\CreateSeoOverrideCommand;
+
+$hostProduct = [
+    'id' => '42',
+    'name' => 'Super Widget Pro',
+    'description' => 'Default product description loaded from the Host product record.',
+    'slug' => 'super-widget-pro',
+];
+
+$overrideCommandService->create(new CreateSeoOverrideCommand(
+    entityType: 'product',
+    entityId: '42',
+    languageId: 1,
+    metaTitle: 'Manual Product Title | Example Store',
+    metaDescription: 'Manual product description supplied by the SEO override workflow.',
+));
 
 $metaTags = $metaGeneratorService->generate(new GenerateMetaTagsCommand(
     entityType: 'product',
-    entityId: 'sku-123',
+    entityId: $hostProduct['id'],
     languageId: 1,
-    defaultTitle: 'Blue Shirt',
-    defaultDescription: 'Cotton shirt',
-    slug: 'blue-shirt',
+    defaultTitle: $hostProduct['name'],
+    defaultDescription: $hostProduct['description'],
+    slug: $hostProduct['slug'],
+    canonicalUrl: 'https://example.com/products/super-widget-pro',
 ));
+$selectedMeta = array_intersect_key(
+    $metaTags->jsonSerialize(),
+    array_flip(['title', 'description', 'canonical_url', 'robots', 'open_graph_title', 'twitter_title']),
+);
+echo json_encode($selectedMeta, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
 // $metaTags is a MetaTagsDTO ready for a package renderer or Host template.
 ```
 
-See the maintained [MetaGeneratorService contract](../SEO/library/META_GENERATOR_SERVICE_CONTRACT.md) for the complete service semantics and the [SEO_PACKAGE_REFERENCE.md](../../SEO_PACKAGE_REFERENCE.md) for the package-level contract.
-
-The Host first loads the product through its own repository/service; the
-`$hostProduct` fixture in
-[`seo-override-meta-generation.php`](../../examples/seo-override-meta-generation.php)
-stands in for that already-loaded record. The package does not perform this
-entity lookup. It receives the Host's default title, description, identity, and
-slug, queries the active override, and asks the optional
-`HostUrlGeneratorInterface` for a canonical only when no non-blank explicit
-canonical was supplied. Relevant values from the executed serialized `MetaTagsDTO`
-show that the manual override wins
-for title and description and the explicit canonical wins over the configured
-Host generator:
+These are selected fields from the serialized `MetaTagsDTO` returned for that
+input; the fixture prints the complete DTO:
 
 ```json
 {
@@ -1273,12 +1436,50 @@ Host generator:
 }
 ```
 
+The Host first loads the product through its own repository/service; the
+`$hostProduct` fixture stands in for that already-loaded record. The package
+does not perform this entity lookup. It receives the Host's defaults and slug,
+queries the active override, and uses the explicit canonical supplied in the
+command. See the maintained [MetaGeneratorService contract](../SEO/library/META_GENERATOR_SERVICE_CONTRACT.md)
+for complete precedence, fallback, exception, and output semantics and the
+[SEO_PACKAGE_REFERENCE.md](../../SEO_PACKAGE_REFERENCE.md) for the package-level
+contract.
+
 With no active override, the example keeps `Default Article Title` and
 `Default article description used by the fallback path.` and obtains
 `https://example.com/en/article/seo-library-integration` from the Host URL
-generator. Only `SeoNotFoundException` from the override lookup is treated as
-absence; other failures propagate. See the narrower maintained contract for
-exact trim, blank, fallback, and exception rules.
+generator. The executed fallback call uses these exact values:
+
+```php
+$fallbackMeta = $metaGeneratorService->generate(new GenerateMetaTagsCommand(
+    entityType: 'article',
+    entityId: '99',
+    languageId: 1,
+    defaultTitle: 'Default Article Title',
+    defaultDescription: 'Default article description used by the fallback path.',
+    slug: 'seo-library-integration',
+));
+$selectedFallback = array_intersect_key(
+    $fallbackMeta->jsonSerialize(),
+    array_flip(['title', 'description', 'canonical_url', 'robots']),
+);
+echo json_encode($selectedFallback, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+```
+
+Its selected serialized result is:
+
+```json
+{
+  "title": "Default Article Title",
+  "description": "Default article description used by the fallback path.",
+  "canonical_url": "https://example.com/en/article/seo-library-integration",
+  "robots": "index,follow"
+}
+```
+
+Only `SeoNotFoundException` from the override lookup is treated as absence;
+other failures propagate. See the narrower maintained contract for exact trim,
+blank, fallback, and exception rules.
 
 ### Page presets
 
@@ -1288,15 +1489,22 @@ Page preset factories are package-provided composition helpers. They combine met
 use Maatify\Seo\Web\Page\EcommerceSeoPresetFactory;
 
 $preset = EcommerceSeoPresetFactory::productDetail(
-    title: 'Blue Shirt',
-    description: 'Cotton shirt',
-    product: [
-        'name' => 'Blue Shirt',
-        'sku' => 'SKU-123',
-        'price' => '29.99',
+    'Super Cool T-Shirt - MySite',
+    'Buy this super cool t-shirt.',
+    [
+        'name' => 'Super Cool T-Shirt',
+        'image' => ['https://example.com/tshirt.png'],
+        'description' => 'A very nice t-shirt.',
+        'sku' => 'TSHIRT-001',
+        'price' => '19.99',
         'currency' => 'USD',
+        'availability' => 'https://schema.org/InStock',
     ],
-    options: ['canonicalUrl' => 'https://example.com/products/blue-shirt'],
+    [
+        'canonicalUrl' => 'https://example.com/product/tshirt',
+        'imageUrl' => 'https://example.com/tshirt.png',
+        'siteName' => 'MySite',
+    ],
 );
 
 $metaTags = $preset->metaTags;
@@ -1304,12 +1512,10 @@ $schemas = $preset->schemas;
 $headHtml = $preset->html;
 ```
 
-`SeoPagePresetFactory` also provides generic, product, category, article, home, and breadcrumb composition. `ContentSeoPresetFactory` covers article, blog-post, news-article, tag, and author pages; `LocalBusinessSeoPresetFactory` covers business-home, location, service, and contact pages. Ecommerce presets include product detail, category listing, search results, brand, and offer pages. Presets accept package options for canonical, robots, social metadata, breadcrumbs, and extra schemas.
-
 `SeoPagePresetOutputDTO` serializes these top-level fields: `meta_tags`,
 `canonical_url`, `robots`, `social_tags`, `social_html`, `schemas`, and `html`.
-The following selected serialized values are flattened for compact reading;
-the runnable example prints the full nested DTO:
+The following selected serialized values are flattened from the exact input
+above; the runnable example prints the full nested DTO:
 
 ```json
 {
@@ -1340,6 +1546,14 @@ the runnable example prints the full nested DTO:
 }
 ```
 
+`SeoPagePresetFactory` also provides generic, product, category, article, home,
+and breadcrumb composition. `ContentSeoPresetFactory` covers article,
+blog-post, news-article, tag, and author pages; `LocalBusinessSeoPresetFactory`
+covers business-home, location, service, and contact pages. Ecommerce presets
+include product detail, category listing, search results, brand, and offer
+pages. Presets accept package options for canonical, robots, social metadata,
+breadcrumbs, and extra schemas.
+
 `social_html` and `html` are newline-separated rendered strings. The runnable
 [`seo-page-presets.php`](../../examples/seo-page-presets.php) prints their full
 values along with the complete `social_tags` list. The preset composes from
@@ -1351,30 +1565,45 @@ Use `SeoPageRenderService` when a Host wants a single service call to combine `M
 
 `RenderSeoPageCommand::$schemas` accepts values that implement `JsonSerializable`. A `JsonLdBuilderInterface` builder does not implement `JsonSerializable` and cannot be passed directly; materialize its array and wrap it in a `JsonLdSchemaDTO` before passing it to the command.
 
+The executed fixture constructs `$seoPageRenderService` with an empty in-memory
+override repository, `SchemaGeneratorService`, and a Host URL generator that
+maps this page to `https://example.com/en/page/about`.
+
 ```php
 use Maatify\Seo\Shared\DTO\Schema\JsonLdSchemaDTO;
+use Maatify\Seo\Shared\DTO\Schema\WebPageSchemaDTO;
 use Maatify\Seo\Web\JsonLd\Builder\ProductJsonLdBuilder;
 use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
 use Maatify\Seo\Web\SeoRender\Command\RenderSeoPageCommand;
 
-$productSchemaBuilder = (new ProductJsonLdBuilder())->setName('Blue Shirt');
+$productSchemaBuilder = (new ProductJsonLdBuilder())->setName('Example Product');
 $productSchema = new JsonLdSchemaDTO($productSchemaBuilder->toArray());
+// A single serializable schema can be passed as schemas: [$productSchema].
 
 $payload = $seoPageRenderService->render(new RenderSeoPageCommand(
-    entityType: 'product',
-    entityId: 'sku-123',
+    entityType: 'page',
+    entityId: '42',
     languageId: 1,
-    defaultTitle: 'Blue Shirt',
-    defaultDescription: 'Cotton shirt',
-    slug: 'blue-shirt',
-    schemas: [$productSchema],
+    defaultTitle: 'About Example.com',
+    defaultDescription: 'Learn how Example.com helps teams publish discoverable content.',
+    slug: 'about',
+    robots: 'index,follow',
+    schemas: [
+        $productSchema,
+        new WebPageSchemaDTO(
+            name: 'About Example.com',
+            url: 'https://example.com/en/page/about',
+            description: 'Learn how Example.com helps teams publish discoverable content.',
+        ),
+    ],
 ));
 
 $headHtml = (new SeoHeadHtmlRenderer())->renderPayload($payload);
+echo json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 ```
 
 The executed [`seo-page-render.php`](../../examples/seo-page-render.php) returns
-a payload with metadata, a schema list, and nullable optional sections:
+this serialized payload for the exact command above:
 
 ```json
 {
@@ -1420,33 +1649,41 @@ The renderer is a presentation step over the service payload. Use the lower-leve
 
 `CanonicalUrlBuilder` assembles a URL from an optional base, path, and query parameters and can render a canonical link tag. `HreflangLinkBuilder` composes alternate links and `HreflangLinkRenderer` renders them as HTML. These are generation helpers; use separate validation profiles when checking a canonical candidate or a supplied hreflang cluster.
 
+The canonical input below is the filtered-query case from
+[`meta-robots-canonical.php`](../../examples/meta-robots-canonical.php); the
+hreflang inputs match [`hreflang-generation.php`](../../examples/hreflang-generation.php).
+
 ```php
 use Maatify\Seo\Web\Hreflang\HreflangLinkBuilder;
+use Maatify\Seo\Web\Hreflang\HreflangLinkRenderer;
 use Maatify\Seo\Web\Indexing\CanonicalUrlBuilder;
 
 $canonical = (new CanonicalUrlBuilder('https://example.com'))
-    ->setPath('/articles/seo')
-    ->setQueryParams(['page' => 2, 'tracking' => null])
-    ->build();
+    ->setPath('/blog')
+    ->setQueryParams(['page' => 3, 'sort' => 'recent', 'session_id' => '123456'])
+    ->preserveQueryParams(['page', 'sort'])
+    ->toHtml();
 
-$alternates = (new HreflangLinkBuilder())
-    ->add('en', 'https://example.com/en/articles/seo')
-    ->add('fr', 'https://example.com/fr/articles/seo')
-    ->xDefault('https://example.com/en/articles/seo');
+$builder = new HreflangLinkBuilder();
+$builder->add('en', 'https://example.com/en/page');
+$builder->add('en-US', 'https://example.com/en-us/page');
+$builder->add('en-GB', 'https://example.com/en-gb/page');
+$builder->add('fr', 'https://example.com/fr/page');
+$builder->xDefault('https://example.com/en/page');
 
-$hreflangHtml = $alternates->render();
+$links = $builder->all();
+$hreflangHtml = (new HreflangLinkRenderer())->render($links);
+echo $canonical;
+echo $hreflangHtml;
 ```
 
-`CanonicalUrlBuilder` joins the optional base and path, removes null query
-values, and emits a canonical link tag with the query value HTML-escaped. The
-executed filtered-query example returns:
+The filtered canonical call returns this escaped link:
 
 ```html
 <link rel="canonical" href="https://example.com/blog?page=3&amp;sort=recent">
 ```
 
-The `HreflangLinkBuilder` exposes normalized `HreflangLinkDTO` objects, and
-`HreflangLinkRenderer` renders them. The executed fixture returns:
+The hreflang renderer returns these links for the exact inputs above:
 
 ```html
 <link rel="alternate" hreflang="en" href="https://example.com/en/page">
@@ -1456,7 +1693,14 @@ The `HreflangLinkBuilder` exposes normalized `HreflangLinkDTO` objects, and
 <link rel="alternate" hreflang="x-default" href="https://example.com/en/page">
 ```
 
-`GoogleCanonicalValidator` and `GoogleHreflangClusterValidator` return separate companion diagnostics. The hreflang profile checks its defined lexical, URL, self-reference, reciprocity, and alternate-set boundaries; it does not establish ISO registry membership. Generation alone does not assert that a cluster passes validation.
+`CanonicalUrlBuilder` joins the optional base and path, removes null query
+values, and emits a canonical link tag with the query value HTML-escaped.
+`HreflangLinkBuilder` exposes normalized `HreflangLinkDTO` objects, and
+`HreflangLinkRenderer` renders them. `GoogleCanonicalValidator` and
+`GoogleHreflangClusterValidator` return separate companion diagnostics. The
+hreflang profile checks its defined lexical, URL, self-reference, reciprocity,
+and alternate-set boundaries; it does not establish ISO registry membership.
+Generation alone does not assert that a cluster passes validation.
 
 URL generation is not semantic selection or validation: the Host chooses which
 page URL is canonical. The separate profiles diagnose the supplied candidate
@@ -1467,28 +1711,7 @@ search engine will honor the declarations.
 
 The package's Admin namespace contains domain operations and data helpers, not an Admin application. `AdminRedirectCommandService` and `AdminRedirectQueryService` create, update, retrieve, list, and delete redirect records; `AdminSeoOverrideCommandService` and `AdminSeoOverrideQueryService` provide corresponding override operations; `AdminSlugHistoryCommandService` and `AdminSlugHistoryQueryService` record and query prior slugs. Redirect decisions and configured status values are domain data for the Host to apply to its HTTP response.
 
-`SerpPreviewFactory` and `SocialPreviewFactory` can consume a preset or `MetaTagsDTO` and return preview DTOs with missing-field warnings. `SeoMetadataExporter` serializes override, redirect, and slug-history data; `SeoMetadataImporter` validates JSON/array payloads and supports dry runs, with repositories supplied when writes are intended.
-
-```php
-use Maatify\Seo\Admin\Export\SeoMetadataExporter;
-use Maatify\Seo\Admin\Import\SeoMetadataImporter;
-use Maatify\Seo\Admin\Preview\SerpPreviewFactory;
-use Maatify\Seo\Admin\Preview\SocialPreviewFactory;
-
-$serpPreview = SerpPreviewFactory::fromPreset($preset);
-$socialPreview = SocialPreviewFactory::fromPreset($preset, 'Example Store');
-
-$exporter = new SeoMetadataExporter();
-$export = $exporter->export($seoOverrides, $redirects, $slugHistory);
-$json = $exporter->toJson($export);
-
-$importer = new SeoMetadataImporter(
-    seoOverrideRepository: $seoOverrideRepository,
-    redirectRepository: $redirectRepository,
-    slugHistoryRepository: $slugHistoryRepository,
-);
-$dryRun = $importer->importJson($json, dryRun: true);
-```
+`SerpPreviewFactory` and `SocialPreviewFactory` can consume a preset or `MetaTagsDTO` and return preview DTOs with missing-field warnings. `SeoMetadataExporter` serializes override, redirect, and slug-history data; `SeoMetadataImporter` validates JSON/array payloads and supports dry runs. The executable preview and import/export walkthroughs below show the exact fixture inputs beside selected output.
 
 Supply the package repository implementations only when the importer is intended to write those sections; an unconfigured importer can still validate and run a dry run.
 
@@ -1504,6 +1727,10 @@ schemas described in the integration guide.
 
 The fixture records a slug-history DTO and resolves a redirect decision with
 these values:
+
+The Host supplies configured repositories/services and an implementation of
+`HostUrlGeneratorInterface`; the runnable example uses in-memory repositories
+with a fixed `2026-09-08T12:00:00+00:00` timestamp for stable output.
 
 The service calls for the recorded change and subsequent lookup are:
 
@@ -1526,11 +1753,9 @@ $decision = $redirectManagerService->resolve(new ResolveRedirectCommand(
     languageId: 1,
     requestedSlug: 'widget-pro',
 ));
+echo json_encode($history, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+echo json_encode($decision, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 ```
-
-Here the Host provides configured repositories/services and an implementation
-of `HostUrlGeneratorInterface`; the runnable example uses in-memory test
-fixtures.
 
 ```json
 {
@@ -1576,6 +1801,9 @@ response.
 The override command/query services create and retrieve values such as this
 serialized `SeoOverrideDTO` from the runnable fixture:
 
+The fixture's in-memory repository assigns id `1` and the fixed
+`2026-09-08T12:00:00+00:00` created/updated timestamps shown in the result.
+
 ```php
 use Maatify\Seo\Shared\Command\SeoOverride\CreateSeoOverrideCommand;
 
@@ -1587,6 +1815,7 @@ $overrideId = $overrideCommandService->create(new CreateSeoOverrideCommand(
     metaDescription: 'Manual product description supplied by the SEO override workflow.',
 ));
 $activeOverride = $overrideQueryService->getActiveForEntity('product', '42', 1);
+echo json_encode($activeOverride, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 ```
 
 ```json
@@ -1610,9 +1839,37 @@ language and combines it with Host-supplied defaults. Its full resulting
 #### Admin previews
 
 `SerpPreviewFactory` and `SocialPreviewFactory` take a metadata array, DTO, or
-preset and return `SerpPreviewDTO` / `SocialPreviewDTO` data. For the runnable
-preview fixture, the two separately returned DTOs have these values. They are
-displayed in one object here only to place the outputs side by side:
+preset and return `SerpPreviewDTO` / `SocialPreviewDTO` data. The following
+inputs are copied from the runnable [`admin-previews.php`](../../examples/admin-previews.php)
+fixture. Its two separately printed DTOs are combined below only to place the
+selected fields side by side:
+
+```php
+use Maatify\Seo\Admin\Preview\SerpPreviewFactory;
+use Maatify\Seo\Admin\Preview\SocialPreviewFactory;
+
+$serpPreview = SerpPreviewFactory::fromArray([
+    'title' => 'My Page Title - Example',
+    'description' => 'This is the description that will show up in search engine results.',
+    'url' => 'https://example.com/my-page',
+    'robots' => 'index, follow',
+]);
+$serpData = $serpPreview->toArray();
+
+$socialPreview = SocialPreviewFactory::fromArray([
+    'title' => 'My Social Media Title',
+    'description' => 'A catchy description for Facebook, LinkedIn, etc.',
+    'url' => 'https://example.com/my-page',
+    'image_url' => 'https://example.com/social-share.jpg',
+    'site_name' => 'My Example Site',
+    'twitter_card' => 'summary_large_image',
+]);
+$socialData = $socialPreview->toArray();
+echo json_encode([
+    'serp_preview' => $serpData,
+    'social_preview' => $socialData,
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+```
 
 ```json
 {
@@ -1643,60 +1900,48 @@ These are preview data and warnings for a Host Admin screen to present. They
 are not a framework UI, a live search result, or a promise about how an
 external service displays the page.
 
-Those output DTOs can also be built from arrays when no preset is available:
-
-```php
-$serpPreview = SerpPreviewFactory::fromArray([
-    'title' => 'My Page Title - Example',
-    'description' => 'This is the description that will show up in search engine results.',
-    'url' => 'https://example.com/my-page',
-    'robots' => 'index, follow',
-]);
-
-$socialPreview = SocialPreviewFactory::fromArray([
-    'title' => 'My Social Media Title',
-    'description' => 'A catchy description for Facebook, LinkedIn, etc.',
-    'url' => 'https://example.com/my-page',
-    'image_url' => 'https://example.com/social-share.jpg',
-    'site_name' => 'My Example Site',
-    'twitter_card' => 'summary_large_image',
-]);
-```
-
 #### Metadata import/export
 
 `SeoMetadataExporter` emits a versioned JSON-compatible DTO with `schema_version`,
 `exported_at`, and a `data` object containing `seo_overrides`, `redirects`, and
-`slug_history`. The current example passes that JSON to
-`SeoMetadataImporter::importJson(..., dryRun: true)`; no CSV format is exposed
-by this example. Its dry-run result is:
+`slug_history`. The executable [`import-export.php`](../../examples/import-export.php)
+uses these exact inputs and passes the emitted JSON to the importer. No CSV
+format is exposed by this example.
 
-```text
-dryRun = true
-created = 3
-updated = 0
-failed = 0
-errors = []
+```php
+use Maatify\Seo\Admin\Export\SeoMetadataExporter;
+use Maatify\Seo\Admin\Import\SeoMetadataImporter;
+
+$seoOverrides = [[
+    'entity_type' => 'product',
+    'entity_id' => '123',
+    'language_id' => 1,
+    'meta_title' => 'Custom Product Title',
+    'meta_description' => 'A custom description for product 123.',
+]];
+$redirects = [[
+    'entity_type' => 'product',
+    'language_id' => 1,
+    'requested_slug' => 'old-product-page',
+    'target_entity_type' => 'product',
+    'target_entity_id' => '123',
+    'http_status' => 301,
+]];
+$slugHistory = [[
+    'entity_type' => 'category',
+    'entity_id' => '456',
+    'language_id' => 1,
+    'old_slug' => 'old-category',
+]];
+
+$exporter = new SeoMetadataExporter();
+$exportDto = $exporter->export($seoOverrides, $redirects, $slugHistory);
+$exportJson = json_encode($exportDto->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+$importer = new SeoMetadataImporter(null, null, null);
+$importResult = $importer->importJson($exportJson, true);
+echo $exportJson;
+echo json_encode($importResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 ```
-
-The serialized `SeoMetadataImportResultDTO` for that run is:
-
-```json
-{
-  "created": 3,
-  "updated": 0,
-  "skipped": 0,
-  "failed": 0,
-  "errors": [],
-  "dry_run": true
-}
-```
-
-The executable [`import-export.php`](../../examples/import-export.php) prints
-the concrete sample export records. `exported_at` is generated at runtime, so
-its timestamp varies. A dry run validates/counts but does not persist. For
-writes, supply the package repositories; the Host still decides when to invoke
-the import and how to expose its result.
 
 The stable data portion of the executed example's export is:
 
@@ -1728,6 +1973,32 @@ The stable data portion of the executed example's export is:
   }
 }
 ```
+
+`exported_at` is generated at runtime, so its timestamp varies. The same
+execution returns this dry-run summary and serialized result:
+
+```text
+Dry Run Status: Enabled
+Created Items: 3
+Updated Items: 0
+Failed Items: 0
+Errors Count: 0
+```
+
+```json
+{
+  "created": 3,
+  "updated": 0,
+  "skipped": 0,
+  "failed": 0,
+  "errors": [],
+  "dry_run": true
+}
+```
+
+A dry run validates and counts but does not persist. For writes, supply the
+package repositories; the Host still decides when to invoke the import and how
+to expose its result.
 
 ---
 
@@ -1910,25 +2181,6 @@ $json = SeoValidationBatchReportExporter::toJson($batch);
 
 // Compact summary array
 $summary = SeoValidationBatchReportExporter::toSummaryArray($batch);
-/*
-[
-    'isValid' => true,
-    'isHealthy' => true,
-    'totalCount' => 2,
-    'validCount' => 2,
-    'invalidCount' => 0,
-    'healthyCount' => 2,
-    'unhealthyCount' => 0,
-    'errorCount' => 0,
-    'warningCount' => 0,
-    'infoCount' => 0,
-    'averageScore' => 100.0,
-    'minScore' => 100,
-    'maxScore' => 100,
-    'status' => 'pass',
-    'message' => 'SEO batch validation passed.',
-]
-*/
 
 // Markdown export
 // Note: Do not hardcode full markdown output if it is too long. Show short representative output only.
@@ -1959,19 +2211,6 @@ $json = SeoValidationReportExporter::toJson($report);
 
 // Export as a compact summary array for quick logging or dashboard APIs
 $summary = SeoValidationReportExporter::toSummaryArray($report);
-/*
-[
-    'isValid' => false,
-    'isHealthy' => true,
-    'score' => 90,
-    'grade' => 'A',
-    'errorCount' => 0,
-    'warningCount' => 1,
-    'infoCount' => 0,
-    'status' => 'warning',
-    'message' => 'SEO validation completed with warnings.'
-]
-*/
 
 // Export as human-readable Markdown for CI/CD output or pull request comments
 $markdown = SeoValidationReportExporter::toMarkdown($report);
@@ -1985,7 +2224,8 @@ credential handling. A host application supplies a transport implementation and
 keeps the resulting `SearchConsoleInspectionResultDTO` separate from core SEO
 validation and scoring.
 
-The following is the integration shape; `HostSearchConsoleGateway` represents a
+The following is an illustrative Host integration shape only; no output below
+is attributed to this request. `HostSearchConsoleGateway` represents a
 host-owned adapter around the host's configured HTTP and OAuth facilities:
 
 ```php
@@ -2038,36 +2278,60 @@ than being treated as a pass, and this API is not a live Rich Results Test.
 [`search-console-response-mapping.php`](../../examples/search-console-response-mapping.php)
 uses a local sample transport to demonstrate request → response mapping. Its
 fixture is a **sample provider payload**, not a captured response or proof of
-the state of a real URL:
+the state of a real URL. This is the exact PHP array used as the fixture's
+sample provider payload:
 
-```json
-{
-  "inspectionResult": {
-    "inspectionResultLink": "https://search.google.com/search-console/inspect?resource_id=https%3A%2F%2Fexample.com%2F",
-    "indexStatusResult": {
-      "verdict": "PASS",
-      "coverageState": "Submitted and indexed",
-      "robotsTxtState": "ALLOWED",
-      "indexingState": "INDEXING_ALLOWED",
-      "lastCrawlTime": "2026-09-08T12:00:00Z",
-      "pageFetchState": "SUCCESSFUL",
-      "googleCanonical": "https://example.com/guides/seo",
-      "userCanonical": "https://example.com/guides/seo",
-      "crawledAs": "MOBILE"
-    },
-    "richResultsResult": {
-      "verdict": "PASS",
-      "detectedItems": [{
-        "richResultType": "Article",
-        "items": [{"name":"SEO guide","issues":[]}]
-      }]
-    }
-  }
-}
+```php
+$sampleProviderPayload = [
+    'inspectionResult' => [
+        'inspectionResultLink' => 'https://search.google.com/search-console/inspect?resource_id=https%3A%2F%2Fexample.com%2F',
+        'indexStatusResult' => [
+            'verdict' => 'PASS',
+            'coverageState' => 'Submitted and indexed',
+            'robotsTxtState' => 'ALLOWED',
+            'indexingState' => 'INDEXING_ALLOWED',
+            'lastCrawlTime' => '2026-09-08T12:00:00Z',
+            'pageFetchState' => 'SUCCESSFUL',
+            'googleCanonical' => 'https://example.com/guides/seo',
+            'userCanonical' => 'https://example.com/guides/seo',
+            'crawledAs' => 'MOBILE',
+        ],
+        'richResultsResult' => [
+            'verdict' => 'PASS',
+            'detectedItems' => [[
+                'richResultType' => 'Article',
+                'items' => [[
+                    'name' => 'SEO guide',
+                    'issues' => [],
+                ]],
+            ]],
+        ],
+    ],
+];
 ```
 
-Given that fixture and a `200` transport response, the mapper returns this
-package DTO serialization:
+In the executed fixture, `SampleSearchConsoleTransport` returns that payload
+with HTTP status `200`. The request and service call producing the mapped result
+are:
+
+```php
+use Maatify\Seo\Web\Indexing\SearchConsole\DTO\SearchConsoleInspectionRequestDTO;
+use Maatify\Seo\Web\Indexing\SearchConsole\Mapper\SearchConsoleResponseMapper;
+use Maatify\Seo\Web\Indexing\SearchConsole\SearchConsoleInspectionService;
+
+$service = new SearchConsoleInspectionService(
+    new SampleSearchConsoleTransport($sampleProviderPayload),
+    new SearchConsoleResponseMapper(),
+);
+$result = $service->inspect(new SearchConsoleInspectionRequestDTO(
+    inspectionUrl: 'https://example.com/guides/seo',
+    siteUrl: 'https://example.com/',
+    languageCode: 'en-US',
+));
+echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+```
+
+The mapper returns this selected serialization for that exact fixture request:
 
 ```json
 {
@@ -2106,7 +2370,7 @@ provider HTTP code as an application HTTP status automatically.
 
 The optional Merchant Center boundary provides typed DTOs and orchestration for reading product eligibility and issues from the Google Merchant API v1. The library handles the validation and mapping, but the host application is responsible for the HTTP transport, OAuth (`https://www.googleapis.com/auth/content`), JSON decoding, pagination, and scheduling.
 
-The host must implement `MerchantCenterTransportInterface`. Unknown provider values are passed through safely, and the library does not attempt automatic remediation.
+The host must implement `MerchantCenterTransportInterface`. Unknown provider values are passed through safely, and the library does not attempt automatic remediation. The code below is an illustrative Host transport integration shape; its requests are not the source of the sample output that follows.
 
 ```php
 use Maatify\Seo\Web\MerchantCenter\DTO\MerchantCenterAggregateRequestDTO;
@@ -2176,37 +2440,83 @@ $aggregateResult = $service->listAggregateProductDiagnostics(
 [`merchant-center-diagnostics.php`](../../examples/merchant-center-diagnostics.php)
 uses a local fixture and a sample `MerchantCenterTransportInterface`. The
 **sample provider payload** demonstrates fields the mapper accepts; it is not
-live account data:
+live account data. This PHP array is the fixture's sample payload:
 
-```json
-{
-  "name": "accounts/123/products/en~US~sku123",
-  "productStatus": {
-    "destinationStatuses": [{
-      "reportingContext": "SHOPPING_ADS",
-      "approvedCountries": ["US"],
-      "pendingCountries": [],
-      "disapprovedCountries": []
-    }],
-    "itemLevelIssues": [{
-      "code": "missing_value",
-      "severity": "ERROR",
-      "resolution": "MERCHANT_ACTION",
-      "attribute": "title",
-      "reportingContext": "SHOPPING_ADS",
-      "description": "A title is missing.",
-      "detail": "Add a title to the product.",
-      "documentation": "https://support.google.com/merchants/answer/example",
-      "applicableCountries": ["US", "CA"]
-    }],
-    "creationDate": "2026-09-01T10:00:00Z",
-    "lastUpdateDate": "2026-09-08T12:00:00Z",
-    "googleExpirationDate": "2026-10-08T12:00:00Z"
-  }
-}
+```php
+$sampleProviderPayload = [
+    'name' => 'accounts/123/products/en~US~sku123',
+    'productStatus' => [
+        'destinationStatuses' => [[
+            'reportingContext' => 'SHOPPING_ADS',
+            'approvedCountries' => ['US'],
+            'pendingCountries' => [],
+            'disapprovedCountries' => [],
+        ]],
+        'itemLevelIssues' => [[
+            'code' => 'missing_value',
+            'severity' => 'ERROR',
+            'resolution' => 'MERCHANT_ACTION',
+            'attribute' => 'title',
+            'reportingContext' => 'SHOPPING_ADS',
+            'description' => 'A title is missing.',
+            'detail' => 'Add a title to the product.',
+            'documentation' => 'https://support.google.com/merchants/answer/example',
+            'applicableCountries' => ['US', 'CA'],
+        ]],
+        'creationDate' => '2026-09-01T10:00:00Z',
+        'lastUpdateDate' => '2026-09-08T12:00:00Z',
+        'googleExpirationDate' => '2026-10-08T12:00:00Z',
+    ],
+];
 ```
 
-With that fixture, the executed example's selected package DTO fields are:
+In the executed fixture, `SampleMerchantCenterTransport` returns that payload
+with HTTP status `200`. This exact product request is passed to the diagnostic
+service:
+
+```php
+use Maatify\Seo\Web\MerchantCenter\DTO\MerchantCenterProductRequestDTO;
+use Maatify\Seo\Web\MerchantCenter\Mapper\MerchantCenterResponseMapper;
+use Maatify\Seo\Web\MerchantCenter\MerchantCenterDiagnosticsService;
+
+$service = new MerchantCenterDiagnosticsService(
+    new SampleMerchantCenterTransport($sampleProviderPayload),
+    new MerchantCenterResponseMapper(),
+);
+$result = $service->getProductDiagnostics(new MerchantCenterProductRequestDTO(
+    name: 'accounts/123/products/en~US~sku123',
+));
+echo json_encode([
+    'productName' => $result->productName,
+    'destinationStatuses' => array_map(
+        static fn ($status): array => [
+            'reportingContext' => $status->reportingContext,
+            'approvedCountries' => $status->approvedCountries,
+            'pendingCountries' => $status->pendingCountries,
+            'disapprovedCountries' => $status->disapprovedCountries,
+        ],
+        $result->destinationStatuses,
+    ),
+    'itemLevelIssues' => array_map(
+        static fn ($issue): array => [
+            'code' => $issue->code,
+            'severity' => $issue->severity,
+            'resolution' => $issue->resolution,
+            'attribute' => $issue->attribute,
+            'description' => $issue->description,
+            'detail' => $issue->detail,
+            'applicableCountries' => $issue->applicableCountries,
+        ],
+        $result->itemLevelIssues,
+    ),
+    'creationDate' => $result->creationDate,
+    'lastUpdateDate' => $result->lastUpdateDate,
+    'googleExpirationDate' => $result->googleExpirationDate,
+], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+```
+
+The following is a selected projection of the mapped DTO returned for that
+request:
 
 ```json
 {
