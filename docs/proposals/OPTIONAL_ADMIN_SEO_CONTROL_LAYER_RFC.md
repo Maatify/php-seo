@@ -1,56 +1,94 @@
 # RFC: Optional Admin SEO Control Layer
 
 **Status:** Proposed
-**Target:** Post v1.0.0 (Future Candidate)
+
 **Type:** Optional Layer
 
-## Problem Statement
+## Current Package Capabilities
 
-The current Maatify SEO library provides admin-facing essentials such as SEO overrides, redirect management, slug history, SERP previews, and social previews. This minimalist approach is intentional and sufficient for the initial `v1.0.0` release, as the package is strictly framework-agnostic. The responsibility of providing the UI, controllers, routes, permissions, and concrete admin panel integrations lies with the host application.
+The current package already provides granular Admin-facing capabilities for SEO
+overrides, redirects, SERP and social preview DTOs, metadata import/export, and
+validation/reporting utilities. The Host owns entity and route lifecycle,
+including slug generation, normalization, uniqueness, history, and old-slug
+lookup; SEO does not require a Slug library. These package services and
+factories return typed values; they do not provide an Admin UI, routes,
+controllers, authentication, authorization, or application workflow. The Host
+application owns those surfaces and decides how package results are presented
+and applied.
 
-However, as applications scale, developers frequently need a unified control layer to manage broader SEO capabilities (e.g., meta tags, canonical URLs, JSON-LD, sitemaps) exposed by the library from within their admin panels. Without an optional, higher-level control layer, each host application must manually wire these underlying library features into their admin interfaces, leading to duplicated effort and potential inconsistencies.
+The canonical [SEO_PACKAGE_REFERENCE.md](../../SEO_PACKAGE_REFERENCE.md)
+describes the current runtime inventory. This RFC does not reclassify existing
+capabilities as future work.
+
+## Proposal
+
+This RFC proposes an optional, higher-level orchestration/control API over the
+package's existing granular capabilities. Its purpose is to let Host
+applications compose related SEO operations through a cohesive service where
+that is useful, while keeping direct use of the current builders, services,
+validators, and Admin utilities available.
 
 ## Goals
 
-*   **Provide an optional, higher-level API:** Create a structured interface (e.g., Service or Facade pattern) that orchestrates the library's granular features (meta tags, open graph, twitter cards, robots, canonical URLs) specifically for admin use cases.
-*   **Simplify Admin Integration:** Make it easier for host applications to build SEO settings pages, edit forms, and bulk-update tools by providing ready-to-use control methods.
-*   **Maintain Framework Agnosticism:** Ensure this new layer remains independent of any specific framework, UI library, routing system, or HTTP request/response cycle.
-*   **Encapsulate Complexity:** Hide the complexity of instantiating multiple builders, presets, and validation helpers behind a cohesive admin-centric API.
-*   **Preserve Current Scope:** Ensure this layer is strictly optional and does not interfere with the core library's usage for those who prefer direct access to the low-level components.
+- Provide an optional higher-level API for coordinating existing metadata,
+  social, canonical, robots, structured-data, sitemap, and validation services.
+- Reduce repeated orchestration code in Host applications that choose to use
+  that API.
+- Preserve framework neutrality and the current package/Host ownership boundary.
+- Keep the layer optional and preserve direct access to existing package
+  capabilities.
 
 ## Non-Goals
 
-*   **No UI or Views:** This RFC will *not* introduce any HTML templates, Vue/React components, or styling.
-*   **No Controllers or Routing:** This layer will *not* provide HTTP controllers, framework-specific routes, or request validation middleware.
-*   **No Permissions/Auth:** Authentication and authorization remain strictly the responsibility of the host application.
-*   **No Active Record / Database Coupling:** The layer will orchestrate data but will not dictate database schemas or ORM models beyond the existing DTO contracts.
-*   **Not Required for v1.0.0:** This is a future enhancement and is explicitly *not* a blocker for the initial release. The current admin layer acceptance criteria remain unchanged.
+- **No UI or views:** Admin screens and presentation remain Host-owned.
+- **No routes or controllers:** Request routing and HTTP delivery remain
+  Host-owned.
+- **No authentication or authorization:** Identity, permissions, and access
+  decisions remain Host-owned.
+- **No framework coupling:** The proposal adds no framework-specific request,
+  response, container, or UI dependency.
+- **No Host lifecycle ownership:** Entity lifecycle, product lifecycle, and
+  application workflow remain Host-owned.
+- The proposed layer does not make current Admin utilities conditional on a
+  future API or replace their existing contracts.
 
 ## Possible Architecture
 
-The Optional Admin SEO Control Layer would sit above the existing `Shared` and `Admin` layers (like `Admin/SeoOverride/`, `Admin/Redirect/`, `Admin/SlugHistory/`).
-
-It might look like a set of Service or Manager classes (e.g., `AdminSeoManager`, `AdminSitemapConfigurator`, `AdminSchemaEditor`) that take input data (likely as arrays or DTOs) from the host application's controllers, use the existing builders and validators, and return structured output or perform orchestration.
+If approved for implementation, the optional layer could sit above the current
+`Shared`, `Admin`, and `Web` services. It could accept package DTOs or mapped
+Host values, coordinate existing operations, and return typed results for the
+Host to present or persist. Its design must preserve the current PDO repository
+and package-owned schema contracts where those are used; it must not require a
+parallel Host ORM implementation.
 
 ## Possible Components
 
-*   **`AdminSeoMetadataManager`:** Centralizes reading and writing (via DTOs) of meta tags, Open Graph, Twitter cards, canonical URLs, and robots directives for a specific entity or route.
-*   **`AdminSitemapConfigurator`:** Provides methods to manage sitemap options (changefreq, priority, active state) for different sections of the site.
-*   **`AdminJsonLdEditor`:** A high-level interface for configuring JSON-LD schemas (e.g., Organization, WebSite) that apply globally or per-entity.
-*   **`AdminSeoValidatorService`:** Wraps the existing validation and reporting helpers (Phase 11) to provide easy-to-consume feedback for admin dashboards or pre-publish checks.
-*   **`AdminSeoImportExportService`:** Orchestrates the import and export of SEO metadata (Phase 19).
+These are proposal examples, not implemented package APIs:
+
+- **`AdminSeoMetadataManager`:** Coordinate existing metadata, social, canonical,
+  and robots operations for an Admin workflow.
+- **`AdminSitemapConfigurator`:** Coordinate current sitemap options and
+  generation services where an application needs a higher-level control API.
+- **`AdminJsonLdEditor`:** Map input into existing JSON-LD builders and return
+  structured output for Host presentation.
+- **`AdminSeoValidatorService`:** Compose current validation and reporting
+  utilities for a Host dashboard or pre-publish workflow.
+- **`AdminSeoImportExportService`:** Coordinate the existing metadata importer
+  and exporter with other selected Admin operations.
 
 ## Open Questions
 
-*   **Data Persistence Interface:** Should this layer introduce generic interfaces for persistence (e.g., `SeoRepositoryInterface`) that the host application must implement, or should it purely transform data and return it to the host application to save?
-*   **Granularity:** Should the manager classes be broken down by feature (Meta, Schema, Sitemap) or by entity type (Global, Page, Product)?
-*   **DTO Mapping:** How can we best streamline the mapping between the host application's data arrays/requests and the library's strict input DTOs?
+- Which operations need a single orchestration service, and which should remain
+  direct calls to the existing granular APIs?
+- Should a future control API coordinate existing package-owned repositories,
+  or return values for the Host to persist through its selected package
+  services?
+- How should Host-specific forms map into the package's typed commands and DTOs
+  without adding request or framework types to the package?
 
 ## Acceptance Criteria
 
-*(To be defined during the implementation phase of this RFC, post v1.0.0)*
-
-*   [ ] The layer is fully optional and does not add new mandatory dependencies.
-*   [ ] The layer contains no framework-specific code (no HTTP request parsing, no routing).
-*   [ ] The layer is documented with clear integration examples for host application controllers.
-*   [ ] All manager classes are strictly typed and covered by standalone tests.
+Acceptance criteria will be defined if this proposal is approved for
+implementation. Any resulting implementation must remain optional, framework
+neutral, strictly typed, documented at the Host integration boundary, and
+covered by the repository's standalone tests.

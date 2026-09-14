@@ -1,53 +1,70 @@
+<div align="center">
+
 # Maatify SEO Library
 
 ![Maatify.dev](https://www.maatify.dev/assets/img/img/maatify_logo_white.svg)
 
+[![Status](https://img.shields.io/badge/Status-Pre--Stable%20%2F%20Development-orange?style=for-the-badge)](SEO_PACKAGE_REFERENCE.md)
+[![PHP](https://img.shields.io/badge/PHP-%5E8.2-777BB4?style=for-the-badge)](composer.json)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+[![PHPStan](https://img.shields.io/badge/PHPStan-Level%20Max-4E8CAE?style=for-the-badge)](docs/CI.md)
+[![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-blueviolet?style=for-the-badge)](https://github.com/Maatify)
+
+[![Changelog](https://img.shields.io/badge/Changelog-View-blue?style=for-the-badge)](CHANGELOG.md)
+[![Package Reference](https://img.shields.io/badge/Package%20Reference-Read-blue?style=for-the-badge)](SEO_PACKAGE_REFERENCE.md)
+[![Security Policy](https://img.shields.io/badge/Security-Policy-blue?style=for-the-badge)](SECURITY.md)
+[![Contributing Guide](https://img.shields.io/badge/Contributing-Guide-blue?style=for-the-badge)](CONTRIBUTING.md)
+
+Framework-agnostic SEO tools for PHP: metadata, structured data, sitemaps, validation, and host-integrated persistence.
+
+</div>
+
 ---
 
-[![Latest Version](https://img.shields.io/packagist/v/maatify/seo?style=for-the-badge)](https://packagist.org/packages/maatify/seo)
-[![PHP Version](https://img.shields.io/packagist/php-v/maatify/seo?style=for-the-badge)](https://packagist.org/packages/maatify/seo)
-[![License](https://img.shields.io/packagist/l/maatify/seo?style=for-the-badge)](https://packagist.org/packages/maatify/seo)
+## Package Summary
 
-![PHPStan](https://img.shields.io/badge/PHPStan-Level%20Max-4E8CAE)
+`maatify/php-seo` is a standalone PHP library that builds SEO metadata and structured output for a host application. It provides framework-neutral builders, validators, renderers, service contracts, and PDO adapters for its own SEO tables. The host owns HTTP routing and responses, its entities and application data, credentials, and delivery decisions.
 
-[![Changelog](https://img.shields.io/badge/Changelog-View-blue)](CHANGELOG.md)
-[![Security](https://img.shields.io/badge/Security-Policy-important)](SECURITY.md)
+The Host also owns entity URLs and the full slug lifecycle: generation, normalization, uniqueness, current values, history, and old-slug lookup. SEO does not require a Slug library; it can receive an optional Host-provided slug only as an input to `HostUrlGeneratorInterface`. If a Host uses a separate Slug library, the Host or an adapter connects it to SEO.
 
-![Monthly Downloads](https://img.shields.io/packagist/dm/maatify/seo?label=Monthly%20Downloads&color=00A8E8)
-![Total Downloads](https://img.shields.io/packagist/dt/maatify/seo?label=Total%20Downloads&color=2AA9E0)
+The package is **Pre-Stable / Development** and is being prepared for a corrected SemVer Release Candidate lifecycle. This status does not claim that a corrected RC or Stable release has been published.
 
-![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-blueviolet?style=for-the-badge)
+## Key Features
 
-[![Install](https://img.shields.io/badge/Install-composer%20require-blue?style=for-the-badge)](https://packagist.org/packages/maatify/seo)
-
-A framework-agnostic PHP SEO library for metadata generation, JSON-LD schemas, sitemaps, hreflang, redirects, slug history, validation, and admin-oriented SEO tooling.
-
-## Table of Contents
-
-- [Installation](#installation)
-- [Requirements](#requirements)
-- [Quick Start](#quick-start)
-- [Features](#features)
-- [Practical Examples](#practical-examples)
-- [Architecture Overview](#architecture-overview)
-- [Documentation](#documentation)
-- [Design Principles](#design-principles)
-- [License](#license)
-
-## Installation
-
-```bash
-composer require maatify/seo
-```
+- Create metadata, canonical links, hreflang links, robots directives, HTML head output, and sitemap XML strings.
+- Build Schema.org-oriented JSON-LD through typed builders. Validation is scoped; generation does not establish complete Schema.org validation or Google Rich Results or Merchant eligibility.
+- Generate sitemap data and XML through base/strict DTO fields; provider/profile validation boundaries remain separate from generic generation.
+- Validate SEO metadata and selected protocol/profile boundaries, with reports, scores, and exports.
+- Use package-owned PDO repositories and schemas for redirects and SEO overrides. The host supplies PDO and connection configuration; the package ships concrete PDO repositories and its own schemas.
+- Generate Open Graph and Twitter Card compatibility output; Twitter/X provider conformance was not source-verified.
+- Integrate optional Search Console and Merchant Center transport contracts while keeping HTTP, OAuth, credentials, and network behavior in the host.
+- Use optional `spatie/schema-org` adaptation when that integration is needed.
 
 ## Requirements
 
-- PHP >= 8.2
-- `ext-xmlwriter`
+- PHP `^8.2`
+- PHP extensions: `ext-json`, `ext-pdo`, and `ext-xmlwriter`
+- Runtime package: `maatify/exceptions ^1.0`
+- Optional integration: `spatie/schema-org`
+- The persistence adapters use MySQL-compatible schemas through PDO. CI's MySQL `8.4.11` image is a reproducibility fixture, not a declared minimum supported MySQL version.
 
-## Quick Start
+## Installation and Current Access
 
-Creating a basic page metadata output and rendering it using existing public APIs:
+The Composer identity is `maatify/php-seo`. The repository is currently in Pre-Stable / Development. As of 2026-09-13, Packagist has no record for this identity, and no other external Composer distribution has been verified. Therefore, no public `composer require` command is provided yet.
+
+To work from the repository checkout:
+
+```bash
+git clone https://github.com/Maatify/php-seo.git
+cd php-seo
+composer update --no-interaction --prefer-dist --no-progress
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/CI.md](docs/CI.md) for local setup and verification requirements.
+
+## Quick Usage
+
+Create metadata and render the HTML head output through the public runtime API:
 
 ```php
 use Maatify\Seo\Shared\DTO\MetaTagsDTO;
@@ -55,10 +72,10 @@ use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
 
 $metaTags = new MetaTagsDTO(
     title: 'About Us',
-    description: 'Learn more about our framework-agnostic SEO library.',
+    description: 'Learn more about our website.',
     canonicalUrl: 'https://example.com/about',
     openGraphTitle: 'About Us',
-    openGraphDescription: 'Learn more about our framework-agnostic SEO library.',
+    openGraphDescription: 'Learn more about our website.',
     openGraphUrl: 'https://example.com/about',
     openGraphType: 'website',
 );
@@ -67,82 +84,47 @@ $renderer = new SeoHeadHtmlRenderer();
 echo $renderer->render($metaTags);
 ```
 
-## Features
-
-- **Metadata generation:** Easily construct standard HTML meta tags and canonical URLs.
-- **JSON-LD schemas:** Generic Schema.org structured-data generation for SEO (e.g., Breadcrumbs, Products, ProductGroup, AggregateOffer) via fluent builders. Current validation is scoped structural and property-range semantic validation for selected types; generation does not establish Google Rich Results or Merchant eligibility.
-- **Social metadata:** Generate Open Graph and Twitter Card compatibility output. Open Graph behavior is covered by the current protocol documentation; Twitter/X provider conformance was not source-verified by the architecture audit and remains a separate future review boundary.
-- **Sitemap XML:** In-memory URL-set and sitemap-index XML strings from typed DTOs and supported raw URL arrays, with strict URL/date/frequency/priority validation for the applicable base/strict DTO fields.
-- **Extended sitemap data:** Hreflang alternates including `x-default`, plus image, video, and news child elements are supported by the strict-DTO generator and Web string renderers. Their provider/profile validation boundaries are separate from generic generation; DTO URL output is serialized through the same canonical XML path.
-- **Host-owned output:** Renderers return XML strings; the host application owns routes, headers, HTTP responses, and any persistence or delivery strategy.
-- **Redirects and slug history:** Logic to manage URL migrations and legacy paths cleanly.
-- **SEO validation and scoring:** Audit generated SEO metadata arrays or objects to warn about missing fields, conflicts, and compute actionable SEO scores.
-- **Optional Search Console verification:** Inspect Google's indexed result through typed provider contracts while keeping transport, OAuth, and credentials in the host application and separate from core validation.
-- **Import/export:** SEO metadata import and export functionality for administrative portability.
-- **Admin tooling:** Admin-specific commands and queries for managing SEO overrides, tracking slug history, and SERP/Social previews.
-- **Framework-agnostic architecture:** 100% PHP domain logic with zero framework or UI dependencies, ready to drop into any stack.
-
-## Practical Examples
-
-To see how the library functions in real-world scenarios, you can run the following standalone examples from the command line:
-
-- `php examples/admin-previews.php`: Generate SERP and Social previews for admin interfaces.
-- `php examples/basic-head-render.php`: Rendering of standard meta tags and array-based JSON-LD.
-- `php examples/category-page-seo.php`: Construct schema and metadata for category pages using FluentSeoBuilder.
-- `php examples/hreflang-generation.php`: Hreflang link generation for multi-language indexing.
-- `php examples/import-export.php`: SEO metadata import and export functionalities.
-- `php examples/meta-robots-canonical.php`: Construct meta robots tags and canonical URLs.
-- `php examples/product-page-seo.php`: Open graph tags and schema generation for product pages.
-- `php examples/schema-output.php`: Outputs structured data schemas from arrays, DTOs, and adapted optional Spatie objects.
-- `php examples/seo-page-presets.php`: Generic, e-commerce, content, and local business SEO page presets.
-- `php examples/sitemap-output.php`: Native sitemap XML outputs using provided DTOs and renderers.
-- `php examples/social-builders.php`: OpenGraph and TwitterCard builders to generate social metadata.
-- `php examples/phase13o-product-advanced.php`: Demonstrates advanced product structured data using typed composition (Product, Offer, AggregateOffer, ProductGroup).
-- `php examples/phase7-output-showcase.php`: Showcases rendered SEO head output helpers and DTO output sections.
-- `php examples/phase13-jsonld-builders.php`: Demonstrates the JSON-LD builder suite across supported schema types.
-- `php examples/robots-output.php`: Renders a representative `robots.txt` with user-agent rules, allow/disallow paths, a non-standard crawler `crawl-delay` extension, comments, and a sitemap URL.
-- `php examples/seo-validation.php`: Runs page SEO validation and scoring, then exports a terminal-readable report with status, score, grade, and findings.
-- `php examples/product-seo-audit.php`: Audits representative Product metadata and Product JSON-LD through the existing validation pipeline, including structured-data findings.
-- `php examples/redirect-slug-history.php`: Demonstrates an in-memory slug-history change, optional redirect creation, legacy-slug resolution, and the final redirect decision with target URL.
-- `php examples/seo-override-meta-generation.php`: Demonstrates SEO override creation/query, manual metadata application, default fallback, and canonical URL resolution.
-- `php examples/seo-page-render.php`: Demonstrates `RenderSeoPageCommand` to `SeoPageRenderService` to `SeoPagePayloadDTO` orchestration for metadata and a JSON-LD graph.
-
-## Architecture Overview
-
-The library follows a strict layered architecture to ensure clean separation of concerns and maximum portability.
-
-**Core Library**
-↓
-**Admin Essentials**
-↓
-**Host Application**
-
-- **No Controllers:** Routing decisions are strictly the host application's responsibility.
-- **No UI:** The library provides raw strings, arrays, or DTOs. Any HTML rendering is purely optional utility output, avoiding template engine coupling.
-- **No Framework Dependency:** Built with standard PHP, using generic contracts (interfaces) to integrate with frameworks.
-- **No ORM Dependency:** Database interactions are defined by abstract repositories, allowing the host application to use Doctrine, Eloquent, or native PDO.
+The host decides how to deliver the returned output. The [usage guide](docs/guides/USAGE_GUIDE.md) includes a capability decision map and executed output examples; the [integration guide](docs/guides/INTEGRATION_GUIDE.md) explains Host wiring, and the [Package Reference](SEO_PACKAGE_REFERENCE.md) remains the canonical contract.
 
 ## Documentation
 
-Use the [official documentation index](docs/README.md) to navigate the repository
-and understand which documents are current normative guidance, historical evidence,
-audit authority, or future planning material.
+- [Documentation index](docs/README.md)
+- [Canonical package reference](SEO_PACKAGE_REFERENCE.md)
+- [Usage guide](docs/guides/USAGE_GUIDE.md)
+- [Integration guide](docs/guides/INTEGRATION_GUIDE.md)
+- [CI operations and local verification](docs/CI.md)
+- [Engineering handbook](docs/SEO/library/README.md)
+- [Changelog](CHANGELOG.md)
+- [Security policy](SECURITY.md)
+- [Contributing guide](CONTRIBUTING.md)
 
-The current normative entry points are the [engineering handbook](docs/SEO/library/README.md),
-[library reference](docs/SEO_LIBRARY_REFERENCE.md), [usage guide](docs/guides/USAGE_GUIDE.md),
-and [integration guide](docs/guides/INTEGRATION_GUIDE.md). Phase records, verification
-reports, completed work-unit blueprints, roadmaps, and proposals remain linked from
-the documentation index for context and evidence.
+## Quality Status
 
-## Design Principles
+The repository configures these verification gates:
 
-This library strictly adheres to Maatify's core design standards for standalone libraries:
+- Standalone test matrix on PHP 8.2, 8.3, 8.4, and 8.5.
+- PHPStan level max over `src` and `tests`.
+- Strict Composer validation, platform requirement checks, compatible dependency resolution, Composer security and abandoned-package audit, and lowest dependencies on PHP 8.2.
+- Real MySQL persistence Integration, including PHP 8.2/current dependencies, PHP 8.5/current dependencies, and PHP 8.2/lowest dependencies.
+- Consumer Verification Harness on PHP 8.2 and PHP 8.5.
+- GitHub Actions workflow lint and the terminal required check, `CI Gate`.
 
-- **Host-Agnostic:** Designed to plug into any existing PHP project using standardized interface definitions.
-- **Pure Domain Logic:** Excludes any coupling to HTTP requests, global `$_SERVER` states, or environment `.env` files.
-- **Testable:** Easily unit tested via straightforward constructor injection.
-- **Extensible:** Internal Builders and Services are composed, allowing developers to inject custom overrides via Dependency Injection.
+These are configured checks. Their presence does not establish that a particular CI run passed, that a corrected RC is published, or that the package is eligible for Stable release.
 
 ## License
 
-This package is open-sourced software licensed under the [MIT license](LICENSE).
+This package is licensed under the [MIT License](LICENSE).
+
+## 👤 Author
+
+Engineered by **Mohamed Abdulalim** ([@megyptm](https://github.com/megyptm))<br>
+Backend Lead & Technical Architect<br>
+[https://www.maatify.dev](https://www.maatify.dev)
+
+---
+
+<div align="center">
+
+[Built with ❤️ by Maatify.dev — Unified Ecosystem for Modern PHP Libraries](https://www.maatify.dev)
+
+</div>

@@ -2,17 +2,7 @@
 
 declare(strict_types=1);
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
-
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Exception\SeoExceptionInterface;
 use Maatify\Seo\Exception\SeoInvalidArgumentException;
@@ -24,7 +14,7 @@ use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
 use Maatify\Seo\Web\Schema\SpatieSchemaAdapter;
 use Maatify\Seo\Web\Sitemap\SitemapXmlStringRenderer;
 
-function assertSameValue(string $label, mixed $expected, mixed $actual): void
+function testPhase7ESitemapXmlStringRendererTestAssertSameValue(string $label, mixed $expected, mixed $actual): void
 {
     if ($expected !== $actual) {
         fwrite(STDERR, "Assertion failed: {$label}\nExpected:\n" . var_export($expected, true) . "\nActual:\n" . var_export($actual, true) . "\n");
@@ -32,7 +22,7 @@ function assertSameValue(string $label, mixed $expected, mixed $actual): void
     }
 }
 
-function assertTrueValue(string $label, bool $actual): void
+function testPhase7ESitemapXmlStringRendererTestAssertTrueValue(string $label, bool $actual): void
 {
     if (!$actual) {
         fwrite(STDERR, "Assertion failed: {$label}\n");
@@ -40,12 +30,12 @@ function assertTrueValue(string $label, bool $actual): void
     }
 }
 
-function assertThrowsSeoException(string $label, callable $callback): void
+function testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException(string $label, callable $callback): void
 {
     try {
         $callback();
     } catch (SeoExceptionInterface $exception) {
-        assertTrueValue($label . ' uses invalid argument exception', $exception instanceof SeoInvalidArgumentException);
+        testPhase7ESitemapXmlStringRendererTestAssertTrueValue($label . ' uses invalid argument exception', $exception instanceof SeoInvalidArgumentException);
         return;
     } catch (RuntimeException $exception) {
         fwrite(STDERR, "Assertion failed: {$label}\nUnexpected raw RuntimeException: {$exception->getMessage()}\n");
@@ -81,21 +71,21 @@ $secondUrl = [
     'priority' => '0.5',
 ];
 
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'full sitemap XML output supports DTO and array entries',
     $xmlHeader
     . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.com/articles/one</loc><lastmod>2026-07-01</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>https://example.com/articles/two</loc><lastmod>2026-07-02T10:00:00+00:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url></urlset>' . "\n",
     $renderer->renderUrlSet([$firstUrl, $secondUrl]),
 );
 
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'single URL entry renders as plain XML string',
     $xmlHeader
     . '<url><loc>https://example.com/articles/one</loc><lastmod>2026-07-01</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>' . "\n",
     $renderer->renderUrlEntry($firstUrl),
 );
 
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'multiple URL entries preserve input ordering deterministically',
     $xmlHeader
     . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.com/b</loc></url><url><loc>https://example.com/a</loc></url></urlset>' . "\n",
@@ -105,7 +95,7 @@ assertSameValue(
     ]),
 );
 
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'XML special characters in a valid URL are escaped safely',
     $xmlHeader
     . '<url><loc>https://example.com/search?q=seo&amp;name=tag</loc><lastmod>2026-07-01T10:00:00+00:00</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>' . "\n",
@@ -117,7 +107,7 @@ assertSameValue(
     ]),
 );
 
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'null and empty optional fields are omitted safely',
     $xmlHeader
     . '<url><loc>https://example.com/minimal</loc></url>' . "\n",
@@ -129,7 +119,7 @@ assertSameValue(
     ]),
 );
 
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'raw array priority lower boundary remains valid',
     $xmlHeader
     . '<url><loc>https://example.com/priority-zero</loc><priority>0.0</priority></url>' . "\n",
@@ -139,7 +129,7 @@ assertSameValue(
     ]),
 );
 
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'raw array priority upper boundary remains valid',
     $xmlHeader
     . '<url><loc>https://example.com/priority-one</loc><priority>1.0</priority></url>' . "\n",
@@ -149,18 +139,18 @@ assertSameValue(
     ]),
 );
 
-assertThrowsSeoException('typed NAN priority throws module exception', static fn() => new SitemapUrlDTO(
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('typed NAN priority throws module exception', static fn() => new SitemapUrlDTO(
     'https://example.com/nan-typed-priority',
     priority: NAN,
 ));
 
-assertThrowsSeoException('raw array NAN priority throws module exception', static fn() => $renderer->renderUrlEntry([
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('raw array NAN priority throws module exception', static fn() => $renderer->renderUrlEntry([
     'loc' => 'https://example.com/nan-raw-priority',
     'priority' => NAN,
 ]));
 
 foreach (SitemapUrlDTO::allowedChangefreqValues() as $changefreq) {
-    assertTrueValue(
+    testPhase7ESitemapXmlStringRendererTestAssertTrueValue(
         'raw array allowed changefreq remains valid: ' . $changefreq,
         str_contains(
             $renderer->renderUrlEntry([
@@ -172,7 +162,7 @@ foreach (SitemapUrlDTO::allowedChangefreqValues() as $changefreq) {
     );
 }
 
-assertTrueValue(
+testPhase7ESitemapXmlStringRendererTestAssertTrueValue(
     'raw array entry with all child collections remains compatible',
     (static function () use ($renderer): bool {
         $xml = $renderer->renderUrlEntry([
@@ -204,89 +194,89 @@ assertTrueValue(
     })(),
 );
 
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'empty URL set renders safely',
     $xmlHeader
     . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"/>' . "\n",
     $renderer->renderUrlSet([]),
 );
 
-assertThrowsSeoException('invalid URL entry throws existing module exception style', static function () use ($renderer): void {
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('invalid URL entry throws existing module exception style', static function () use ($renderer): void {
     $renderer->renderUrlEntry(['lastmod' => '2026-07-01']);
 });
 
-assertThrowsSeoException('invalid raw array loc throws existing module exception style', static function () use ($renderer): void {
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('invalid raw array loc throws existing module exception style', static function () use ($renderer): void {
     $renderer->renderUrlEntry(['loc' => 'not-a-url']);
 });
 
-assertThrowsSeoException('invalid raw array date-only lastmod throws module exception', static function () use ($renderer): void {
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('invalid raw array date-only lastmod throws module exception', static function () use ($renderer): void {
     $renderer->renderUrlEntry([
         'loc' => 'https://example.com/invalid-date',
         'lastmod' => '2026-02-31',
     ]);
 });
 
-assertThrowsSeoException('invalid raw array calendar ATOM lastmod throws module exception', static function () use ($renderer): void {
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('invalid raw array calendar ATOM lastmod throws module exception', static function () use ($renderer): void {
     $renderer->renderUrlEntry([
         'loc' => 'https://example.com/invalid-atom-date',
         'lastmod' => '2026-02-31T10:00:00+00:00',
     ]);
 });
 
-assertThrowsSeoException('invalid raw array changefreq throws module exception', static function () use ($renderer): void {
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('invalid raw array changefreq throws module exception', static function () use ($renderer): void {
     $renderer->renderUrlEntry([
         'loc' => 'https://example.com/invalid-changefreq',
         'changefreq' => 'invalid',
     ]);
 });
 
-assertThrowsSeoException('negative raw array priority throws module exception', static function () use ($renderer): void {
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('negative raw array priority throws module exception', static function () use ($renderer): void {
     $renderer->renderUrlEntry([
         'loc' => 'https://example.com/negative-priority',
         'priority' => -0.1,
     ]);
 });
 
-assertThrowsSeoException('raw array priority above one throws module exception', static function () use ($renderer): void {
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('raw array priority above one throws module exception', static function () use ($renderer): void {
     $renderer->renderUrlEntry([
         'loc' => 'https://example.com/high-priority',
         'priority' => 1.1,
     ]);
 });
 
-assertThrowsSeoException('raw array priority above one integer throws module exception', static function () use ($renderer): void {
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('raw array priority above one integer throws module exception', static function () use ($renderer): void {
     $renderer->renderUrlEntry([
         'loc' => 'https://example.com/high-integer-priority',
         'priority' => 2,
     ]);
 });
 
-assertThrowsSeoException('non-numeric raw array priority throws module exception', static function () use ($renderer): void {
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('non-numeric raw array priority throws module exception', static function () use ($renderer): void {
     $renderer->renderUrlEntry([
         'loc' => 'https://example.com/non-numeric-priority',
         'priority' => 'not-a-number',
     ]);
 });
 
-assertThrowsSeoException('non-array non-DTO URL entry throws existing module exception style', static function () use ($renderer): void {
+testPhase7ESitemapXmlStringRendererTestAssertThrowsSeoException('non-array non-DTO URL entry throws existing module exception style', static function () use ($renderer): void {
     $renderer->renderUrlEntry('https://example.com/raw-string');
 });
 
 $generatorOutput = (new SitemapGeneratorService())->generateUrlSitemap([$firstUrl])->xml;
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'existing sitemap generator behavior remains unchanged',
     $xmlHeader
     . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.com/articles/one</loc><lastmod>2026-07-01</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url></urlset>' . "\n",
     $generatorOutput,
 );
 
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'existing Phase 7A renderer behavior remains unchanged',
     '<script type="application/ld+json">{"@type":"WebPage"}</script>',
     (new JsonLdScriptRenderer())->render(['@type' => 'WebPage']),
 );
 
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'existing Phase 7C fluent builder behavior remains unchanged',
     '<title>Phase 7E check</title>' . "\n"
     . '<meta name="robots" content="index,follow">' . "\n"
@@ -297,7 +287,7 @@ assertSameValue(
         ->render(new SeoHeadHtmlRenderer()),
 );
 
-assertSameValue(
+testPhase7ESitemapXmlStringRendererTestAssertSameValue(
     'existing Phase 7D Spatie adapter behavior remains unchanged',
     ['@type' => 'Article', 'headline' => 'Phase 7E unchanged'],
     (new SpatieSchemaAdapter())->toJsonLdSchemaDTO(new Phase7EFakeSpatieSchema())->jsonSerialize(),

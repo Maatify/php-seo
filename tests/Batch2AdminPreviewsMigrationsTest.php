@@ -2,12 +2,7 @@
 
 declare(strict_types=1);
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) return;
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) require_once $path;
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Admin\DTO\SeoMetadataImportResultDTO;
 use Maatify\Seo\Admin\DTO\SerpPreviewDTO;
@@ -19,11 +14,10 @@ use Maatify\Seo\Admin\Preview\SocialPreviewFactory;
 use Maatify\Seo\Shared\DTO\MetaTagsDTO;
 use Maatify\Seo\Shared\DTO\RedirectDTO;
 use Maatify\Seo\Shared\DTO\SeoOverride\SeoOverrideDTO;
-use Maatify\Seo\Shared\DTO\SlugHistoryDTO;
 use Maatify\Seo\Web\Page\SeoPagePresetOutputDTO;
 
-$failures = 0;
-function ok(bool $value, string $message): void { global $failures; if (!$value) { $failures++; echo "FAIL: $message\n"; } }
+final class Batch2TestFailureCounter { public static int $count = 0; }
+function ok(bool $value, string $message): void { if (!$value) { Batch2TestFailureCounter::$count++; echo "FAIL: $message\n"; } }
 function same(mixed $expected, mixed $actual, string $message): void { ok($expected === $actual, $message); }
 
 echo "Running Batch 2 Admin Previews & Migrations Tests...\n\n";
@@ -44,11 +38,11 @@ same('OG Title', SocialPreviewFactory::fromPreset($preset, 'Example')->title, 'S
 $exporter = new SeoMetadataExporter();
 $export = $exporter->export(
     [new SeoOverrideDTO(1, 'product', '10', 1, 'Meta', 'Desc', '2026-01-01', '2026-01-01', null)],
-    [new RedirectDTO(1, 'product', 1, 'old', 'product', '10', 301, '2026-01-01', null)],
-    [new SlugHistoryDTO(1, 'product', '10', 1, 'old', '2026-01-01', null)]
+    [new RedirectDTO(1, 'product', 1, 'old', 'product', '10', 301, '2026-01-01', null)]
 );
-same('1.0', $export->toArray()['schema_version'], 'Exporter produces versioned output');
+same('2.0', $export->toArray()['schema_version'], 'Exporter produces the current versioned output');
 same(1, count($export->toArray()['data']['redirects']), 'Exporter includes redirects');
+same(['seo_overrides', 'redirects'], array_keys($export->toArray()['data']), 'Exporter includes only SEO overrides and redirects');
 $json = $exporter->toJson($export);
 ok(json_decode($json, true) !== null, 'Exporter JSON output is valid');
 
@@ -56,14 +50,14 @@ $importer = new SeoMetadataImporter();
 $bad = $importer->importArray(['schema_version' => 'bad']);
 ok($bad->failed > 0 && $bad->errors !== [], 'Importer validates malformed payloads');
 $dryRun = $importer->importArray($export->toArray(), true);
-same(3, $dryRun->created, 'Importer dry-run counts all importable rows without persistence');
+same(2, $dryRun->created, 'Importer dry-run counts only SEO override and redirect rows');
 same(true, $dryRun->dryRun, 'Importer dry-run flag is preserved');
 $result = new SeoMetadataImportResultDTO(1, 2, 3, 4, ['err'], true);
 same(2, $result->toArray()['updated'], 'Import result DTO serializes updated count');
 
 $source = file_get_contents(__DIR__ . '/../src/Admin/Export/SeoMetadataExporter.php') . file_get_contents(__DIR__ . '/../src/Admin/Import/SeoMetadataImporter.php');
-ok(is_string($source) && !str_contains($source, 'Illuminate\\') && !str_contains($source, 'Symfony\\') && !str_contains($source, 'Response'), 'Admin migration helpers have no framework/HTTP coupling strings');
+ok(testRuntimeIsString($source) && !str_contains($source, 'Illuminate\\') && !str_contains($source, 'Symfony\\') && !str_contains($source, 'Response'), 'Admin migration helpers have no framework/HTTP coupling strings');
 
 echo "\n";
-if ($failures > 0) { echo "FAILED with $failures errors.\n"; exit(1); }
+if (Batch2TestFailureCounter::$count > 0) { echo "FAILED with " . Batch2TestFailureCounter::$count . " errors.\n"; exit(1); }
 echo "SUCCESS: All tests passed.\n"; exit(0);

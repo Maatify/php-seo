@@ -1,46 +1,22 @@
 # Security Policy
 
-[![Maatify Security Guard](https://img.shields.io/badge/Maatify-SEO-blue?style=for-the-badge)](https://github.com/Maatify/security-guard)
+[![Maatify SEO](https://img.shields.io/badge/Maatify-SEO-blue?style=for-the-badge)](https://github.com/Maatify/php-seo)
 [![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-9C27B0?style=for-the-badge)](https://github.com/Maatify)
 
 ## Supported Versions
 
-The following versions of **Maatify SEO Library** are currently supported with security updates.
+Maatify SEO is currently in **Pre-Stable / Development**. There is no declared supported Stable release line at this time. A historical RC tag or GitHub release does not establish a Stable release or a Stable support line.
 
-| Version | Supported |
-|---------|-----------|
-| 1.x     | ✅ Yes     |
-| < 1.0   | ❌ No      |
-
----
+Security reports are still accepted during pre-stable development. A future Stable support line will be listed only after the required release lifecycle has completed and the project has declared that line supported.
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in this project, please report it responsibly.
+Please do not open a public GitHub issue for a security vulnerability. Report it privately to:
 
-Please **DO NOT open a public GitHub issue** for security vulnerabilities.
+**support@maatify.com**
 
-Instead, report it privately via email:
+Include a description, reproduction steps, potential impact, and suggested mitigation when available. The maintainers will acknowledge the report and coordinate investigation and disclosure.
 
-support@maatify.com
+## Disclosure
 
-Include the following information when possible:
-
-- Description of the vulnerability
-- Steps to reproduce
-- Potential impact
-- Suggested mitigation, if available
-
-We will acknowledge receipt of your report as soon as possible and work to address the issue.
-
----
-
-## Disclosure Policy
-
-Once a vulnerability is confirmed:
-
-1. A fix will be prepared and tested.
-2. A patched version will be released.
-3. Security advisories will be published when appropriate.
-
-We appreciate responsible disclosure that helps keep the ecosystem safe.
+Confirmed reports will be assessed and addressed through an appropriate fix and disclosure plan. Public details will be shared when doing so is safe for users and the project.

@@ -1,18 +1,13 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase13CArticleJsonLdBuilderTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
 
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Web\JsonLd\Builder\JsonLdBuilderInterface;
 use Maatify\Seo\Web\JsonLd\Builder\ArticleJsonLdBuilder;
@@ -34,7 +29,7 @@ function assertTrueValue13C(string $label, bool $actual): void
 }
 
 $builder = new ArticleJsonLdBuilder();
-assertTrueValue13C('article builder implements builder interface', $builder instanceof JsonLdBuilderInterface);
+assertTrueValue13C('article builder implements builder interface', phpstanRuntimeInstanceOfPhase13CArticleJsonLdBuilderTest($builder, JsonLdBuilderInterface::class));
 assertSameValue13C('article builder seeds schema.org article defaults', [
     '@context' => 'https://schema.org',
     '@type' => 'Article',

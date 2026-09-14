@@ -1,18 +1,13 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase7CFluentSeoBuilderTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
 
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Exception\SeoExceptionInterface;
 use Maatify\Seo\Exception\SeoInvalidArgumentException;
@@ -22,7 +17,7 @@ use Maatify\Seo\Web\Builder\FluentSeoBuilder;
 use Maatify\Seo\Web\DTO\SeoHeadHtmlDTO;
 use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
 
-function assertSameValue(string $label, mixed $expected, mixed $actual): void
+function testPhase7CFluentSeoBuilderTestAssertSameValue(string $label, mixed $expected, mixed $actual): void
 {
     if ($expected !== $actual) {
         fwrite(STDERR, "Assertion failed: {$label}\nExpected:\n" . var_export($expected, true) . "\nActual:\n" . var_export($actual, true) . "\n");
@@ -30,7 +25,7 @@ function assertSameValue(string $label, mixed $expected, mixed $actual): void
     }
 }
 
-function assertTrueValue(string $label, bool $actual): void
+function testPhase7CFluentSeoBuilderTestAssertTrueValue(string $label, bool $actual): void
 {
     if (!$actual) {
         fwrite(STDERR, "Assertion failed: {$label}\n");
@@ -38,12 +33,12 @@ function assertTrueValue(string $label, bool $actual): void
     }
 }
 
-function assertThrowsSeoException(string $label, callable $callback): void
+function testPhase7CFluentSeoBuilderTestAssertThrowsSeoException(string $label, callable $callback): void
 {
     try {
         $callback();
     } catch (SeoExceptionInterface $exception) {
-        assertTrueValue($label . ' uses invalid argument exception', $exception instanceof SeoInvalidArgumentException);
+        testPhase7CFluentSeoBuilderTestAssertTrueValue($label . ' uses invalid argument exception', $exception instanceof SeoInvalidArgumentException);
         return;
     }
 
@@ -58,14 +53,14 @@ $metaTags = (new FluentSeoBuilder())
     ->robots('noindex,nofollow')
     ->buildMetaTags();
 
-assertTrueValue('buildMetaTags returns MetaTagsDTO', $metaTags instanceof MetaTagsDTO);
-assertSameValue('title is mapped', 'Fluent Title', $metaTags->title);
-assertSameValue('description is mapped', 'Fluent description', $metaTags->description);
-assertSameValue('canonical is mapped', 'https://example.com/fluent', $metaTags->canonicalUrl);
-assertSameValue('robots is mapped', 'noindex,nofollow', $metaTags->robots);
+testPhase7CFluentSeoBuilderTestAssertTrueValue('buildMetaTags returns MetaTagsDTO', phpstanRuntimeInstanceOfPhase7CFluentSeoBuilderTest($metaTags, MetaTagsDTO::class));
+testPhase7CFluentSeoBuilderTestAssertSameValue('title is mapped', 'Fluent Title', $metaTags->title);
+testPhase7CFluentSeoBuilderTestAssertSameValue('description is mapped', 'Fluent description', $metaTags->description);
+testPhase7CFluentSeoBuilderTestAssertSameValue('canonical is mapped', 'https://example.com/fluent', $metaTags->canonicalUrl);
+testPhase7CFluentSeoBuilderTestAssertSameValue('robots is mapped', 'noindex,nofollow', $metaTags->robots);
 
 $defaultRobots = (new FluentSeoBuilder())->title('Default robots')->buildMetaTags();
-assertSameValue('robots defaults to index,follow', 'index,follow', $defaultRobots->robots);
+testPhase7CFluentSeoBuilderTestAssertSameValue('robots defaults to index,follow', 'index,follow', $defaultRobots->robots);
 
 $socialMetaTags = (new FluentSeoBuilder())
     ->title('Social Title')
@@ -80,15 +75,15 @@ $socialMetaTags = (new FluentSeoBuilder())
     ->twitterImage('https://example.com/twitter.jpg')
     ->buildMetaTags();
 
-assertSameValue('OpenGraph title is mapped', 'OG Title', $socialMetaTags->openGraphTitle);
-assertSameValue('OpenGraph description is mapped', 'OG Description', $socialMetaTags->openGraphDescription);
-assertSameValue('OpenGraph type is mapped', 'article', $socialMetaTags->openGraphType);
-assertSameValue('OpenGraph url is mapped', 'https://example.com/og', $socialMetaTags->openGraphUrl);
-assertSameValue('OpenGraph image is mapped', 'https://example.com/og.jpg', $socialMetaTags->openGraphImage);
-assertSameValue('Twitter card is mapped', 'summary_large_image', $socialMetaTags->twitterCard);
-assertSameValue('Twitter title is mapped', 'Twitter Title', $socialMetaTags->twitterTitle);
-assertSameValue('Twitter description is mapped', 'Twitter Description', $socialMetaTags->twitterDescription);
-assertSameValue('Twitter image is mapped', 'https://example.com/twitter.jpg', $socialMetaTags->twitterImage);
+testPhase7CFluentSeoBuilderTestAssertSameValue('OpenGraph title is mapped', 'OG Title', $socialMetaTags->openGraphTitle);
+testPhase7CFluentSeoBuilderTestAssertSameValue('OpenGraph description is mapped', 'OG Description', $socialMetaTags->openGraphDescription);
+testPhase7CFluentSeoBuilderTestAssertSameValue('OpenGraph type is mapped', 'article', $socialMetaTags->openGraphType);
+testPhase7CFluentSeoBuilderTestAssertSameValue('OpenGraph url is mapped', 'https://example.com/og', $socialMetaTags->openGraphUrl);
+testPhase7CFluentSeoBuilderTestAssertSameValue('OpenGraph image is mapped', 'https://example.com/og.jpg', $socialMetaTags->openGraphImage);
+testPhase7CFluentSeoBuilderTestAssertSameValue('Twitter card is mapped', 'summary_large_image', $socialMetaTags->twitterCard);
+testPhase7CFluentSeoBuilderTestAssertSameValue('Twitter title is mapped', 'Twitter Title', $socialMetaTags->twitterTitle);
+testPhase7CFluentSeoBuilderTestAssertSameValue('Twitter description is mapped', 'Twitter Description', $socialMetaTags->twitterDescription);
+testPhase7CFluentSeoBuilderTestAssertSameValue('Twitter image is mapped', 'https://example.com/twitter.jpg', $socialMetaTags->twitterImage);
 
 $renderer = new SeoHeadHtmlRenderer();
 $schemaDto = new JsonLdSchemaDTO(['@type' => 'WebPage', 'name' => 'DTO Schema']);
@@ -109,15 +104,15 @@ $expectedSchemas = [
     new JsonLdSchemaDTO(['@type' => 'Organization', 'name' => 'Array Schema']),
 ];
 
-assertSameValue(
+testPhase7CFluentSeoBuilderTestAssertSameValue(
     'render returns the same output as SeoHeadHtmlRenderer',
     $renderer->render($expectedMetaTags, $expectedSchemas),
     $builder->render($renderer),
 );
 
 $renderDto = $builder->renderDto($renderer);
-assertTrueValue('renderDto returns SeoHeadHtmlDTO', $renderDto instanceof SeoHeadHtmlDTO);
-assertSameValue('renderDto fullHtml matches render', $builder->render($renderer), $renderDto->fullHtml);
+testPhase7CFluentSeoBuilderTestAssertTrueValue('renderDto returns SeoHeadHtmlDTO', phpstanRuntimeInstanceOfPhase7CFluentSeoBuilderTest($renderDto, SeoHeadHtmlDTO::class));
+testPhase7CFluentSeoBuilderTestAssertSameValue('renderDto fullHtml matches render', $builder->render($renderer), $renderDto->fullHtml);
 
 $multipleSchemasOutput = (new FluentSeoBuilder())
     ->title('Multiple schemas')
@@ -127,7 +122,7 @@ $multipleSchemasOutput = (new FluentSeoBuilder())
     ])
     ->render($renderer);
 
-assertSameValue(
+testPhase7CFluentSeoBuilderTestAssertSameValue(
     'multiple schemas render in order',
     '<title>Multiple schemas</title>' . "\n"
     . '<meta name="robots" content="index,follow">' . "\n"
@@ -142,25 +137,25 @@ $clearedSchemasOutput = (new FluentSeoBuilder())
     ->clearSchemas()
     ->render($renderer);
 
-assertSameValue(
+testPhase7CFluentSeoBuilderTestAssertSameValue(
     'clearSchemas removes all schema output',
     '<title>Cleared schemas</title>' . "\n" . '<meta name="robots" content="index,follow">',
     $clearedSchemasOutput,
 );
 
-assertThrowsSeoException('missing title throws module exception', static function (): void {
+testPhase7CFluentSeoBuilderTestAssertThrowsSeoException('missing title throws module exception', static function (): void {
     (new FluentSeoBuilder())->buildMetaTags();
 });
 
-assertThrowsSeoException('empty title throws module exception', static function (): void {
+testPhase7CFluentSeoBuilderTestAssertThrowsSeoException('empty title throws module exception', static function (): void {
     (new FluentSeoBuilder())->title('');
 });
 
-assertThrowsSeoException('invalid schema input throws module exception', static function (): void {
+testPhase7CFluentSeoBuilderTestAssertThrowsSeoException('invalid schema input throws module exception', static function (): void {
     (new FluentSeoBuilder())->title('Invalid schema')->schemas([['not associative']]);
 });
 
-assertSameValue(
+testPhase7CFluentSeoBuilderTestAssertSameValue(
     'Phase 7A renderer behavior remains unchanged',
     '<title>Regression</title>' . "\n" . '<meta name="robots" content="index,follow">',
     $renderer->render(new MetaTagsDTO('Regression', null, null)),

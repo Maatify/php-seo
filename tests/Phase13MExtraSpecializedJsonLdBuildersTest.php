@@ -2,28 +2,19 @@
 
 declare(strict_types=1);
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
-
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Web\JsonLd\Builder\BookJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\DatasetJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\MovieJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\MusicAlbumJsonLdBuilder;
 
-function recursiveKsort(array &$array): void {
+/** @param array<array-key, mixed> $array */
+function testPhase13MExtraSpecializedJsonLdBuildersTestRecursiveKsort(array &$array): void {
     ksort($array);
     foreach ($array as &$value) {
         if (is_array($value)) {
-            recursiveKsort($value);
+            testPhase13MExtraSpecializedJsonLdBuildersTestRecursiveKsort($value);
         }
     }
 }
@@ -32,10 +23,10 @@ function assertSameValue13M(string $label, mixed $expected, mixed $actual): void
 {
     // Recursive sort for arrays to ensure order doesn't matter if we need to do exact match
     if (is_array($expected)) {
-        recursiveKsort($expected);
+        testPhase13MExtraSpecializedJsonLdBuildersTestRecursiveKsort($expected);
     }
     if (is_array($actual)) {
-        recursiveKsort($actual);
+        testPhase13MExtraSpecializedJsonLdBuildersTestRecursiveKsort($actual);
     }
 
     $expectedStr = json_encode($expected, JSON_THROW_ON_ERROR);

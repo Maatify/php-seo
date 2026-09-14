@@ -7,18 +7,15 @@ namespace Maatify\Seo\Admin\Import;
 use Maatify\Seo\Admin\DTO\SeoMetadataExportDTO;
 use Maatify\Seo\Admin\DTO\SeoMetadataImportResultDTO;
 use Maatify\Seo\Shared\Command\CreateRedirectCommand;
-use Maatify\Seo\Shared\Command\CreateSlugHistoryCommand;
 use Maatify\Seo\Shared\Command\SeoOverride\CreateSeoOverrideCommand;
 use Maatify\Seo\Shared\Contract\RedirectRepositoryInterface;
 use Maatify\Seo\Shared\Contract\SeoOverrideRepositoryInterface;
-use Maatify\Seo\Shared\Contract\SlugHistoryRepositoryInterface;
 
 final class SeoMetadataImporter
 {
     public function __construct(
         private ?SeoOverrideRepositoryInterface $seoOverrideRepository = null,
         private ?RedirectRepositoryInterface $redirectRepository = null,
-        private ?SlugHistoryRepositoryInterface $slugHistoryRepository = null,
     ) {
     }
 
@@ -105,31 +102,6 @@ final class SeoMetadataImporter
             }
         }
 
-        foreach ($data['slug_history'] as $index => $row) {
-            if ($dryRun) {
-                $created++;
-                continue;
-            }
-            if ($this->slugHistoryRepository === null) {
-                $skipped++;
-                continue;
-            }
-
-            try {
-                $command = new CreateSlugHistoryCommand(
-                    $row['entity_type'],
-                    $row['entity_id'],
-                    $row['language_id'],
-                    $row['old_slug']
-                );
-                $this->slugHistoryRepository->create($command);
-                $created++;
-            } catch (\Throwable $exception) {
-                $failed++;
-                $importErrors[] = 'slug_history[' . $index . ']: ' . $exception->getMessage();
-            }
-        }
-
         // Current repository contracts expose create-only import operations; updates are intentionally not reported.
         return new SeoMetadataImportResultDTO($created, 0, $skipped, $failed, $importErrors, $dryRun);
     }
@@ -153,7 +125,7 @@ final class SeoMetadataImporter
             return $errors;
         }
 
-        foreach (['seo_overrides', 'redirects', 'slug_history'] as $section) {
+        foreach (['seo_overrides', 'redirects'] as $section) {
             $rows = $data[$section] ?? null;
             if (!is_array($rows) || !array_is_list($rows)) {
                 $errors[] = 'Missing data.' . $section . ' list.';
@@ -164,7 +136,7 @@ final class SeoMetadataImporter
             return $errors;
         }
 
-        /** @var array{seo_overrides:list<mixed>, redirects:list<mixed>, slug_history:list<mixed>} $typedData */
+        /** @var array{seo_overrides:list<mixed>, redirects:list<mixed>} $typedData */
         $typedData = $data;
         foreach ($typedData['seo_overrides'] as $index => $row) {
             if (!is_array($row)) {
@@ -180,14 +152,6 @@ final class SeoMetadataImporter
                 continue;
             }
             $errors = array_merge($errors, $this->validateRedirectRow($this->normalizeStringKeyArray($row), $index));
-        }
-
-        foreach ($typedData['slug_history'] as $index => $row) {
-            if (!is_array($row)) {
-                $errors[] = 'Invalid slug_history[' . $index . '] row.';
-                continue;
-            }
-            $errors = array_merge($errors, $this->validateSlugHistoryRow($this->normalizeStringKeyArray($row), $index));
         }
 
         return $errors;
@@ -211,7 +175,7 @@ final class SeoMetadataImporter
 
     /**
      * @param array<string, mixed> $payload
-     * @return array{seo_overrides:list<array{entity_type:string, entity_id:string, language_id:int, meta_title:?string, meta_description:?string}>, redirects:list<array{entity_type:string, language_id:int, requested_slug:string, target_entity_type:?string, target_entity_id:?string, http_status:int}>, slug_history:list<array{entity_type:string, entity_id:string, language_id:int, old_slug:string}>}
+     * @return array{seo_overrides:list<array{entity_type:string, entity_id:string, language_id:int, meta_title:?string, meta_description:?string}>, redirects:list<array{entity_type:string, language_id:int, requested_slug:string, target_entity_type:?string, target_entity_id:?string, http_status:int}>}
      */
     private function normalizeValidatedPayload(array $payload): array
     {
@@ -222,7 +186,6 @@ final class SeoMetadataImporter
 
         $seoOverrides = [];
         $redirects = [];
-        $slugHistory = [];
 
         /** @var list<array<string, mixed>> $overrideRows */
         $overrideRows = $data['seo_overrides'];
@@ -249,21 +212,9 @@ final class SeoMetadataImporter
             ];
         }
 
-        /** @var list<array<string, mixed>> $slugRows */
-        $slugRows = $data['slug_history'];
-        foreach ($slugRows as $row) {
-            $slugHistory[] = [
-                'entity_type' => $this->requireStringField($row, 'entity_type'),
-                'entity_id' => $this->requireStringField($row, 'entity_id'),
-                'language_id' => $this->requirePositiveIntField($row, 'language_id'),
-                'old_slug' => $this->requireStringField($row, 'old_slug'),
-            ];
-        }
-
         return [
             'seo_overrides' => $seoOverrides,
             'redirects' => $redirects,
-            'slug_history' => $slugHistory,
         ];
     }
 
@@ -296,21 +247,6 @@ final class SeoMetadataImporter
         $this->appendOptionalStringError($errors, $row, 'target_entity_type', 'redirects', $index);
         $this->appendOptionalStringError($errors, $row, 'target_entity_id', 'redirects', $index);
         $this->appendRequiredPositiveIntError($errors, $row, 'http_status', 'redirects', $index);
-
-        return $errors;
-    }
-
-    /**
-     * @param array<string, mixed> $row
-     * @return list<string>
-     */
-    private function validateSlugHistoryRow(array $row, int $index): array
-    {
-        $errors = [];
-        $this->appendRequiredStringError($errors, $row, 'entity_type', 'slug_history', $index);
-        $this->appendRequiredStringError($errors, $row, 'entity_id', 'slug_history', $index);
-        $this->appendRequiredPositiveIntError($errors, $row, 'language_id', 'slug_history', $index);
-        $this->appendRequiredStringError($errors, $row, 'old_slug', 'slug_history', $index);
 
         return $errors;
     }

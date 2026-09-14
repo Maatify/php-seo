@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\Seo\Exception;
 
-final class SeoNotFoundException extends \RuntimeException implements SeoExceptionInterface
+use Maatify\Exceptions\Exception\NotFound\ResourceNotFoundMaatifyException;
+
+final class SeoNotFoundException extends ResourceNotFoundMaatifyException implements SeoExceptionInterface
 {
     public static function withId(int|string $id): self
     {

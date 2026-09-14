@@ -1,18 +1,13 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase13EOrganizationJsonLdBuilderTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
 
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Web\JsonLd\Builder\JsonLdBuilderInterface;
 use Maatify\Seo\Web\JsonLd\Builder\OrganizationJsonLdBuilder;
@@ -34,7 +29,7 @@ function assertTrueValue13E(string $label, bool $actual): void
 }
 
 $builder = new OrganizationJsonLdBuilder();
-assertTrueValue13E('organization builder implements builder interface', $builder instanceof JsonLdBuilderInterface);
+assertTrueValue13E('organization builder implements builder interface', phpstanRuntimeInstanceOfPhase13EOrganizationJsonLdBuilderTest($builder, JsonLdBuilderInterface::class));
 assertSameValue13E('organization builder seeds schema.org defaults', [
     '@context' => 'https://schema.org',
     '@type' => 'Organization',

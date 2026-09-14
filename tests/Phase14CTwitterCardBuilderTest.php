@@ -14,13 +14,17 @@ use Maatify\Seo\Web\Social\SocialMetaCollection;
 use Maatify\Seo\Web\Social\SocialMetaRenderOutput;
 use Maatify\Seo\Web\Social\TwitterCardBuilder;
 
-$failures = 0;
-
-function assertSameValue(mixed $expected, mixed $actual, string $message): void
+function phase14CIsInstanceOf(mixed $value, string $class): bool
 {
-    global $failures;
+    return $value instanceof $class;
+}
+
+final class Phase14CTestFailureCounter { public static int $count = 0; }
+
+function testPhase14CTwitterCardBuilderTestAssertSameValue(mixed $expected, mixed $actual, string $message): void
+{
     if ($expected !== $actual) {
-        $failures++;
+        Phase14CTestFailureCounter::$count++;
         echo "FAIL: $message\n";
         echo "  Expected: " . print_r($expected, true) . "\n";
         echo "  Actual:   " . print_r($actual, true) . "\n";
@@ -67,7 +71,7 @@ $expectedArray = [
     ['name' => 'twitter:app:url:googleplay', 'content' => 'url_googleplay', 'attribute' => 'name'],
 ];
 
-assertSameValue($expectedArray, $builder->toArray(), 'TwitterCardBuilder scalar tags toArray');
+testPhase14CTwitterCardBuilderTestAssertSameValue($expectedArray, $builder->toArray(), 'TwitterCardBuilder scalar tags toArray');
 
 $expectedHtml = '<meta name="twitter:card" content="summary_large_image">' . "\n" .
                 '<meta name="twitter:site" content="@site_handle">' . "\n" .
@@ -87,7 +91,7 @@ $expectedHtml = '<meta name="twitter:card" content="summary_large_image">' . "\n
                 '<meta name="twitter:app:id:googleplay" content="id_googleplay">' . "\n" .
                 '<meta name="twitter:app:url:googleplay" content="url_googleplay">';
 
-assertSameValue($expectedHtml, $builder->toHtml(), 'TwitterCardBuilder scalar tags toHtml');
+testPhase14CTwitterCardBuilderTestAssertSameValue($expectedHtml, $builder->toHtml(), 'TwitterCardBuilder scalar tags toHtml');
 
 // 2. Image behavior tests
 $builder = new TwitterCardBuilder();
@@ -95,25 +99,25 @@ $builder = new TwitterCardBuilder();
 // setImage(string)
 $builder->setImage('https://example.com/image1.jpg');
 $array = $builder->toArray();
-assertSameValue('twitter:image', $array[0]['name'], 'setImage(string) creates twitter:image');
-assertSameValue('https://example.com/image1.jpg', $array[0]['content'], 'setImage(string) correct URL');
-assertSameValue(1, count($array), 'setImage(string) creates exactly one tag (no alt)');
+testPhase14CTwitterCardBuilderTestAssertSameValue('twitter:image', $array[0]['name'], 'setImage(string) creates twitter:image');
+testPhase14CTwitterCardBuilderTestAssertSameValue('https://example.com/image1.jpg', $array[0]['content'], 'setImage(string) correct URL');
+testPhase14CTwitterCardBuilderTestAssertSameValue(1, count($array), 'setImage(string) creates exactly one tag (no alt)');
 
 // setImage(SocialImage) replaces existing images and uses alt from SocialImage
 $image2 = new SocialImage('https://example.com/image2.jpg');
 $image2->setAlt('Image 2 Alt');
 $builder->setImage($image2);
 $array = $builder->toArray();
-assertSameValue('twitter:image', $array[0]['name'], 'setImage(SocialImage) correct tag name');
-assertSameValue('https://example.com/image2.jpg', $array[0]['content'], 'setImage(SocialImage) replaces URL');
-assertSameValue('twitter:image:alt', $array[1]['name'], 'setImage(SocialImage) populates alt tag');
-assertSameValue('Image 2 Alt', $array[1]['content'], 'setImage(SocialImage) correct alt content');
-assertSameValue(2, count($array), 'setImage(SocialImage) with alt creates two tags');
+testPhase14CTwitterCardBuilderTestAssertSameValue('twitter:image', $array[0]['name'], 'setImage(SocialImage) correct tag name');
+testPhase14CTwitterCardBuilderTestAssertSameValue('https://example.com/image2.jpg', $array[0]['content'], 'setImage(SocialImage) replaces URL');
+testPhase14CTwitterCardBuilderTestAssertSameValue('twitter:image:alt', $array[1]['name'], 'setImage(SocialImage) populates alt tag');
+testPhase14CTwitterCardBuilderTestAssertSameValue('Image 2 Alt', $array[1]['content'], 'setImage(SocialImage) correct alt content');
+testPhase14CTwitterCardBuilderTestAssertSameValue(2, count($array), 'setImage(SocialImage) with alt creates two tags');
 
 // setImageAlt() overrides SocialImage alt
 $builder->setImageAlt('Override Alt');
 $array = $builder->toArray();
-assertSameValue('Override Alt', $array[1]['content'], 'setImageAlt() overrides existing image alt');
+testPhase14CTwitterCardBuilderTestAssertSameValue('Override Alt', $array[1]['content'], 'setImageAlt() overrides existing image alt');
 
 // setImageAlt() before setImage() still takes precedence
 $builder = new TwitterCardBuilder();
@@ -122,15 +126,15 @@ $image3 = new SocialImage('https://example.com/image3.jpg');
 $image3->setAlt('SocialImage Alt');
 $builder->setImage($image3);
 $array = $builder->toArray();
-assertSameValue('Precedence Alt', $array[1]['content'], 'setImageAlt() before setImage() takes precedence over SocialImage alt');
+testPhase14CTwitterCardBuilderTestAssertSameValue('Precedence Alt', $array[1]['content'], 'setImageAlt() before setImage() takes precedence over SocialImage alt');
 
 // no multiple image support - setImage() overwrites completely
 $builder = new TwitterCardBuilder();
 $builder->setImage('https://example.com/first.jpg');
 $builder->setImage('https://example.com/second.jpg');
 $array = $builder->toArray();
-assertSameValue(1, count($array), 'setImage() only supports one image (replaces previous)');
-assertSameValue('https://example.com/second.jpg', $array[0]['content'], 'setImage() replaced URL');
+testPhase14CTwitterCardBuilderTestAssertSameValue(1, count($array), 'setImage() only supports one image (replaces previous)');
+testPhase14CTwitterCardBuilderTestAssertSameValue('https://example.com/second.jpg', $array[0]['content'], 'setImage() replaced URL');
 
 // 3. Output formats, tag ordering and escaping
 $builder = new TwitterCardBuilder();
@@ -141,22 +145,22 @@ $expectedArray = [
     ['name' => 'twitter:title', 'content' => 'Title "with" quotes <&>', 'attribute' => 'name'],
     ['name' => 'twitter:image', 'content' => 'https://example.com/img.jpg', 'attribute' => 'name'],
 ];
-assertSameValue($expectedArray, $builder->toArray(), 'TwitterCardBuilder escaping array format');
+testPhase14CTwitterCardBuilderTestAssertSameValue($expectedArray, $builder->toArray(), 'TwitterCardBuilder escaping array format');
 
 $expectedHtmlEscaped = '<meta name="twitter:title" content="Title &quot;with&quot; quotes &lt;&amp;&gt;">' . "\n" .
                        '<meta name="twitter:image" content="https://example.com/img.jpg">';
-assertSameValue($expectedHtmlEscaped, $builder->toHtml(), 'TwitterCardBuilder escaping HTML format');
+testPhase14CTwitterCardBuilderTestAssertSameValue($expectedHtmlEscaped, $builder->toHtml(), 'TwitterCardBuilder escaping HTML format');
 
 $collection = $builder->toCollection();
-assertSameValue(true, $collection instanceof SocialMetaCollection, 'toCollection returns SocialMetaCollection');
-assertSameValue($expectedHtmlEscaped, $collection->toHtml(), 'toCollection HTML matches');
+testPhase14CTwitterCardBuilderTestAssertSameValue(true, phase14CIsInstanceOf($collection, SocialMetaCollection::class), 'toCollection returns SocialMetaCollection');
+testPhase14CTwitterCardBuilderTestAssertSameValue($expectedHtmlEscaped, $collection->toHtml(), 'toCollection HTML matches');
 
 $renderOutput = $builder->toRenderOutput();
-assertSameValue(true, $renderOutput instanceof SocialMetaRenderOutput, 'toRenderOutput returns SocialMetaRenderOutput');
-assertSameValue($expectedHtmlEscaped, $renderOutput->toHtml(), 'toRenderOutput HTML matches');
+testPhase14CTwitterCardBuilderTestAssertSameValue(true, phase14CIsInstanceOf($renderOutput, SocialMetaRenderOutput::class), 'toRenderOutput returns SocialMetaRenderOutput');
+testPhase14CTwitterCardBuilderTestAssertSameValue($expectedHtmlEscaped, $renderOutput->toHtml(), 'toRenderOutput HTML matches');
 
-if ($failures > 0) {
-    echo "\nPhase 14C Twitter/X Card Builder tests failed with $failures failures.\n";
+if (Phase14CTestFailureCounter::$count > 0) {
+    echo "\nPhase 14C Twitter/X Card Builder tests failed with " . Phase14CTestFailureCounter::$count . " failures.\n";
     exit(1);
 }
 

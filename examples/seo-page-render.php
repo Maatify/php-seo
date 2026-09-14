@@ -24,12 +24,15 @@ use Maatify\Seo\Shared\Command\SeoOverride\UpdateSeoOverrideCommand;
 use Maatify\Seo\Shared\Contract\HostUrlGeneratorInterface;
 use Maatify\Seo\Shared\Contract\SeoOverrideRepositoryInterface;
 use Maatify\Seo\Shared\DTO\SeoOverride\SeoOverrideDTO;
+use Maatify\Seo\Shared\DTO\Schema\JsonLdSchemaDTO;
 use Maatify\Seo\Shared\DTO\Schema\WebPageSchemaDTO;
 use Maatify\Seo\Shared\Service\MetaGeneratorService;
 use Maatify\Seo\Shared\Service\SchemaGeneratorService;
 use Maatify\Seo\Shared\Service\SeoOverrideQueryService;
 use Maatify\Seo\Web\SeoRender\Command\RenderSeoPageCommand;
 use Maatify\Seo\Web\SeoRender\Service\SeoPageRenderService;
+use Maatify\Seo\Web\JsonLd\Builder\ProductJsonLdBuilder;
+use Maatify\Seo\Web\Render\SeoHeadHtmlRenderer;
 
 final class EmptySeoOverrideRepository implements SeoOverrideRepositoryInterface
 {
@@ -110,6 +113,8 @@ $overrideQueryService = new SeoOverrideQueryService(new EmptySeoOverrideReposito
 $metaGeneratorService = new MetaGeneratorService($overrideQueryService, new ExampleHostUrlGenerator());
 $schemaGeneratorService = new SchemaGeneratorService();
 $seoPageRenderService = new SeoPageRenderService($metaGeneratorService, $schemaGeneratorService);
+$productBuilder = (new ProductJsonLdBuilder())->setName('Example Product');
+$productSchema = new JsonLdSchemaDTO($productBuilder->toArray());
 
 $command = new RenderSeoPageCommand(
     entityType: 'page',
@@ -120,6 +125,7 @@ $command = new RenderSeoPageCommand(
     slug: 'about',
     robots: 'index,follow',
     schemas: [
+        $productSchema,
         new WebPageSchemaDTO(
             name: 'About Example.com',
             url: 'https://example.com/en/page/about',
@@ -129,9 +135,11 @@ $command = new RenderSeoPageCommand(
 );
 
 $payload = $seoPageRenderService->render($command);
+$headHtml = (new SeoHeadHtmlRenderer())->renderPayload($payload);
 
 echo "SEO page render orchestration\n";
 echo "RenderSeoPageCommand -> SeoPageRenderService -> SeoPagePayloadDTO\n";
 printSection('Meta tags / result', $payload->metaTags);
 printSection('Schemas / JSON-LD graph', $payload->schemas);
 printSection('SeoPagePayloadDTO sections', $payload);
+printSection('Rendered head HTML', $headHtml);

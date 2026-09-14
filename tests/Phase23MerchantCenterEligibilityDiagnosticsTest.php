@@ -2,17 +2,7 @@
 
 declare(strict_types=1);
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
-
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Web\MerchantCenter\DTO\MerchantCenterAggregateRequestDTO;
 use Maatify\Seo\Web\MerchantCenter\DTO\MerchantCenterAggregateStatusListResultDTO;
@@ -47,7 +37,38 @@ function assertInstanceOf23(string $expectedClass, mixed $actual, string $label)
     assertTrueValue23($actual instanceof $expectedClass, $label);
 }
 
-/** @return array<string, mixed> */
+function assertNotInstanceOf23(string $class, mixed $actual, string $label): void
+{
+    assertTrueValue23(!$actual instanceof $class, $label);
+}
+
+/**
+ * @return array{
+ *     name: string,
+ *     productStatus: array{
+ *         destinationStatuses: list<array{
+ *             reportingContext: string,
+ *             approvedCountries: list<string>,
+ *             pendingCountries: list<string>,
+ *             disapprovedCountries: list<string>
+ *         }>,
+ *         itemLevelIssues: list<array{
+ *             code: string,
+ *             severity: string,
+ *             resolution: string,
+ *             attribute: ?string,
+ *             reportingContext: string,
+ *             description: ?string,
+ *             detail: ?string,
+ *             documentation: ?string,
+ *             applicableCountries: list<string>
+ *         }>,
+ *         creationDate: string,
+ *         lastUpdateDate: string,
+ *         googleExpirationDate: string
+ *     }
+ * }
+ */
 function phase23ProductResponse(): array
 {
     return [
@@ -98,7 +119,27 @@ function phase23ProductResponse(): array
     ];
 }
 
-/** @return array<string, mixed> */
+/**
+ * @return array{
+ *     aggregateProductStatuses: list<array{
+ *         name: string,
+ *         reportingContext: string,
+ *         country: string,
+ *         stats: array{activeCount: string, pendingCount: string, disapprovedCount: string, expiringCount: string}|null,
+ *         itemLevelIssues?: list<array{
+ *             code: string,
+ *             severity: string,
+ *             resolution: string,
+ *             attribute: string,
+ *             description: string,
+ *             detail: string,
+ *             documentationUri: string,
+ *             productCount: string
+ *         }>
+ *     }>,
+ *     nextPageToken: string
+ * }
+ */
 function phase23AggregateResponse(): array
 {
     return [
@@ -185,6 +226,7 @@ final class Phase23FakeTransport implements MerchantCenterTransportInterface
 
 /**
  * @param array<string, mixed> $body
+ * @return array{Phase23FakeTransport, MerchantCenterDiagnosticsService}
  */
 function phase23ProductService(
     array $body,
@@ -197,6 +239,7 @@ function phase23ProductService(
 
 /**
  * @param array<string, mixed> $body
+ * @return array{Phase23FakeTransport, MerchantCenterDiagnosticsService}
  */
 function phase23AggregateService(
     array $body,
@@ -229,7 +272,6 @@ assertSameValue23('2026-10-08T12:00:00Z', $productResult->googleExpirationDate, 
 assertSameValue23(1, $productTransport->productCalls, 'product transport called once');
 assertSameValue23($productRequest, $productTransport->receivedProductRequest, 'product request forwarded');
 
-/** @var array<string, mixed> $unknownProductResponse */
 $unknownProductResponse = phase23ProductResponse();
 $unknownProductResponse['productStatus']['destinationStatuses'][0]['reportingContext'] = 'FUTURE_CONTEXT';
 $unknownProductResponse['productStatus']['itemLevelIssues'][0]['severity'] = 'FUTURE_SEVERITY';
@@ -270,9 +312,10 @@ assertSameValue23(null, $optionalProductResult->googleExpirationDate, 'empty pro
 
 $malformedProductCaught = false;
 try {
-    /** @var array<string, mixed> $malformedProductResponse */
-    $malformedProductResponse = phase23ProductResponse();
-    $malformedProductResponse['productStatus']['destinationStatuses'] = 'not-a-list';
+    $malformedProductResponse = [
+        'name' => 'accounts/123/products/en~US~malformed-statuses',
+        'productStatus' => ['destinationStatuses' => 'not-a-list'],
+    ];
     [, $malformedProductService] = phase23ProductService($malformedProductResponse);
     $malformedProductService->getProductDiagnostics($productRequest);
 } catch (MerchantCenterMalformedResponseException $exception) {
@@ -281,8 +324,12 @@ try {
 assertTrueValue23($malformedProductCaught, 'malformed product response throws dedicated exception');
 
 $nonTwoHundredProductCaught = false;
+$nonTwoHundredProductTransport = new Phase23FakeTransport(new MerchantCenterTransportResponseDTO(403, []));
+$nonTwoHundredProductService = new MerchantCenterDiagnosticsService(
+    $nonTwoHundredProductTransport,
+    new MerchantCenterResponseMapper(),
+);
 try {
-    [$nonTwoHundredProductTransport, $nonTwoHundredProductService] = phase23ProductService([], 403);
     $nonTwoHundredProductService->getProductDiagnostics($productRequest);
 } catch (MerchantCenterTransportException $exception) {
     $nonTwoHundredProductCaught = $exception->httpStatus === 403;
@@ -322,8 +369,9 @@ assertSameValue23(
     $constructorTypes,
     'service depends only on merchant transport and mapper',
 );
-assertTrueValue23(
-    !($productResult instanceof \Maatify\Seo\Web\Validation\DTO\SeoValidationResultDTO),
+assertNotInstanceOf23(
+    \Maatify\Seo\Web\Validation\DTO\SeoValidationResultDTO::class,
+    $productResult,
     'merchant result is not a core validation DTO',
 );
 
@@ -343,7 +391,7 @@ assertSameValue23('9223372036854775807', $aggregateResult->statuses[0]->stats?->
 assertSameValue23('12', $aggregateResult->statuses[0]->stats?->pendingCount, 'pending count');
 assertSameValue23('3', $aggregateResult->statuses[0]->stats?->disapprovedCount, 'disapproved count');
 assertSameValue23('1', $aggregateResult->statuses[0]->stats?->expiringCount, 'expiring count');
-assertTrueValue23(is_string($aggregateResult->statuses[0]->stats?->activeCount), 'active count is a PHP string');
+assertSameValue23('string', get_debug_type($aggregateResult->statuses[0]->stats?->activeCount), 'active count is a PHP string');
 assertSameValue23(1, count($aggregateResult->statuses[0]->itemLevelIssues), 'aggregate issue count');
 assertSameValue23('invalid_gtin', $aggregateResult->statuses[0]->itemLevelIssues[0]->code, 'aggregate issue code');
 assertSameValue23('DISAPPROVED', $aggregateResult->statuses[0]->itemLevelIssues[0]->severity, 'aggregate issue severity');
@@ -370,7 +418,6 @@ assertSameValue23(
     'page size above provider maximum is passed through unchanged',
 );
 
-/** @var array<string, mixed> $unknownAggregateResponse */
 $unknownAggregateResponse = phase23AggregateResponse();
 $unknownAggregateResponse['aggregateProductStatuses'][0]['itemLevelIssues'][0]['severity'] = 'FUTURE_AGGREGATE_SEVERITY';
 $unknownAggregateResponse['aggregateProductStatuses'][0]['itemLevelIssues'][0]['resolution'] = 'FUTURE_AGGREGATE_RESOLUTION';
@@ -397,9 +444,14 @@ assertSameValue23(1, $emptyAggregateTransport->aggregateCalls, 'empty aggregate 
 
 $malformedAggregateCaught = false;
 try {
-    /** @var array<string, mixed> $malformedAggregateResponse */
-    $malformedAggregateResponse = phase23AggregateResponse();
-    $malformedAggregateResponse['aggregateProductStatuses'][0]['stats']['activeCount'] = 123;
+    $malformedAggregateResponse = [
+        'aggregateProductStatuses' => [[
+            'name' => 'accounts/123/aggregateProductStatuses/SHOPPING_ADS~US',
+            'reportingContext' => 'SHOPPING_ADS',
+            'country' => 'US',
+            'stats' => ['activeCount' => 123],
+        ]],
+    ];
     [, $malformedAggregateService] = phase23AggregateService($malformedAggregateResponse);
     $malformedAggregateService->listAggregateProductDiagnostics($aggregateRequest);
 } catch (MerchantCenterMalformedResponseException $exception) {
@@ -408,8 +460,12 @@ try {
 assertTrueValue23($malformedAggregateCaught, 'malformed aggregate response throws dedicated exception');
 
 $nonTwoHundredAggregateCaught = false;
+$nonTwoHundredAggregateTransport = new Phase23FakeTransport(new MerchantCenterTransportResponseDTO(500, []));
+$nonTwoHundredAggregateService = new MerchantCenterDiagnosticsService(
+    $nonTwoHundredAggregateTransport,
+    new MerchantCenterResponseMapper(),
+);
 try {
-    [$nonTwoHundredAggregateTransport, $nonTwoHundredAggregateService] = phase23AggregateService([], 500);
     $nonTwoHundredAggregateService->listAggregateProductDiagnostics(
         new MerchantCenterAggregateRequestDTO('accounts/123'),
     );

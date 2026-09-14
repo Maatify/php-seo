@@ -2,17 +2,7 @@
 
 declare(strict_types=1);
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
-
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Shared\DTO\MetaTagsDTO;
 use Maatify\Seo\Web\Social\OpenGraphBuilder;
@@ -23,13 +13,15 @@ use Maatify\Seo\Web\Validation\Profile\OpenGraphProtocolValidator;
 use Maatify\Seo\Web\Validation\SeoMetaValidator;
 use Maatify\Seo\Web\Validation\SeoValidationReportBuilder;
 use Maatify\Seo\Web\Validation\SeoValidationScoreCalculator;
-$failures = 0;
+final class Stack5TestFailureCounter
+{
+    public static int $count = 0;
+}
 
 function stack5AssertSame(string $label, mixed $expected, mixed $actual): void
 {
-    global $failures;
     if ($expected !== $actual) {
-        ++$failures;
+        ++Stack5TestFailureCounter::$count;
         fwrite(STDERR, "Assertion failed: {$label}\nExpected:\n" . var_export($expected, true) . "\nActual:\n" . var_export($actual, true) . "\n");
     }
 }
@@ -90,7 +82,10 @@ function stack5AssertDiagnosticContract(SeoCompanionValidationResultDTO $result,
     stack5AssertTrue("{$code} message is non-empty", is_string($diagnostic['message']) && $diagnostic['message'] !== '');
 }
 
-/** @param array<string, mixed> $meta */
+/**
+ * @param array<string, mixed> $meta
+ * @return array<string, mixed>
+ */
 function stack5ValidMeta(array $meta = []): array
 {
     return array_merge([
@@ -124,7 +119,7 @@ function stack5ReflectionTypeNames(?ReflectionType $type): array
 function stack5AssertMethodSignature(string $label, string $class, string $methodName, array $expectedParameters, string $returnType): void
 {
     $method = new \ReflectionMethod($class, $methodName);
-    stack5AssertSame($label . ' return type', $returnType, $method->getReturnType()?->getName());
+    stack5AssertSame($label . ' return type', [$returnType], stack5ReflectionTypeNames($method->getReturnType()));
 
     $parameters = $method->getParameters();
     stack5AssertSame($label . ' parameter count', count($expectedParameters), count($parameters));
@@ -160,7 +155,10 @@ function stack5AssertProfileSignature(string $label, string $class, string $inpu
     );
 }
 
-/** @return array<string, mixed>|null */
+/**
+ * @param array{issues: list<array{code: string, severity: string, message: string, field: string|null}>} $legacy
+ * @return array{code: string, severity: string, message: string, field: string|null}|null
+ */
 function stack5LegacyIssue(array $legacy, string $code): ?array
 {
     foreach ($legacy['issues'] as $issue) {
@@ -465,8 +463,8 @@ $newOnlyMeta = stack5ValidMeta([
 ]);
 $newOnlyLegacy = SeoMetaValidator::validate($newOnlyMeta);
 $newOnlyCompanion = SeoMetaValidator::validateWithCompanion($newOnlyMeta);
-stack5AssertTrue('new OGP diagnostics keep legacy valid', $newOnlyCompanion->legacy?->isValid ?? false);
-stack5AssertFalse('new OGP diagnostics keep legacy warning flag false', $newOnlyCompanion->legacy?->hasWarnings ?? true);
+stack5AssertTrue('new OGP diagnostics keep legacy valid', $newOnlyCompanion->legacy !== null && $newOnlyCompanion->legacy->isValid);
+stack5AssertFalse('new OGP diagnostics keep legacy warning flag false', $newOnlyCompanion->legacy === null || $newOnlyCompanion->legacy->hasWarnings);
 stack5AssertSame('new OGP diagnostics are absent from legacy issue codes', [], array_values(array_filter(array_column($newOnlyCompanion->legacy?->toArray()['issues'] ?? [], 'code'), static fn (mixed $code): bool => in_array($code, ['missing_og_type', 'missing_og_url'], true))));
 stack5AssertSame('new OGP diagnostics do not affect score', 100, SeoValidationScoreCalculator::score($newOnlyLegacy)->score);
 $newOnlyReport = SeoValidationReportBuilder::build($newOnlyMeta);
@@ -542,8 +540,8 @@ $twitterLegacy = SeoMetaValidator::validate(stack5ValidMeta(['twitter' => ['card
 stack5AssertTrue('existing Twitter missing title behavior remains', in_array('missing_twitter_title', array_map(static fn ($issue): string => $issue->code, $twitterLegacy->issues), true));
 stack5AssertTrue('existing Twitter missing description behavior remains', in_array('missing_twitter_description', array_map(static fn ($issue): string => $issue->code, $twitterLegacy->issues), true));
 
-if ($failures > 0) {
-    fwrite(STDERR, "Stack 5 validation architecture/Open Graph tests failed with {$failures} failures.\n");
+if (Stack5TestFailureCounter::$count > 0) {
+    fwrite(STDERR, "Stack 5 validation architecture/Open Graph tests failed with " . Stack5TestFailureCounter::$count . " failures.\n");
     exit(1);
 }
 

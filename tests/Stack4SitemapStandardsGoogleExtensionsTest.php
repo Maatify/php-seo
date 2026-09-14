@@ -2,17 +2,7 @@
 
 declare(strict_types=1);
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
-
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Shared\DTO\Sitemap\SitemapIndexEntryDTO as SharedSitemapIndexEntryDTO;
 use Maatify\Seo\Shared\DTO\Sitemap\SitemapUrlDTO;
@@ -40,6 +30,16 @@ function stack4AssertTrue(string $label, bool $actual): void
     if (!$actual) {
         throw new RuntimeException("Assertion failed: {$label}");
     }
+}
+
+function stack4AssertInstanceOf(string $expectedClass, mixed $actual, string $label): void
+{
+    stack4AssertTrue($label, $actual instanceof $expectedClass);
+}
+
+function stack4ReflectionTypeName(?ReflectionType $type): ?string
+{
+    return $type instanceof ReflectionNamedType ? $type->getName() : null;
 }
 
 function stack4AssertSame(string $label, mixed $expected, mixed $actual): void
@@ -73,10 +73,37 @@ function stack4AssertThrowsClass(string $label, callable $callback, string $expe
     throw new RuntimeException("Assertion failed: {$label}: expected an exception.");
 }
 
-/** @return list<array<string, mixed>> */
+/**
+ * @return list<array{
+ *     code: string,
+ *     severity: string,
+ *     message: string,
+ *     field: string|null,
+ *     origin: string,
+ *     profile: string,
+ *     evidence_state: string|null,
+ *     related_legacy_code: string|null,
+ *     target: array{scope: string, entry_index: int|null, item_index: int|null, line: int|null}
+ * }>
+ */
 function stack4Diagnostics(SeoCompanionValidationResultDTO $result): array
 {
-    return $result->toArray()['diagnostics'];
+    /**
+     * @var list<array{
+     *     code: string,
+     *     severity: string,
+     *     message: string,
+     *     field: string|null,
+     *     origin: string,
+     *     profile: string,
+     *     evidence_state: string|null,
+     *     related_legacy_code: string|null,
+     *     target: array{scope: string, entry_index: int|null, item_index: int|null, line: int|null}
+     * }>
+     */
+    $diagnostics = $result->toArray()['diagnostics'];
+
+    return $diagnostics;
 }
 
 /** @return list<string> */
@@ -160,6 +187,16 @@ function stack4AssertContractCase(array $case): void
     );
 }
 
+/**
+ * @param array{
+ *     lastmod?: string|null,
+ *     changefreq?: string|null,
+ *     priority?: int|float|null,
+ *     images?: list<SitemapImageValidationInputDTO>,
+ *     videos?: list<SitemapVideoValidationInputDTO>,
+ *     news?: list<SitemapNewsValidationInputDTO>
+ * } $options
+ */
 function stack4Url(?string $loc = 'https://example.com/page', array $options = []): SitemapUrlValidationInputDTO
 {
     return new SitemapUrlValidationInputDTO(
@@ -173,16 +210,19 @@ function stack4Url(?string $loc = 'https://example.com/page', array $options = [
     );
 }
 
+/** @param list<SitemapUrlValidationInputDTO> $entries */
 function stack4UrlDocument(array $entries, ?SitemapValidationLocationDTO $location = null, ?int $size = null): SitemapValidationDocumentDTO
 {
     return new SitemapValidationDocumentDTO('urlset', $entries, $location, $size);
 }
 
+/** @param list<SitemapIndexEntryValidationInputDTO> $entries */
 function stack4IndexDocument(array $entries, ?SitemapValidationLocationDTO $location = null, ?int $size = null): SitemapValidationDocumentDTO
 {
     return new SitemapValidationDocumentDTO('sitemapindex', $entries, $location, $size);
 }
 
+/** @param array<string|int, mixed> $evidence */
 function stack4Evidence(array $evidence): SeoValidationContextDTO
 {
     return new SeoValidationContextDTO($evidence);
@@ -207,12 +247,12 @@ foreach ([
     $parameters = $method->getParameters();
     stack4AssertSame($validatorClass . ' document parameter name', 'document', $parameters[0]->getName());
     stack4AssertSame($validatorClass . ' context parameter name', 'context', $parameters[1]->getName());
-    stack4AssertSame($validatorClass . ' document parameter type', SitemapValidationDocumentDTO::class, $parameters[0]->getType()?->getName());
-    stack4AssertSame($validatorClass . ' context parameter type', SeoValidationContextDTO::class, $parameters[1]->getType()?->getName());
+    stack4AssertSame($validatorClass . ' document parameter type', SitemapValidationDocumentDTO::class, stack4ReflectionTypeName($parameters[0]->getType()));
+    stack4AssertSame($validatorClass . ' context parameter type', SeoValidationContextDTO::class, stack4ReflectionTypeName($parameters[1]->getType()));
     stack4AssertTrue($validatorClass . ' context is nullable', $parameters[1]->getType()?->allowsNull() === true);
     stack4AssertTrue($validatorClass . ' context has a default value', $parameters[1]->isDefaultValueAvailable());
     stack4AssertSame($validatorClass . ' context default value', null, $parameters[1]->getDefaultValue());
-    stack4AssertSame($validatorClass . ' return type', SeoCompanionValidationResultDTO::class, $method->getReturnType()?->getName());
+    stack4AssertSame($validatorClass . ' return type', SeoCompanionValidationResultDTO::class, stack4ReflectionTypeName($method->getReturnType()));
 }
 
 $googleIndexDocument = stack4IndexDocument([]);
@@ -382,9 +422,9 @@ stack4AssertHasCode('long malformed loc also receives length boundary diagnostic
 
 $validFractional = '2026-07-01T10:00:00.123456789+00:00';
 stack4AssertSame('fractional seconds are accepted by the shared strict lastmod helper', true, SitemapUrlDTO::isValidLastmod($validFractional));
-stack4AssertTrue('strict URL DTO accepts fractional lastmod', new SitemapUrlDTO('https://example.com/fractional', $validFractional) instanceof SitemapUrlDTO);
-stack4AssertTrue('strict Shared index DTO accepts fractional lastmod', new SharedSitemapIndexEntryDTO('https://example.com/fractional.xml', $validFractional) instanceof SharedSitemapIndexEntryDTO);
-stack4AssertTrue('strict Web index DTO accepts fractional lastmod', new WebSitemapIndexEntryDTO('https://example.com/fractional.xml', $validFractional) instanceof WebSitemapIndexEntryDTO);
+stack4AssertInstanceOf(SitemapUrlDTO::class, new SitemapUrlDTO('https://example.com/fractional', $validFractional), 'strict URL DTO accepts fractional lastmod');
+stack4AssertInstanceOf(SharedSitemapIndexEntryDTO::class, new SharedSitemapIndexEntryDTO('https://example.com/fractional.xml', $validFractional), 'strict Shared index DTO accepts fractional lastmod');
+stack4AssertInstanceOf(WebSitemapIndexEntryDTO::class, new WebSitemapIndexEntryDTO('https://example.com/fractional.xml', $validFractional), 'strict Web index DTO accepts fractional lastmod');
 stack4AssertThrows('strict Video publication date keeps its no-fraction contract', static function () use ($validFractional): void {
     new SitemapVideoDTO(
         'https://cdn.example.com/thumb.jpg',
@@ -1269,6 +1309,9 @@ stack4AssertTrue('SitemapGeneratorService has no Shared to Web dependency', !str
 stack4AssertTrue('Shared canonical writer has no Shared to Web dependency', !str_contains($canonicalSource, 'Maatify\\Seo\\Web\\'));
 stack4AssertTrue('the canonical writer exists only under Shared internal', is_file(__DIR__ . '/../src/Shared/Service/Internal/SitemapCanonicalXmlWriter.php') && !is_file(__DIR__ . '/../src/Web/Sitemap/Internal/SitemapCanonicalXmlWriter.php'));
 $profileSources = glob(__DIR__ . '/../src/Web/Validation/Profile/{SitemapProtocolValidator.php,GoogleSitemapValidator.php,GoogleImageSitemapValidator.php,GoogleVideoSitemapValidator.php,GoogleNewsSitemapValidator.php}', GLOB_BRACE);
+if ($profileSources === false) {
+    throw new RuntimeException('Could not list the Stack 4 validator source files.');
+}
 foreach ($profileSources as $profileSource) {
     $source = (string) file_get_contents($profileSource);
     stack4AssertTrue('Stack 4 validator has no network/parser/clock inference: ' . basename($profileSource), !str_contains($source, 'parse_url') && !str_contains($source, 'FILTER_VALIDATE_URL') && !str_contains($source, 'file_get_contents') && !str_contains($source, 'now(') && !str_contains($source, 'time('));

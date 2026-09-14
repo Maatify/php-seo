@@ -1,0 +1,26 @@
+{
+    "name": "maatify/php-seo-consumer-harness",
+    "description": "Disposable external-consumer verification fixture for maatify/php-seo.",
+    "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../package-under-test",
+            "options": {
+                "symlink": false,
+                "versions": {
+                    "maatify/php-seo": "dev-consumer-harness"
+                }
+            }
+        }
+    ],
+    "require": {
+        "maatify/php-seo": "dev-consumer-harness"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

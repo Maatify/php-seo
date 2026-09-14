@@ -1,18 +1,13 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase11DSeoValidationPresetsTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
 
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Exception\SeoInvalidArgumentException;
 use Maatify\Seo\Web\Validation\DTO\SeoValidationReportDTO;
@@ -91,15 +86,15 @@ $validMeta = [
 
 $standard = SeoValidationPreset::standard();
 $validationResult = SeoMetaValidator::validate($validMeta, $standard['validationOptions']);
-assertTrueValue11D('preset validation options work with validator', $validationResult instanceof SeoValidationResultDTO);
+assertTrueValue11D('preset validation options work with validator', phpstanRuntimeInstanceOfPhase11DSeoValidationPresetsTest($validationResult, SeoValidationResultDTO::class));
 assertTrueValue11D('standard preset validates valid metadata', $validationResult->isValid);
 
 $score = SeoValidationScoreCalculator::score($validationResult, $standard['scoreOptions']);
-assertTrueValue11D('preset score options work with score calculator', $score instanceof SeoValidationScoreDTO);
+assertTrueValue11D('preset score options work with score calculator', phpstanRuntimeInstanceOfPhase11DSeoValidationPresetsTest($score, SeoValidationScoreDTO::class));
 assertSameValue11D('standard preset valid metadata score', 100, $score->score);
 
 $report = SeoValidationReportBuilder::build($validMeta, $standard['validationOptions'], $standard['scoreOptions']);
-assertTrueValue11D('presets work with report builder', $report instanceof SeoValidationReportDTO);
+assertTrueValue11D('presets work with report builder', phpstanRuntimeInstanceOfPhase11DSeoValidationPresetsTest($report, SeoValidationReportDTO::class));
 assertSameValue11D('standard preset valid metadata report status', 'pass', $report->summary['status']);
 
 $strict = SeoValidationPreset::strict();

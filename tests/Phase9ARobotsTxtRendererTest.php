@@ -2,24 +2,14 @@
 
 declare(strict_types=1);
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
-
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Exception\SeoInvalidArgumentException;
 use Maatify\Seo\Web\Robots\DTO\RobotsRuleDTO;
 use Maatify\Seo\Web\Robots\DTO\RobotsTxtDTO;
 use Maatify\Seo\Web\Robots\RobotsTxtRenderer;
 
-function assertSameValue(string $label, string $expected, string $actual): void
+function testPhase9ARobotsTxtRendererTestAssertSameValue(string $label, string $expected, string $actual): void
 {
     if ($expected !== $actual) {
         fwrite(STDERR, "Assertion failed: {$label}\nExpected:\n{$expected}\nActual:\n{$actual}\n");
@@ -62,7 +52,7 @@ Disallow: /admin
 
 TXT;
 
-assertSameValue('testRenderSingleRule', $expected, $renderer->render($dto));
+testPhase9ARobotsTxtRendererTestAssertSameValue('testRenderSingleRule', $expected, $renderer->render($dto));
 
 // testRenderMultipleRules
 $rule1 = new RobotsRuleDTO(
@@ -88,7 +78,7 @@ Disallow: /private
 
 TXT;
 
-assertSameValue('testRenderMultipleRules', $expected, $renderer->render($dto));
+testPhase9ARobotsTxtRendererTestAssertSameValue('testRenderMultipleRules', $expected, $renderer->render($dto));
 
 // testRenderWithSitemapAndComments
 $rule = new RobotsRuleDTO(
@@ -115,7 +105,7 @@ Sitemap: https://example.com/sitemap.xml
 
 TXT;
 
-assertSameValue('testRenderWithSitemapAndComments', $expected, $renderer->render($dto));
+testPhase9ARobotsTxtRendererTestAssertSameValue('testRenderWithSitemapAndComments', $expected, $renderer->render($dto));
 
 // testRenderWithCrawlDelay
 $rule = new RobotsRuleDTO(
@@ -130,7 +120,7 @@ Crawl-delay: 10
 
 TXT;
 
-assertSameValue('testRenderWithCrawlDelay', $expected, $renderer->render($dto));
+testPhase9ARobotsTxtRendererTestAssertSameValue('testRenderWithCrawlDelay', $expected, $renderer->render($dto));
 
 // testEmptyUserAgentThrowsException
 assertException(
@@ -182,7 +172,7 @@ Sitemap: https://example.com/sitemap.xml
 
 TXT;
 
-assertSameValue('testOnlySitemap', $expected, $renderer->render($dto));
+testPhase9ARobotsTxtRendererTestAssertSameValue('testOnlySitemap', $expected, $renderer->render($dto));
 
 // testOnlyComments
 $dto = new RobotsTxtDTO(
@@ -194,6 +184,6 @@ $expected = <<<TXT
 
 TXT;
 
-assertSameValue('testOnlyComments', $expected, $renderer->render($dto));
+testPhase9ARobotsTxtRendererTestAssertSameValue('testOnlyComments', $expected, $renderer->render($dto));
 
 echo "Phase 9A RobotsTxtRenderer tests passed.\n";

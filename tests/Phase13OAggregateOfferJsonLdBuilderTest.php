@@ -1,18 +1,13 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase13OAggregateOfferJsonLdBuilderTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
 
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Web\JsonLd\Builder\AggregateOfferJsonLdBuilder;
 use Maatify\Seo\Web\JsonLd\Builder\JsonLdBuilderInterface;
@@ -36,7 +31,7 @@ function assertTrueValue13OAggregateOffer(string $label, bool $actual): void
 }
 
 $constructor = new AggregateOfferJsonLdBuilder();
-assertTrueValue13OAggregateOffer('aggregate offer implements builder interface', $constructor instanceof JsonLdBuilderInterface);
+assertTrueValue13OAggregateOffer('aggregate offer implements builder interface', phpstanRuntimeInstanceOfPhase13OAggregateOfferJsonLdBuilderTest($constructor, JsonLdBuilderInterface::class));
 assertSameValue13OAggregateOffer('aggregate offer constructor seeds schema.org defaults', [
     '@context' => 'https://schema.org',
     '@type' => 'AggregateOffer',

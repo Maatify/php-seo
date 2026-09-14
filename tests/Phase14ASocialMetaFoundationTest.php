@@ -12,67 +12,66 @@ use Maatify\Seo\Web\Social\SocialImage;
 use Maatify\Seo\Web\Social\SocialMetaCollection;
 use Maatify\Seo\Web\Social\SocialMetaRenderOutput;
 
-$failures = 0;
+final class Phase14ATestFailureCounter { public static int $count = 0; }
 
-function assertSameValue(mixed $expected, mixed $actual, string $message): void
+function testPhase14ASocialMetaFoundationTestAssertSameValue(mixed $expected, mixed $actual, string $message): void
 {
-    global $failures;
     if ($expected !== $actual) {
-        $failures++;
+        Phase14ATestFailureCounter::$count++;
         echo "FAIL: $message\n";
         echo "  Expected: " . print_r($expected, true) . "\n";
         echo "  Actual:   " . print_r($actual, true) . "\n";
     }
 }
 
-function assertTrueValue(bool $actual, string $message): void
+function testPhase14ASocialMetaFoundationTestAssertTrueValue(bool $actual, string $message): void
 {
-    assertSameValue(true, $actual, $message);
+    testPhase14ASocialMetaFoundationTestAssertSameValue(true, $actual, $message);
 }
 
-function assertFalseValue(bool $actual, string $message): void
+function testPhase14ASocialMetaFoundationTestAssertFalseValue(bool $actual, string $message): void
 {
-    assertSameValue(false, $actual, $message);
+    testPhase14ASocialMetaFoundationTestAssertSameValue(false, $actual, $message);
 }
 
 // 1. SocialMetaTag tests
 $tag = new SocialMetaTag('og:title', 'Test Title');
-assertSameValue('og:title', $tag->getName(), 'SocialMetaTag getName');
-assertSameValue('Test Title', $tag->getContent(), 'SocialMetaTag getContent');
-assertSameValue('property', $tag->getAttribute(), 'SocialMetaTag getAttribute default');
+testPhase14ASocialMetaFoundationTestAssertSameValue('og:title', $tag->getName(), 'SocialMetaTag getName');
+testPhase14ASocialMetaFoundationTestAssertSameValue('Test Title', $tag->getContent(), 'SocialMetaTag getContent');
+testPhase14ASocialMetaFoundationTestAssertSameValue('property', $tag->getAttribute(), 'SocialMetaTag getAttribute default');
 
 $tagArray = $tag->toArray();
-assertSameValue('og:title', $tagArray['name'], 'SocialMetaTag toArray name');
-assertSameValue('Test Title', $tagArray['content'], 'SocialMetaTag toArray content');
-assertSameValue('property', $tagArray['attribute'], 'SocialMetaTag toArray attribute');
+testPhase14ASocialMetaFoundationTestAssertSameValue('og:title', $tagArray['name'], 'SocialMetaTag toArray name');
+testPhase14ASocialMetaFoundationTestAssertSameValue('Test Title', $tagArray['content'], 'SocialMetaTag toArray content');
+testPhase14ASocialMetaFoundationTestAssertSameValue('property', $tagArray['attribute'], 'SocialMetaTag toArray attribute');
 
 $expectedHtml = '<meta property="og:title" content="Test Title">';
-assertSameValue($expectedHtml, $tag->toHtml(), 'SocialMetaTag toHtml default');
+testPhase14ASocialMetaFoundationTestAssertSameValue($expectedHtml, $tag->toHtml(), 'SocialMetaTag toHtml default');
 
 $customTag = new SocialMetaTag('twitter:card', 'summary_large_image', 'name');
-assertSameValue('twitter:card', $customTag->getName(), 'SocialMetaTag custom name');
-assertSameValue('summary_large_image', $customTag->getContent(), 'SocialMetaTag custom content');
-assertSameValue('name', $customTag->getAttribute(), 'SocialMetaTag custom attribute');
-assertSameValue('<meta name="twitter:card" content="summary_large_image">', $customTag->toHtml(), 'SocialMetaTag toHtml custom attribute');
+testPhase14ASocialMetaFoundationTestAssertSameValue('twitter:card', $customTag->getName(), 'SocialMetaTag custom name');
+testPhase14ASocialMetaFoundationTestAssertSameValue('summary_large_image', $customTag->getContent(), 'SocialMetaTag custom content');
+testPhase14ASocialMetaFoundationTestAssertSameValue('name', $customTag->getAttribute(), 'SocialMetaTag custom attribute');
+testPhase14ASocialMetaFoundationTestAssertSameValue('<meta name="twitter:card" content="summary_large_image">', $customTag->toHtml(), 'SocialMetaTag toHtml custom attribute');
 
 $itempropTag = new SocialMetaTag('image', 'https://example.com/img.jpg', 'itemprop');
-assertSameValue('<meta itemprop="image" content="https://example.com/img.jpg">', $itempropTag->toHtml(), 'SocialMetaTag toHtml itemprop attribute');
+testPhase14ASocialMetaFoundationTestAssertSameValue('<meta itemprop="image" content="https://example.com/img.jpg">', $itempropTag->toHtml(), 'SocialMetaTag toHtml itemprop attribute');
 
 $escapedTag = new SocialMetaTag('bad"name', 'bad"content<', 'bad"attr');
 $expectedEscapedHtml = '<meta bad&quot;attr="bad&quot;name" content="bad&quot;content&lt;">';
-assertSameValue($expectedEscapedHtml, $escapedTag->toHtml(), 'SocialMetaTag toHtml escaping');
+testPhase14ASocialMetaFoundationTestAssertSameValue($expectedEscapedHtml, $escapedTag->toHtml(), 'SocialMetaTag toHtml escaping');
 
 // 2. SocialImage tests
 $image = new SocialImage('https://example.com/image.jpg');
-assertSameValue('https://example.com/image.jpg', $image->getUrl(), 'SocialImage getUrl');
-assertSameValue(null, $image->getSecureUrl(), 'SocialImage getSecureUrl default null');
-assertSameValue(null, $image->getType(), 'SocialImage getType default null');
-assertSameValue(null, $image->getWidth(), 'SocialImage getWidth default null');
-assertSameValue(null, $image->getHeight(), 'SocialImage getHeight default null');
-assertSameValue(null, $image->getAlt(), 'SocialImage getAlt default null');
+testPhase14ASocialMetaFoundationTestAssertSameValue('https://example.com/image.jpg', $image->getUrl(), 'SocialImage getUrl');
+testPhase14ASocialMetaFoundationTestAssertSameValue(null, $image->getSecureUrl(), 'SocialImage getSecureUrl default null');
+testPhase14ASocialMetaFoundationTestAssertSameValue(null, $image->getType(), 'SocialImage getType default null');
+testPhase14ASocialMetaFoundationTestAssertSameValue(null, $image->getWidth(), 'SocialImage getWidth default null');
+testPhase14ASocialMetaFoundationTestAssertSameValue(null, $image->getHeight(), 'SocialImage getHeight default null');
+testPhase14ASocialMetaFoundationTestAssertSameValue(null, $image->getAlt(), 'SocialImage getAlt default null');
 
 $imageArray = $image->toArray();
-assertSameValue(['url' => 'https://example.com/image.jpg'], $imageArray, 'SocialImage toArray default');
+testPhase14ASocialMetaFoundationTestAssertSameValue(['url' => 'https://example.com/image.jpg'], $imageArray, 'SocialImage toArray default');
 
 $image->setSecureUrl('https://secure.example.com/image.jpg')
       ->setType('image/jpeg')
@@ -80,11 +79,11 @@ $image->setSecureUrl('https://secure.example.com/image.jpg')
       ->setHeight(630)
       ->setAlt('Example Image');
 
-assertSameValue('https://secure.example.com/image.jpg', $image->getSecureUrl(), 'SocialImage getSecureUrl after set');
-assertSameValue('image/jpeg', $image->getType(), 'SocialImage getType after set');
-assertSameValue(1200, $image->getWidth(), 'SocialImage getWidth after set');
-assertSameValue(630, $image->getHeight(), 'SocialImage getHeight after set');
-assertSameValue('Example Image', $image->getAlt(), 'SocialImage getAlt after set');
+testPhase14ASocialMetaFoundationTestAssertSameValue('https://secure.example.com/image.jpg', $image->getSecureUrl(), 'SocialImage getSecureUrl after set');
+testPhase14ASocialMetaFoundationTestAssertSameValue('image/jpeg', $image->getType(), 'SocialImage getType after set');
+testPhase14ASocialMetaFoundationTestAssertSameValue(1200, $image->getWidth(), 'SocialImage getWidth after set');
+testPhase14ASocialMetaFoundationTestAssertSameValue(630, $image->getHeight(), 'SocialImage getHeight after set');
+testPhase14ASocialMetaFoundationTestAssertSameValue('Example Image', $image->getAlt(), 'SocialImage getAlt after set');
 
 $expectedImageArray = [
     'url' => 'https://example.com/image.jpg',
@@ -94,70 +93,70 @@ $expectedImageArray = [
     'height' => 630,
     'alt' => 'Example Image',
 ];
-assertSameValue($expectedImageArray, $image->toArray(), 'SocialImage toArray with optional fields');
+testPhase14ASocialMetaFoundationTestAssertSameValue($expectedImageArray, $image->toArray(), 'SocialImage toArray with optional fields');
 
 // 3. SocialMetaCollection tests
 $collection = new SocialMetaCollection();
-assertTrueValue($collection->isEmpty(), 'SocialMetaCollection isEmpty initial');
-assertSameValue(0, $collection->count(), 'SocialMetaCollection count initial');
-assertSameValue([], $collection->all(), 'SocialMetaCollection all initial');
-assertSameValue([], $collection->toArray(), 'SocialMetaCollection toArray initial');
-assertSameValue('', $collection->toHtml(), 'SocialMetaCollection toHtml initial');
+testPhase14ASocialMetaFoundationTestAssertTrueValue($collection->isEmpty(), 'SocialMetaCollection isEmpty initial');
+testPhase14ASocialMetaFoundationTestAssertSameValue(0, $collection->count(), 'SocialMetaCollection count initial');
+testPhase14ASocialMetaFoundationTestAssertSameValue([], $collection->all(), 'SocialMetaCollection all initial');
+testPhase14ASocialMetaFoundationTestAssertSameValue([], $collection->toArray(), 'SocialMetaCollection toArray initial');
+testPhase14ASocialMetaFoundationTestAssertSameValue('', $collection->toHtml(), 'SocialMetaCollection toHtml initial');
 
 $collection->add(new SocialMetaTag('og:title', 'Collection Title'));
 $collection->addTag('twitter:title', 'Twitter Title', 'name');
 
-assertFalseValue($collection->isEmpty(), 'SocialMetaCollection isEmpty after add');
-assertSameValue(2, $collection->count(), 'SocialMetaCollection count after add');
+testPhase14ASocialMetaFoundationTestAssertFalseValue($collection->isEmpty(), 'SocialMetaCollection isEmpty after add');
+testPhase14ASocialMetaFoundationTestAssertSameValue(2, $collection->count(), 'SocialMetaCollection count after add');
 
 $tags = $collection->all();
-assertSameValue('og:title', $tags[0]->getName(), 'SocialMetaCollection tags[0] name');
-assertSameValue('twitter:title', $tags[1]->getName(), 'SocialMetaCollection tags[1] name');
+testPhase14ASocialMetaFoundationTestAssertSameValue('og:title', $tags[0]->getName(), 'SocialMetaCollection tags[0] name');
+testPhase14ASocialMetaFoundationTestAssertSameValue('twitter:title', $tags[1]->getName(), 'SocialMetaCollection tags[1] name');
 
 $expectedCollectionArray = [
     ['name' => 'og:title', 'content' => 'Collection Title', 'attribute' => 'property'],
     ['name' => 'twitter:title', 'content' => 'Twitter Title', 'attribute' => 'name'],
 ];
-assertSameValue($expectedCollectionArray, $collection->toArray(), 'SocialMetaCollection toArray');
+testPhase14ASocialMetaFoundationTestAssertSameValue($expectedCollectionArray, $collection->toArray(), 'SocialMetaCollection toArray');
 
 $expectedCollectionHtml = '<meta property="og:title" content="Collection Title">' . "\n" . '<meta name="twitter:title" content="Twitter Title">';
-assertSameValue($expectedCollectionHtml, $collection->toHtml(), 'SocialMetaCollection toHtml');
-assertSameValue('<meta property="og:title" content="Collection Title">|<meta name="twitter:title" content="Twitter Title">', $collection->toHtml('|'), 'SocialMetaCollection toHtml custom separator');
+testPhase14ASocialMetaFoundationTestAssertSameValue($expectedCollectionHtml, $collection->toHtml(), 'SocialMetaCollection toHtml');
+testPhase14ASocialMetaFoundationTestAssertSameValue('<meta property="og:title" content="Collection Title">|<meta name="twitter:title" content="Twitter Title">', $collection->toHtml('|'), 'SocialMetaCollection toHtml custom separator');
 
 // Test preserves insertion order and does not deduplicate duplicate tags
 $collection->addTag('og:title', 'Second Title');
-assertSameValue(3, $collection->count(), 'SocialMetaCollection count after duplicate add');
+testPhase14ASocialMetaFoundationTestAssertSameValue(3, $collection->count(), 'SocialMetaCollection count after duplicate add');
 $tags = $collection->all();
-assertSameValue('og:title', $tags[0]->getName(), 'SocialMetaCollection tags[0] name (duplicate test)');
-assertSameValue('og:title', $tags[2]->getName(), 'SocialMetaCollection tags[2] name (duplicate test)');
-assertSameValue('Collection Title', $tags[0]->getContent(), 'SocialMetaCollection tags[0] content (duplicate test)');
-assertSameValue('Second Title', $tags[2]->getContent(), 'SocialMetaCollection tags[2] content (duplicate test)');
+testPhase14ASocialMetaFoundationTestAssertSameValue('og:title', $tags[0]->getName(), 'SocialMetaCollection tags[0] name (duplicate test)');
+testPhase14ASocialMetaFoundationTestAssertSameValue('og:title', $tags[2]->getName(), 'SocialMetaCollection tags[2] name (duplicate test)');
+testPhase14ASocialMetaFoundationTestAssertSameValue('Collection Title', $tags[0]->getContent(), 'SocialMetaCollection tags[0] content (duplicate test)');
+testPhase14ASocialMetaFoundationTestAssertSameValue('Second Title', $tags[2]->getContent(), 'SocialMetaCollection tags[2] content (duplicate test)');
 
 // 4. SocialMetaRenderOutput tests
 $renderOutput = new SocialMetaRenderOutput($collection);
-assertSameValue($collection, $renderOutput->getCollection(), 'SocialMetaRenderOutput getCollection');
+testPhase14ASocialMetaFoundationTestAssertSameValue($collection, $renderOutput->getCollection(), 'SocialMetaRenderOutput getCollection');
 
 $outputTags = $renderOutput->getTags();
-assertSameValue($tags, $outputTags, 'SocialMetaRenderOutput getTags delegates to collection all');
+testPhase14ASocialMetaFoundationTestAssertSameValue($tags, $outputTags, 'SocialMetaRenderOutput getTags delegates to collection all');
 
 $outputArray = $renderOutput->toArray();
-assertSameValue($collection->toArray(), $outputArray, 'SocialMetaRenderOutput toArray delegates to collection toArray');
+testPhase14ASocialMetaFoundationTestAssertSameValue($collection->toArray(), $outputArray, 'SocialMetaRenderOutput toArray delegates to collection toArray');
 
 $outputHtml = $renderOutput->toHtml();
-assertSameValue($collection->toHtml(), $outputHtml, 'SocialMetaRenderOutput toHtml delegates to collection toHtml');
+testPhase14ASocialMetaFoundationTestAssertSameValue($collection->toHtml(), $outputHtml, 'SocialMetaRenderOutput toHtml delegates to collection toHtml');
 
 $outputHtmlPipe = $renderOutput->toHtml('|');
-assertSameValue($collection->toHtml('|'), $outputHtmlPipe, 'SocialMetaRenderOutput toHtml custom separator delegates to collection toHtml');
+testPhase14ASocialMetaFoundationTestAssertSameValue($collection->toHtml('|'), $outputHtmlPipe, 'SocialMetaRenderOutput toHtml custom separator delegates to collection toHtml');
 
 $outputIsEmpty = $renderOutput->isEmpty();
-assertSameValue($collection->isEmpty(), $outputIsEmpty, 'SocialMetaRenderOutput isEmpty delegates to collection isEmpty');
+testPhase14ASocialMetaFoundationTestAssertSameValue($collection->isEmpty(), $outputIsEmpty, 'SocialMetaRenderOutput isEmpty delegates to collection isEmpty');
 
 $emptyCollection = new SocialMetaCollection();
 $emptyRenderOutput = new SocialMetaRenderOutput($emptyCollection);
-assertTrueValue($emptyRenderOutput->isEmpty(), 'SocialMetaRenderOutput isEmpty empty collection');
+testPhase14ASocialMetaFoundationTestAssertTrueValue($emptyRenderOutput->isEmpty(), 'SocialMetaRenderOutput isEmpty empty collection');
 
-if ($failures > 0) {
-    echo "\nPhase 14A Social Meta Foundation tests failed with $failures failures.\n";
+if (Phase14ATestFailureCounter::$count > 0) {
+    echo "\nPhase 14A Social Meta Foundation tests failed with " . Phase14ATestFailureCounter::$count . " failures.\n";
     exit(1);
 }
 

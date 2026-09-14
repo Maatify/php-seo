@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Maatify\Seo\Web\JsonLd\Builder;
 
 use Maatify\Seo\Exception\SeoExceptionInterface;
+use Maatify\Exceptions\Contracts\ErrorCodeInterface;
+use Maatify\Exceptions\Enum\ErrorCodeEnum;
+use Maatify\Exceptions\Exception\System\SystemMaatifyException;
 
-final class JsonLdBuildException extends \RuntimeException implements SeoExceptionInterface
+final class JsonLdBuildException extends SystemMaatifyException implements SeoExceptionInterface
 {
     public static function encodingFailed(\JsonException $exception): self
     {
@@ -15,5 +18,10 @@ final class JsonLdBuildException extends \RuntimeException implements SeoExcepti
             $exception->getCode(),
             $exception
         );
+    }
+
+    protected function defaultErrorCode(): ErrorCodeInterface
+    {
+        return ErrorCodeEnum::MAATIFY_ERROR;
     }
 }

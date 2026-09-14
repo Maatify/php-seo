@@ -20,7 +20,7 @@ require_once __DIR__ . '/../src/Web/JsonLd/Builder/OfferJsonLdBuilder.php';
 require_once __DIR__ . '/../src/Web/JsonLd/Builder/ServiceJsonLdBuilder.php';
 require_once __DIR__ . '/../src/Web/JsonLd/Builder/LocalBusinessJsonLdBuilder.php';
 
-function assertSameValue(mixed $expected, mixed $actual, string $message = ''): void {
+function testPhase13ICommerceJsonLdBuildersTestAssertSameValue(mixed $expected, mixed $actual, string $message = ''): void {
     if ($expected !== $actual) {
         throw new RuntimeException("Assertion failed: $message. Expected " . json_encode($expected) . ", got " . json_encode($actual));
     }
@@ -37,14 +37,14 @@ $review = (new ReviewJsonLdBuilder())
     ->setPublisher('Awesome Review Site')
     ->toArray();
 
-assertSameValue('Review', $review['@type']);
-assertSameValue('Product Name', $review['itemReviewed']);
-assertSameValue(['@type' => 'Rating', 'ratingValue' => 4, 'bestRating' => 5.0, 'worstRating' => 1.0], $review['reviewRating']);
-assertSameValue(['@type' => 'Person', 'name' => 'John Doe'], $review['author']);
-assertSameValue('Great product!', $review['name']);
-assertSameValue('I really loved using this product.', $review['reviewBody']);
-assertSameValue('2023-10-15', $review['datePublished']);
-assertSameValue(['@type' => 'Organization', 'name' => 'Awesome Review Site'], $review['publisher']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('Review', $review['@type']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('Product Name', $review['itemReviewed']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'Rating', 'ratingValue' => 4, 'bestRating' => 5.0, 'worstRating' => 1.0], $review['reviewRating']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'Person', 'name' => 'John Doe'], $review['author']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('Great product!', $review['name']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('I really loved using this product.', $review['reviewBody']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('2023-10-15', $review['datePublished']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'Organization', 'name' => 'Awesome Review Site'], $review['publisher']);
 
 // Array usages
 $review2 = (new ReviewJsonLdBuilder())
@@ -54,10 +54,10 @@ $review2 = (new ReviewJsonLdBuilder())
     ->setPublisher(['@type' => 'Organization', 'name' => 'Reviewer Inc'])
     ->toArray();
 
-assertSameValue(['@type' => 'Product', 'name' => 'Product 2'], $review2['itemReviewed']);
-assertSameValue(['@type' => 'Rating', 'ratingValue' => 3], $review2['reviewRating']);
-assertSameValue(['@type' => 'Person', 'name' => 'Jane Doe'], $review2['author']);
-assertSameValue(['@type' => 'Organization', 'name' => 'Reviewer Inc'], $review2['publisher']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'Product', 'name' => 'Product 2'], $review2['itemReviewed']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'Rating', 'ratingValue' => 3], $review2['reviewRating']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'Person', 'name' => 'Jane Doe'], $review2['author']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'Organization', 'name' => 'Reviewer Inc'], $review2['publisher']);
 
 // 2. AggregateRatingJsonLdBuilder
 $aggRating = (new AggregateRatingJsonLdBuilder())
@@ -68,12 +68,12 @@ $aggRating = (new AggregateRatingJsonLdBuilder())
     ->setWorstRating(1)
     ->toArray();
 
-assertSameValue('AggregateRating', $aggRating['@type']);
-assertSameValue(4.5, $aggRating['ratingValue']);
-assertSameValue(120, $aggRating['reviewCount']);
-assertSameValue(150, $aggRating['ratingCount']);
-assertSameValue(5, $aggRating['bestRating']);
-assertSameValue(1, $aggRating['worstRating']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('AggregateRating', $aggRating['@type']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(4.5, $aggRating['ratingValue']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(120, $aggRating['reviewCount']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(150, $aggRating['ratingCount']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(5, $aggRating['bestRating']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(1, $aggRating['worstRating']);
 
 // 3. OfferJsonLdBuilder
 $offer = (new OfferJsonLdBuilder())
@@ -87,20 +87,20 @@ $offer = (new OfferJsonLdBuilder())
     ->setSeller('Store Name')
     ->toArray();
 
-assertSameValue('Offer', $offer['@type']);
-assertSameValue(29.99, $offer['price']);
-assertSameValue('USD', $offer['priceCurrency']);
-assertSameValue('https://schema.org/InStock', $offer['availability']);
-assertSameValue('https://example.com/offer', $offer['url']);
-assertSameValue('2023-11-01', $offer['validFrom']);
-assertSameValue('2023-12-31', $offer['priceValidUntil']);
-assertSameValue('https://schema.org/NewCondition', $offer['itemCondition']);
-assertSameValue(['@type' => 'Organization', 'name' => 'Store Name'], $offer['seller']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('Offer', $offer['@type']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(29.99, $offer['price']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('USD', $offer['priceCurrency']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('https://schema.org/InStock', $offer['availability']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('https://example.com/offer', $offer['url']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('2023-11-01', $offer['validFrom']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('2023-12-31', $offer['priceValidUntil']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('https://schema.org/NewCondition', $offer['itemCondition']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'Organization', 'name' => 'Store Name'], $offer['seller']);
 
 $offer2 = (new OfferJsonLdBuilder())
     ->setSeller(['@type' => 'Organization', 'name' => 'Store Name 2'])
     ->toArray();
-assertSameValue(['@type' => 'Organization', 'name' => 'Store Name 2'], $offer2['seller']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'Organization', 'name' => 'Store Name 2'], $offer2['seller']);
 
 // 4. ServiceJsonLdBuilder
 $service = (new ServiceJsonLdBuilder())
@@ -117,14 +117,14 @@ $service = (new ServiceJsonLdBuilder())
     ])
     ->toArray();
 
-assertSameValue('Service', $service['@type']);
-assertSameValue('Plumbing Service', $service['name']);
-assertSameValue('Professional plumbing services.', $service['description']);
-assertSameValue('Home Repair', $service['serviceType']);
-assertSameValue(['@type' => 'Organization', 'name' => 'Plumbers Inc'], $service['provider']);
-assertSameValue(['@type' => 'Place', 'name' => 'New York'], $service['areaServed']);
-assertSameValue([['@type' => 'Offer', 'price' => 50, 'priceCurrency' => 'USD']], $service['offers']);
-assertSameValue(['ratingValue' => 4.8, 'reviewCount' => 20, '@type' => 'AggregateRating'], $service['aggregateRating']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('Service', $service['@type']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('Plumbing Service', $service['name']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('Professional plumbing services.', $service['description']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('Home Repair', $service['serviceType']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'Organization', 'name' => 'Plumbers Inc'], $service['provider']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'Place', 'name' => 'New York'], $service['areaServed']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue([['@type' => 'Offer', 'price' => 50, 'priceCurrency' => 'USD']], $service['offers']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['ratingValue' => 4.8, 'reviewCount' => 20, '@type' => 'AggregateRating'], $service['aggregateRating']);
 
 // 5. LocalBusinessJsonLdBuilder
 $localBusiness = (new LocalBusinessJsonLdBuilder())
@@ -153,25 +153,25 @@ $localBusiness = (new LocalBusinessJsonLdBuilder())
     ])
     ->toArray();
 
-assertSameValue('LocalBusiness', $localBusiness['@type']);
-assertSameValue('My Local Shop', $localBusiness['name']);
-assertSameValue('https://example.com/shop', $localBusiness['url']);
-assertSameValue('https://example.com/logo.png', $localBusiness['logo']);
-assertSameValue('https://example.com/image.jpg', $localBusiness['image']);
-assertSameValue('A great local shop.', $localBusiness['description']);
-assertSameValue('555-1234', $localBusiness['telephone']);
-assertSameValue('contact@example.com', $localBusiness['email']);
-assertSameValue(['streetAddress' => '123 Main St', '@type' => 'PostalAddress'], $localBusiness['address']);
-assertSameValue(['@type' => 'GeoCoordinates', 'latitude' => 40.7128, 'longitude' => -74.0060], $localBusiness['geo']);
-assertSameValue(['Mo-Fr 09:00-17:00', 'Sa 10:00-14:00'], $localBusiness['openingHours']);
-assertSameValue('$$', $localBusiness['priceRange']);
-assertSameValue(['https://facebook.com/myshop', 'https://twitter.com/myshop'], $localBusiness['sameAs']);
-assertSameValue(['ratingValue' => 4.9, 'reviewCount' => 50, '@type' => 'AggregateRating'], $localBusiness['aggregateRating']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('LocalBusiness', $localBusiness['@type']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('My Local Shop', $localBusiness['name']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('https://example.com/shop', $localBusiness['url']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('https://example.com/logo.png', $localBusiness['logo']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('https://example.com/image.jpg', $localBusiness['image']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('A great local shop.', $localBusiness['description']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('555-1234', $localBusiness['telephone']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('contact@example.com', $localBusiness['email']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['streetAddress' => '123 Main St', '@type' => 'PostalAddress'], $localBusiness['address']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['@type' => 'GeoCoordinates', 'latitude' => 40.7128, 'longitude' => -74.0060], $localBusiness['geo']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['Mo-Fr 09:00-17:00', 'Sa 10:00-14:00'], $localBusiness['openingHours']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue('$$', $localBusiness['priceRange']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['https://facebook.com/myshop', 'https://twitter.com/myshop'], $localBusiness['sameAs']);
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue(['ratingValue' => 4.9, 'reviewCount' => 50, '@type' => 'AggregateRating'], $localBusiness['aggregateRating']);
 
 $localBusiness2 = (new LocalBusinessJsonLdBuilder())
     ->setPostalAddress('456 Elm St', 'Cityville', 'ST', '12345', 'US')
     ->toArray();
-assertSameValue([
+testPhase13ICommerceJsonLdBuildersTestAssertSameValue([
     '@type' => 'PostalAddress',
     'streetAddress' => '456 Elm St',
     'addressLocality' => 'Cityville',

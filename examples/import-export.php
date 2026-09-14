@@ -32,17 +32,8 @@ $redirects = [
     ]
 ];
 
-$slugHistory = [
-    [
-        'entity_type' => 'category',
-        'entity_id' => '456',
-        'language_id' => 1,
-        'old_slug' => 'old-category',
-    ]
-];
-
 // Export generates a standardized DTO
-$exportDto = $exporter->export($seoOverrides, $redirects, $slugHistory);
+$exportDto = $exporter->export($seoOverrides, $redirects);
 
 // Representing the export as JSON for file storage or transmission
 $exportJson = json_encode($exportDto->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -52,7 +43,7 @@ echo "--- SEO Metadata Import (Dry Run) ---\n";
 
 // The importer doesn't require actual repositories if we only want to validate or do a dry run
 // We omit repositories here as we have no DB dependency in this example.
-$importer = new SeoMetadataImporter(null, null, null);
+$importer = new SeoMetadataImporter(null, null);
 
 // Import the JSON string, setting dryRun to true
 $importResult = $importer->importJson($exportJson, true);
@@ -62,6 +53,8 @@ echo "Created Items: " . $importResult->created . "\n";
 echo "Updated Items: " . $importResult->updated . "\n";
 echo "Failed Items: " . $importResult->failed . "\n";
 echo "Errors Count: " . count($importResult->errors) . "\n";
+echo "Import result DTO:\n";
+echo json_encode($importResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
 
 if (!empty($importResult->errors)) {
     echo "Errors:\n";

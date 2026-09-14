@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Maatify\Seo\Exception;
 
-final class SeoConflictException extends \RuntimeException implements SeoExceptionInterface
+use Maatify\Exceptions\Exception\Conflict\GenericConflictMaatifyException;
+
+final class SeoConflictException extends GenericConflictMaatifyException implements SeoExceptionInterface
 {
     public static function dueToReason(string $reason): self
     {

@@ -25,6 +25,13 @@ $noIndexHtml = $noIndexBuilder
     ->toHtml();
 echo "Restricted Non-Indexable: \n" . $noIndexHtml . "\n\n";
 
+$unavailableAfter = (new MetaRobotsBuilder())
+    ->noIndex()
+    ->noFollow()
+    ->maxSnippet(50)
+    ->unavailableAfter('31-Dec-2026 23:59:59 GMT');
+echo "Raw unavailable_after compatibility value: \n" . $unavailableAfter->build() . "\n\n";
+
 
 echo "--- Canonical URL Builder ---\n";
 

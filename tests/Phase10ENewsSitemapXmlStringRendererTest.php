@@ -2,17 +2,7 @@
 
 declare(strict_types=1);
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
-
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Exception\SeoExceptionInterface;
 use Maatify\Seo\Exception\SeoInvalidArgumentException;
@@ -203,7 +193,7 @@ assertSameValue10E(
 
 assertTrueValue10E(
     'renderer returns XML string only and has no HTTP framework behavior',
-    is_string($renderer->renderUrlSet([$dtoUrl])) && str_starts_with($renderer->renderUrlSet([$dtoUrl]), $xmlHeader),
+    testRuntimeIsString($renderer->renderUrlSet([$dtoUrl])) && str_starts_with($renderer->renderUrlSet([$dtoUrl]), $xmlHeader),
 );
 
 echo "Phase 10E news sitemap XML string renderer tests passed.\n";

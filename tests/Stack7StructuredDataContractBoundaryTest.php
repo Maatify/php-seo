@@ -1,18 +1,13 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfStack7StructuredDataContractBoundaryTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
 
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Shared\DTO\MetaTagsDTO;
 use Maatify\Seo\Shared\DTO\Schema\GenericSchemaDTO;
@@ -80,19 +75,30 @@ function stack7AssertSingleIssue(
 }
 
 /** @return list<string> */
-function stack7TypeNames(ReflectionType $type): array
+function stack7TypeNames(?ReflectionType $type): array
 {
-    if (!$type instanceof ReflectionUnionType) {
+    if ($type instanceof ReflectionNamedType) {
+        return [$type->getName()];
+    }
+
+    if (!$type instanceof ReflectionUnionType && !$type instanceof ReflectionIntersectionType) {
         return [];
     }
 
-    $names = array_map(
-        static fn (ReflectionNamedType $namedType): string => $namedType->getName(),
-        $type->getTypes(),
-    );
+    $names = [];
+    foreach ($type->getTypes() as $memberType) {
+        if ($memberType instanceof ReflectionNamedType) {
+            $names[] = $memberType->getName();
+        }
+    }
     sort($names);
 
     return $names;
+}
+
+function stack7TypeName(?ReflectionType $type): ?string
+{
+    return $type instanceof ReflectionNamedType ? $type->getName() : null;
 }
 
 // A. Exact public signatures are characterization contracts, not implementation hints.
@@ -103,11 +109,11 @@ stack7AssertSame('JsonLdSemanticValidator parameter names', ['node', 'field', 'i
     static fn (ReflectionParameter $parameter): string => $parameter->getName(),
     $semanticReflection->getParameters(),
 ));
-stack7AssertSame('JsonLdSemanticValidator node type', 'array', $semanticReflection->getParameters()[0]->getType()?->getName());
-stack7AssertSame('JsonLdSemanticValidator field type', 'string', $semanticReflection->getParameters()[1]->getType()?->getName());
-stack7AssertSame('JsonLdSemanticValidator issues type', 'array', $semanticReflection->getParameters()[2]->getType()?->getName());
+stack7AssertSame('JsonLdSemanticValidator node type', 'array', stack7TypeName($semanticReflection->getParameters()[0]->getType()));
+stack7AssertSame('JsonLdSemanticValidator field type', 'string', stack7TypeName($semanticReflection->getParameters()[1]->getType()));
+stack7AssertSame('JsonLdSemanticValidator issues type', 'array', stack7TypeName($semanticReflection->getParameters()[2]->getType()));
 stack7AssertTrue('JsonLdSemanticValidator issues is by reference', $semanticReflection->getParameters()[2]->isPassedByReference());
-stack7AssertSame('JsonLdSemanticValidator return type', 'void', $semanticReflection->getReturnType()?->getName());
+stack7AssertSame('JsonLdSemanticValidator return type', 'void', stack7TypeName($semanticReflection->getReturnType()));
 
 $legacyReflection = new ReflectionMethod(SeoMetaValidator::class, 'validate');
 stack7AssertTrue('SeoMetaValidator::validate is public', $legacyReflection->isPublic());
@@ -117,10 +123,10 @@ stack7AssertSame('SeoMetaValidator parameter names', ['meta', 'options'], array_
     $legacyReflection->getParameters(),
 ));
 stack7AssertSame('SeoMetaValidator legacy input union', ['array', 'object'], stack7TypeNames($legacyReflection->getParameters()[0]->getType()));
-stack7AssertSame('SeoMetaValidator options type', 'array', $legacyReflection->getParameters()[1]->getType()?->getName());
+stack7AssertSame('SeoMetaValidator options type', 'array', stack7TypeName($legacyReflection->getParameters()[1]->getType()));
 stack7AssertTrue('SeoMetaValidator options default is empty array', $legacyReflection->getParameters()[1]->isDefaultValueAvailable());
 stack7AssertSame('SeoMetaValidator options default', [], $legacyReflection->getParameters()[1]->getDefaultValue());
-stack7AssertSame('SeoMetaValidator return type', SeoValidationResultDTO::class, $legacyReflection->getReturnType()?->getName());
+stack7AssertSame('SeoMetaValidator return type', SeoValidationResultDTO::class, stack7TypeName($legacyReflection->getReturnType()));
 
 $objectResult = SeoMetaValidator::validate(new MetaTagsDTO(
     'An object branch title for Stack 7',
@@ -182,7 +188,6 @@ $scopedCases = [
 ];
 
 foreach ($scopedCases as $case) {
-    /** @var array<string, mixed> $node */
     $node = $case['node'];
     $result = SeoMetaValidator::validate(stack7ValidMeta($node));
     stack7AssertFalse($case['label'] . ' makes the legacy result invalid', $result->isValid);
@@ -277,7 +282,7 @@ $course = (new CourseJsonLdBuilder())
     ->setOffers([['@type' => 'Offer', 'price' => '100.00']])
     ->setAggregateRating(['ratingValue' => '4.5']);
 $courseArray = $course->toArray();
-stack7AssertTrue('Course builder remains callable through the generic builder interface', $course instanceof JsonLdBuilderInterface);
+stack7AssertTrue('Course builder remains callable through the generic builder interface', phpstanRuntimeInstanceOfStack7StructuredDataContractBoundaryTest($course, JsonLdBuilderInterface::class));
 stack7AssertSame('Course builder current context', 'https://schema.org', $courseArray['@context'] ?? null);
 stack7AssertSame('Course builder current type', 'Course', $courseArray['@type'] ?? null);
 stack7AssertSame('Course builder toJson remains compatible with toArray', $courseArray, json_decode($course->toJson(), true, 512, JSON_THROW_ON_ERROR));
@@ -304,7 +309,7 @@ $book = (new BookJsonLdBuilder())
         ['@type' => 'Offer', 'price' => '12.99', 'priceCurrency' => 'GBP'],
     ]);
 $bookArray = $book->toArray();
-stack7AssertTrue('Book builder remains callable through the generic builder interface', $book instanceof JsonLdBuilderInterface);
+stack7AssertTrue('Book builder remains callable through the generic builder interface', phpstanRuntimeInstanceOfStack7StructuredDataContractBoundaryTest($book, JsonLdBuilderInterface::class));
 stack7AssertSame('Book builder current context', 'https://schema.org', $bookArray['@context'] ?? null);
 stack7AssertSame('Book builder current type', 'Book', $bookArray['@type'] ?? null);
 stack7AssertSame('Book builder toJson remains compatible with toArray', $bookArray, json_decode($book->toJson(), true, 512, JSON_THROW_ON_ERROR));
@@ -317,7 +322,7 @@ $bookWithoutProviderFields = SeoMetaValidator::validate(stack7ValidMeta((new Boo
 stack7AssertNoIssues('missing Book provider fields and lexical-looking strings do not create eligibility findings', $bookWithoutProviderFields);
 
 $genericBuilder = (new ArticleJsonLdBuilder())->setHeadline('A generic Article schema');
-stack7AssertTrue('representative generic builder remains callable', $genericBuilder instanceof JsonLdBuilderInterface);
+stack7AssertTrue('representative generic builder remains callable', phpstanRuntimeInstanceOfStack7StructuredDataContractBoundaryTest($genericBuilder, JsonLdBuilderInterface::class));
 $genericBuilderArray = $genericBuilder->toArray();
 stack7AssertSame('generic builder toJson is compatible with toArray', $genericBuilderArray, json_decode($genericBuilder->toJson(), true, 512, JSON_THROW_ON_ERROR));
 

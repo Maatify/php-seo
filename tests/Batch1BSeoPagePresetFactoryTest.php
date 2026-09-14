@@ -2,17 +2,7 @@
 
 declare(strict_types=1);
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
-
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require_once $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Exception\SeoInvalidArgumentException;
 use Maatify\Seo\Shared\DTO\MetaTagsDTO;
@@ -22,7 +12,7 @@ use Maatify\Seo\Web\Robots\MetaRobotsBuilder;
 
 $failures = 0;
 
-function assertSameValue(mixed $expected, mixed $actual, string $message): void
+function testBatch1BSeoPagePresetFactoryTestAssertSameValue(mixed $expected, mixed $actual, string $message): void
 {
     global $failures;
     /** @var int $failures */
@@ -34,14 +24,14 @@ function assertSameValue(mixed $expected, mixed $actual, string $message): void
     }
 }
 
-function assertTrueValue(bool $actual, string $message): void
+function testBatch1BSeoPagePresetFactoryTestAssertTrueValue(bool $actual, string $message): void
 {
-    assertSameValue(true, $actual, $message);
+    testBatch1BSeoPagePresetFactoryTestAssertSameValue(true, $actual, $message);
 }
 
 function assertContainsValue(string $needle, string $haystack, string $message): void
 {
-    assertTrueValue(str_contains($haystack, $needle), $message);
+    testBatch1BSeoPagePresetFactoryTestAssertTrueValue(str_contains($haystack, $needle), $message);
 }
 
 function assertThrowsSeoInvalidArgument(callable $callback, string $message): void
@@ -72,16 +62,16 @@ $generic = SeoPagePresetFactory::generic('About Us', 'About our company', [
     'twitterSite' => '@example',
 ]);
 
-assertSameValue(MetaTagsDTO::class, $generic->metaTags::class, 'Generic preset builds MetaTagsDTO');
-assertSameValue('https://example.com/about?page=2', $generic->canonicalUrl, 'Generic preset uses CanonicalUrlBuilder behavior');
-assertSameValue('index, follow, max-image-preview:large', $generic->robots, 'Robots array uses MetaRobotsBuilder output');
+testBatch1BSeoPagePresetFactoryTestAssertSameValue(MetaTagsDTO::class, $generic->metaTags::class, 'Generic preset builds MetaTagsDTO');
+testBatch1BSeoPagePresetFactoryTestAssertSameValue('https://example.com/about?page=2', $generic->canonicalUrl, 'Generic preset uses CanonicalUrlBuilder behavior');
+testBatch1BSeoPagePresetFactoryTestAssertSameValue('index, follow, max-image-preview:large', $generic->robots, 'Robots array uses MetaRobotsBuilder output');
 assertContainsValue('property="og:title"', $generic->socialHtml, 'Social preview includes Open Graph fields');
 assertContainsValue('name="twitter:card"', $generic->socialHtml, 'Social preview includes Twitter fields');
 assertContainsValue('<link rel="canonical" href="https://example.com/about?page=2">', $generic->html, 'Full HTML includes canonical link');
 
 $robotsBuilder = (new MetaRobotsBuilder())->noIndex()->noFollow();
 $noIndex = SeoPagePresetFactory::generic('Private', null, ['robots' => $robotsBuilder]);
-assertSameValue('noindex, nofollow', $noIndex->robots, 'Robots builder instance output is used');
+testBatch1BSeoPagePresetFactoryTestAssertSameValue('noindex, nofollow', $noIndex->robots, 'Robots builder instance output is used');
 
 $extra = new JsonLdSchemaDTO(['@context' => 'https://schema.org', '@type' => 'Thing', 'name' => 'Extra']);
 $product = SeoPagePresetFactory::product('Blue Shirt', 'Cotton shirt', [
@@ -93,29 +83,29 @@ $product = SeoPagePresetFactory::product('Blue Shirt', 'Cotton shirt', [
 ], ['canonicalUrl' => 'https://example.com/products/blue-shirt', 'extraSchemas' => [$extra]]);
 /** @var list<array<string, mixed>> $productSchemas */
 $productSchemas = $product->toArray()['schemas'];
-assertSameValue('Product', $productSchemas[0]['@type'], 'Product preset includes Product JSON-LD schema');
-assertSameValue('Thing', $productSchemas[1]['@type'], 'Extra schemas are preserved');
+testBatch1BSeoPagePresetFactoryTestAssertSameValue('Product', $productSchemas[0]['@type'], 'Product preset includes Product JSON-LD schema');
+testBatch1BSeoPagePresetFactoryTestAssertSameValue('Thing', $productSchemas[1]['@type'], 'Extra schemas are preserved');
 
 $category = SeoPagePresetFactory::category('Shirts', 'All shirts', [
     ['url' => 'https://example.com/products/blue-shirt', 'name' => 'Blue Shirt'],
 ]);
-assertSameValue('ItemList', ((array)((array)$category->toArray()['schemas'])[0])['@type'], 'Category preset includes ItemList JSON-LD schema');
+testBatch1BSeoPagePresetFactoryTestAssertSameValue('ItemList', ((array)((array)$category->toArray()['schemas'])[0])['@type'], 'Category preset includes ItemList JSON-LD schema');
 
 $article = SeoPagePresetFactory::article('Launch News', 'Product launch', [
     'author' => 'Jane Doe',
     'datePublished' => '2026-07-04',
     'publisher' => 'Example',
 ], ['canonicalUrl' => 'https://example.com/news/launch']);
-assertSameValue('Article', ((array)((array)$article->toArray()['schemas'])[0])['@type'], 'Article preset includes Article JSON-LD schema');
+testBatch1BSeoPagePresetFactoryTestAssertSameValue('Article', ((array)((array)$article->toArray()['schemas'])[0])['@type'], 'Article preset includes Article JSON-LD schema');
 
 $home = SeoPagePresetFactory::home('Example', 'Homepage', ['canonicalUrl' => 'https://example.com']);
-assertSameValue('WebSite', ((array)((array)$home->toArray()['schemas'])[0])['@type'], 'Home preset includes WebSite JSON-LD schema');
+testBatch1BSeoPagePresetFactoryTestAssertSameValue('WebSite', ((array)((array)$home->toArray()['schemas'])[0])['@type'], 'Home preset includes WebSite JSON-LD schema');
 
 $breadcrumb = SeoPagePresetFactory::breadcrumb('Blue Shirt', 'Cotton shirt', [
     ['name' => 'Home', 'url' => 'https://example.com'],
     ['name' => 'Shirts', 'url' => 'https://example.com/shirts'],
 ]);
-assertSameValue('BreadcrumbList', ((array)((array)$breadcrumb->toArray()['schemas'])[1])['@type'], 'Breadcrumb-enabled preset includes BreadcrumbList JSON-LD schema');
+testBatch1BSeoPagePresetFactoryTestAssertSameValue('BreadcrumbList', ((array)((array)$breadcrumb->toArray()['schemas'])[1])['@type'], 'Breadcrumb-enabled preset includes BreadcrumbList JSON-LD schema');
 
 assertThrowsSeoInvalidArgument(static fn () => SeoPagePresetFactory::generic('', 'Missing title'), 'Empty title is rejected');
 assertThrowsSeoInvalidArgument(static fn () => SeoPagePresetFactory::product('Bad Product', null, []), 'Broken product required data is rejected');
@@ -128,7 +118,7 @@ assertThrowsSeoInvalidArgument(static fn () => SeoPagePresetFactory::product('Ba
 assertThrowsSeoInvalidArgument(static fn () => SeoPagePresetFactory::article('Bad Publisher', null, ['author' => 'Jane', 'datePublished' => '2026-07-04', 'publisher' => []]), 'Invalid article publisher data is rejected');
 assertThrowsSeoInvalidArgument(static fn () => SeoPagePresetFactory::article('Bad Article Image', null, ['author' => 'Jane', 'datePublished' => '2026-07-04', 'image' => ['ok.jpg', 123]]), 'Invalid article image lists are rejected');
 
-assertTrueValue(!str_contains($generic->html, 'Illuminate\\') && !str_contains($generic->html, 'Symfony\\') && !str_contains($generic->html, 'Response'), 'Preset output has no framework or HTTP coupling');
+testBatch1BSeoPagePresetFactoryTestAssertTrueValue(!str_contains($generic->html, 'Illuminate\\') && !str_contains($generic->html, 'Symfony\\') && !str_contains($generic->html, 'Response'), 'Preset output has no framework or HTTP coupling');
 
 echo "\n";
 /** @var int $failures */

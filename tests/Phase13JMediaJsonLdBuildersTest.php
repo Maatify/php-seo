@@ -1,18 +1,13 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfPhase13JMediaJsonLdBuildersTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
-    }
 
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Web\JsonLd\Builder\JsonLdBuilderInterface;
 use Maatify\Seo\Web\JsonLd\Builder\VideoObjectJsonLdBuilder;
@@ -37,7 +32,7 @@ function assertTrueValue13J(string $label, bool $actual): void
 
 // 1. VideoObjectJsonLdBuilder Tests
 $videoBuilder = new VideoObjectJsonLdBuilder();
-assertTrueValue13J('Video builder implements builder interface', $videoBuilder instanceof JsonLdBuilderInterface);
+assertTrueValue13J('Video builder implements builder interface', phpstanRuntimeInstanceOfPhase13JMediaJsonLdBuildersTest($videoBuilder, JsonLdBuilderInterface::class));
 assertSameValue13J('Video builder seeds schema.org defaults', [
     '@context' => 'https://schema.org',
     '@type' => 'VideoObject',
@@ -91,7 +86,7 @@ assertSameValue13J('Video builder advanced publisher', [
 
 // 2. ImageObjectJsonLdBuilder Tests
 $imageBuilder = new ImageObjectJsonLdBuilder();
-assertTrueValue13J('Image builder implements builder interface', $imageBuilder instanceof JsonLdBuilderInterface);
+assertTrueValue13J('Image builder implements builder interface', phpstanRuntimeInstanceOfPhase13JMediaJsonLdBuildersTest($imageBuilder, JsonLdBuilderInterface::class));
 assertSameValue13J('Image builder seeds schema.org defaults', [
     '@context' => 'https://schema.org',
     '@type' => 'ImageObject',
@@ -144,7 +139,7 @@ assertSameValue13J('Image builder complex copyrightHolder', ['name' => 'Jane Cor
 
 // 3. AudioObjectJsonLdBuilder Tests
 $audioBuilder = new AudioObjectJsonLdBuilder();
-assertTrueValue13J('Audio builder implements builder interface', $audioBuilder instanceof JsonLdBuilderInterface);
+assertTrueValue13J('Audio builder implements builder interface', phpstanRuntimeInstanceOfPhase13JMediaJsonLdBuildersTest($audioBuilder, JsonLdBuilderInterface::class));
 assertSameValue13J('Audio builder seeds schema.org defaults', [
     '@context' => 'https://schema.org',
     '@type' => 'AudioObject',

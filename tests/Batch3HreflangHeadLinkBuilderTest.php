@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/bootstrap.php';
+
 require_once __DIR__ . '/../src/Exception/SeoErrorCode.php';
 require_once __DIR__ . '/../src/Exception/SeoExceptionInterface.php';
 require_once __DIR__ . '/../src/Exception/SeoInvalidArgumentException.php';
@@ -15,14 +17,14 @@ use Maatify\Seo\Web\Hreflang\HreflangLinkBuilder;
 use Maatify\Seo\Web\Hreflang\HreflangLinkDTO;
 use Maatify\Seo\Web\Hreflang\HreflangLinkRenderer;
 
-function assertSameValue(mixed $expected, mixed $actual, string $message = ''): void
+function testBatch3HreflangHeadLinkBuilderTestAssertSameValue(mixed $expected, mixed $actual, string $message = ''): void
 {
     if ($expected !== $actual) {
         throw new RuntimeException("Assertion failed: {$message}. Expected: " . print_r($expected, true) . ' Actual: ' . print_r($actual, true));
     }
 }
 
-function assertThrowsException(callable $callback, string $expectedExceptionClass, string $message = ''): void
+function testBatch3HreflangHeadLinkBuilderTestAssertThrowsException(callable $callback, string $expectedExceptionClass, string $message = ''): void
 {
     try {
         $callback();
@@ -40,12 +42,12 @@ function assertThrowsException(callable $callback, string $expectedExceptionClas
 echo "Running Batch 3 Hreflang Head Link Builder tests...\n";
 
 $link = new HreflangLinkDTO(' EN_us ', 'https://example.com/en/page');
-assertSameValue(['hreflang' => 'en-US', 'url' => 'https://example.com/en/page'], $link->toArray(), 'DTO should normalize and serialize');
-assertSameValue($link->toArray(), $link->jsonSerialize(), 'jsonSerialize should match toArray');
+testBatch3HreflangHeadLinkBuilderTestAssertSameValue(['hreflang' => 'en-US', 'url' => 'https://example.com/en/page'], $link->toArray(), 'DTO should normalize and serialize');
+testBatch3HreflangHeadLinkBuilderTestAssertSameValue($link->toArray(), $link->jsonSerialize(), 'jsonSerialize should match toArray');
 
 $builder = new HreflangLinkBuilder();
 $builder->add('en', 'https://example.com/en/page');
-assertSameValue([['hreflang' => 'en', 'url' => 'https://example.com/en/page']], $builder->toArray(), 'Single link creation');
+testBatch3HreflangHeadLinkBuilderTestAssertSameValue([['hreflang' => 'en', 'url' => 'https://example.com/en/page']], $builder->toArray(), 'Single link creation');
 
 $builder = new HreflangLinkBuilder();
 $builder->addMany([
@@ -54,7 +56,7 @@ $builder->addMany([
     'fr' => 'https://example.com/fr/page',
     new HreflangLinkDTO('de', 'https://example.com/de/page'),
 ]);
-assertSameValue(
+testBatch3HreflangHeadLinkBuilderTestAssertSameValue(
     [
         ['hreflang' => 'en-US', 'url' => 'https://example.com/en/page'],
         ['hreflang' => 'ar-EG', 'url' => 'https://example.com/ar/page'],
@@ -66,31 +68,31 @@ assertSameValue(
 );
 
 $builder->xDefault('https://example.com/page');
-assertSameValue('x-default', $builder->all()[4]->hreflang, 'x-default creation');
+testBatch3HreflangHeadLinkBuilderTestAssertSameValue('x-default', $builder->all()[4]->hreflang, 'x-default creation');
 
 $builder = new HreflangLinkBuilder();
 $builder->add('en', 'https://example.com/first')->add('en', 'https://example.com/ignored');
-assertSameValue('https://example.com/first', $builder->all()[0]->url, 'Duplicate add should keep first value');
+testBatch3HreflangHeadLinkBuilderTestAssertSameValue('https://example.com/first', $builder->all()[0]->url, 'Duplicate add should keep first value');
 $builder->replace('en', 'https://example.com/replaced');
-assertSameValue('https://example.com/replaced', $builder->all()[0]->url, 'Explicit replace should replace duplicate hreflang');
+testBatch3HreflangHeadLinkBuilderTestAssertSameValue('https://example.com/replaced', $builder->all()[0]->url, 'Explicit replace should replace duplicate hreflang');
 
-assertThrowsException(fn() => (new HreflangLinkBuilder())->add('', 'https://example.com'), SeoInvalidArgumentException::class, 'Empty hreflang should throw');
-assertThrowsException(fn() => (new HreflangLinkBuilder())->add('en', ''), SeoInvalidArgumentException::class, 'Empty URL should throw');
-assertThrowsException(fn() => (new HreflangLinkBuilder())->addMany([['hreflang' => 'en']]), SeoInvalidArgumentException::class, 'Invalid addMany row should throw');
+testBatch3HreflangHeadLinkBuilderTestAssertThrowsException(fn() => (new HreflangLinkBuilder())->add('', 'https://example.com'), SeoInvalidArgumentException::class, 'Empty hreflang should throw');
+testBatch3HreflangHeadLinkBuilderTestAssertThrowsException(fn() => (new HreflangLinkBuilder())->add('en', ''), SeoInvalidArgumentException::class, 'Empty URL should throw');
+testBatch3HreflangHeadLinkBuilderTestAssertThrowsException(fn() => (new HreflangLinkBuilder())->addMany([['hreflang' => 'en']]), SeoInvalidArgumentException::class, 'Invalid addMany row should throw');
 
 $renderer = new HreflangLinkRenderer();
 $escaped = $renderer->render(new HreflangLinkDTO('en', 'https://example.com/en/page?q="test"&sort=asc'));
-assertSameValue('<link rel="alternate" hreflang="en" href="https://example.com/en/page?q=&quot;test&quot;&amp;sort=asc">', $escaped, 'Rendered HTML should be escaped');
+testBatch3HreflangHeadLinkBuilderTestAssertSameValue('<link rel="alternate" hreflang="en" href="https://example.com/en/page?q=&quot;test&quot;&amp;sort=asc">', $escaped, 'Rendered HTML should be escaped');
 
 $builder = new HreflangLinkBuilder();
 $builder->add('en', 'https://example.com/en/page')->add('ar', 'https://example.com/ar/page');
-assertSameValue(
+testBatch3HreflangHeadLinkBuilderTestAssertSameValue(
     '<link rel="alternate" hreflang="en" href="https://example.com/en/page">' . "\n" . '<link rel="alternate" hreflang="ar" href="https://example.com/ar/page">',
     $builder->render(),
     'Builder render should output head link tags'
 );
 
-assertSameValue(true, trim($builder->render()) !== "" && !class_exists('Illuminate\\Http\\Response') && !class_exists('Symfony\\Component\\HttpFoundation\\Response'), 'No framework/HTTP coupling');
+testBatch3HreflangHeadLinkBuilderTestAssertSameValue(true, trim($builder->render()) !== "" && !class_exists('Illuminate\\Http\\Response') && !class_exists('Symfony\\Component\\HttpFoundation\\Response'), 'No framework/HTTP coupling');
 
 echo "SUCCESS: All tests passed.\n";
 exit(0);

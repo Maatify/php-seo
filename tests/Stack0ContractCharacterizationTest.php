@@ -1,18 +1,41 @@
 <?php
 
 declare(strict_types=1);
+function phpstanRuntimeInstanceOfStack0ContractCharacterizationTest(mixed $value, string $class): bool
+{
+    return $value instanceof $class;
+}
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Maatify\\Seo\\';
-    if (!str_starts_with($class, $prefix)) {
-        return;
+/** @return list<string> */
+function stack0ReflectionTypeNames(?ReflectionType $type): array
+{
+    if ($type instanceof ReflectionNamedType) {
+        return [$type->getName()];
     }
 
-    $path = __DIR__ . '/../src/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) {
-        require $path;
+    if (!$type instanceof ReflectionUnionType && !$type instanceof ReflectionIntersectionType) {
+        return [];
     }
-});
+
+    $names = [];
+    foreach ($type->getTypes() as $memberType) {
+        if ($memberType instanceof ReflectionNamedType) {
+            $names[] = $memberType->getName();
+        }
+    }
+
+    sort($names);
+
+    return $names;
+}
+
+function stack0ReflectionTypeName(?ReflectionType $type): ?string
+{
+    return $type instanceof ReflectionNamedType ? $type->getName() : null;
+}
+
+
+require_once __DIR__ . '/bootstrap.php';
 
 use Maatify\Seo\Shared\Command\GenerateMetaTagsCommand;
 use Maatify\Seo\Shared\Command\SeoOverride\CreateSeoOverrideCommand;
@@ -198,9 +221,9 @@ stack0AssertThrows(
 
 $fractionalLastmod = '2026-07-01T10:00:00.123+00:00';
 stack0AssertTrue('fractional-second lastmod is accepted by shared helper', SitemapUrlDTO::isValidLastmod($fractionalLastmod));
-stack0AssertTrue('URL DTO accepts fractional-second lastmod', new SitemapUrlDTO('https://example.com/fractional', $fractionalLastmod) instanceof SitemapUrlDTO);
-stack0AssertTrue('shared index DTO accepts fractional-second lastmod', new SharedSitemapIndexEntryDTO('https://example.com/fractional.xml', $fractionalLastmod) instanceof SharedSitemapIndexEntryDTO);
-stack0AssertTrue('web index DTO accepts fractional-second lastmod', new WebSitemapIndexEntryDTO('https://example.com/fractional.xml', $fractionalLastmod) instanceof WebSitemapIndexEntryDTO);
+stack0AssertTrue('URL DTO accepts fractional-second lastmod', phpstanRuntimeInstanceOfStack0ContractCharacterizationTest(new SitemapUrlDTO('https://example.com/fractional', $fractionalLastmod), SitemapUrlDTO::class));
+stack0AssertTrue('shared index DTO accepts fractional-second lastmod', phpstanRuntimeInstanceOfStack0ContractCharacterizationTest(new SharedSitemapIndexEntryDTO('https://example.com/fractional.xml', $fractionalLastmod), SharedSitemapIndexEntryDTO::class));
+stack0AssertTrue('web index DTO accepts fractional-second lastmod', phpstanRuntimeInstanceOfStack0ContractCharacterizationTest(new WebSitemapIndexEntryDTO('https://example.com/fractional.xml', $fractionalLastmod), WebSitemapIndexEntryDTO::class));
 stack0AssertTrue('raw index renderer accepts fractional-second lastmod', str_contains(
     (new SitemapIndexXmlStringRenderer())->renderEntry(['loc' => 'https://example.com/fractional.xml', 'lastmod' => $fractionalLastmod]),
     '<lastmod>' . $fractionalLastmod . '</lastmod>',
@@ -262,13 +285,12 @@ stack0AssertSame('validation result serialized shape', [
 $validateReflection = new ReflectionMethod(SeoMetaValidator::class, 'validate');
 stack0AssertSame('validator public parameter order', ['meta', 'options'], array_map(static fn (ReflectionParameter $parameter): string => $parameter->getName(), $validateReflection->getParameters()));
 $metaType = $validateReflection->getParameters()[0]->getType();
-$metaTypeNames = $metaType instanceof ReflectionUnionType ? array_map(static fn (ReflectionNamedType $type): string => $type->getName(), $metaType->getTypes()) : [];
-sort($metaTypeNames);
+$metaTypeNames = stack0ReflectionTypeNames($metaType);
 stack0AssertTrue('validator first parameter is array|object union', $metaType instanceof ReflectionUnionType && ['array', 'object'] === $metaTypeNames);
 stack0AssertTrue('validator options parameter defaults to empty array', $validateReflection->getParameters()[1]->isDefaultValueAvailable() && $validateReflection->getParameters()[1]->getDefaultValue() === []);
-stack0AssertSame('validator return type remains legacy result DTO', SeoValidationResultDTO::class, $validateReflection->getReturnType()?->getName());
+stack0AssertSame('validator return type remains legacy result DTO', SeoValidationResultDTO::class, stack0ReflectionTypeName($validateReflection->getReturnType()));
 $objectMetaResult = SeoMetaValidator::validate(new MetaTagsDTO('Object branch title', str_repeat('D', 60), 'https://example.com/canonical'));
-stack0AssertTrue('MetaTagsDTO object branch remains callable', $objectMetaResult instanceof SeoValidationResultDTO);
+stack0AssertTrue('MetaTagsDTO object branch remains callable', phpstanRuntimeInstanceOfStack0ContractCharacterizationTest($objectMetaResult, SeoValidationResultDTO::class));
 
 $hostUrlGenerator = new Stack0FakeHostUrlGenerator('https://example.com/generated/article');
 $defaultMeta = (new MetaGeneratorService(new SeoOverrideQueryService(new Stack0FakeSeoOverrideRepository(null)), $hostUrlGenerator))->generate(new GenerateMetaTagsCommand(
