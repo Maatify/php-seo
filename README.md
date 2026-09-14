@@ -25,6 +25,8 @@ Framework-agnostic SEO tools for PHP: metadata, structured data, sitemaps, valid
 
 `maatify/php-seo` is a standalone PHP library that builds SEO metadata and structured output for a host application. It provides framework-neutral builders, validators, renderers, service contracts, and PDO adapters for its own SEO tables. The host owns HTTP routing and responses, its entities and application data, credentials, and delivery decisions.
 
+The Host also owns entity URLs and the full slug lifecycle: generation, normalization, uniqueness, current values, history, and old-slug lookup. SEO does not require a Slug library; it can receive an optional Host-provided slug only as an input to `HostUrlGeneratorInterface`. If a Host uses a separate Slug library, the Host or an adapter connects it to SEO.
+
 The package is **Pre-Stable / Development** and is being prepared for a corrected SemVer Release Candidate lifecycle. This status does not claim that a corrected RC or Stable release has been published.
 
 ## Key Features
@@ -33,7 +35,7 @@ The package is **Pre-Stable / Development** and is being prepared for a correcte
 - Build Schema.org-oriented JSON-LD through typed builders. Validation is scoped; generation does not establish complete Schema.org validation or Google Rich Results or Merchant eligibility.
 - Generate sitemap data and XML through base/strict DTO fields; provider/profile validation boundaries remain separate from generic generation.
 - Validate SEO metadata and selected protocol/profile boundaries, with reports, scores, and exports.
-- Use package-owned PDO repositories and schemas for redirects, SEO overrides, and slug history. The host supplies PDO and connection configuration; the package ships concrete PDO repositories and its own schemas.
+- Use package-owned PDO repositories and schemas for redirects and SEO overrides. The host supplies PDO and connection configuration; the package ships concrete PDO repositories and its own schemas.
 - Generate Open Graph and Twitter Card compatibility output; Twitter/X provider conformance was not source-verified.
 - Integrate optional Search Console and Merchant Center transport contracts while keeping HTTP, OAuth, credentials, and network behavior in the host.
 - Use optional `spatie/schema-org` adaptation when that integration is needed.
