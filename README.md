@@ -10,6 +10,11 @@
 [![PHPStan](https://img.shields.io/badge/PHPStan-Level%20Max-4E8CAE?style=for-the-badge)](docs/CI.md)
 [![Maatify Ecosystem](https://img.shields.io/badge/Maatify-Ecosystem-blueviolet?style=for-the-badge)](https://github.com/Maatify)
 
+[![Packagist](https://img.shields.io/badge/Packagist-maatify%2Fphp--seo-F28D1A?style=for-the-badge)](https://packagist.org/packages/maatify/php-seo)
+[![Monthly Downloads](https://img.shields.io/packagist/dm/maatify/php-seo?style=for-the-badge)](https://packagist.org/packages/maatify/php-seo)
+[![Total Downloads](https://img.shields.io/packagist/dt/maatify/php-seo?style=for-the-badge)](https://packagist.org/packages/maatify/php-seo)
+[![Install](https://img.shields.io/badge/Install-composer%20require%20maatify%2Fphp--seo-blue?style=for-the-badge)](https://packagist.org/packages/maatify/php-seo)
+
 [![Changelog](https://img.shields.io/badge/Changelog-View-blue?style=for-the-badge)](CHANGELOG.md)
 [![Package Reference](https://img.shields.io/badge/Package%20Reference-Read-blue?style=for-the-badge)](SEO_PACKAGE_REFERENCE.md)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blue?style=for-the-badge)](SECURITY.md)
@@ -50,9 +55,15 @@ The package is **Pre-Stable / Development** and is being prepared for a correcte
 
 ## Installation and Current Access
 
-The Composer identity is `maatify/php-seo`. The repository is currently in Pre-Stable / Development. As of 2026-09-13, Packagist has no record for this identity, and no other external Composer distribution has been verified. Therefore, no public `composer require` command is provided yet.
+The Composer identity is `maatify/php-seo`, and the package is available on [Packagist](https://packagist.org/packages/maatify/php-seo).
 
-To work from the repository checkout:
+Current Pre-Stable / Development access through Composer:
+
+```bash
+composer require maatify/php-seo:dev-main
+```
+
+To work from the repository checkout instead:
 
 ```bash
 git clone https://github.com/Maatify/php-seo.git
