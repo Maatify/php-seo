@@ -5,9 +5,9 @@
 
 ## Supported Versions
 
-Maatify SEO is currently in **Pre-Stable / Development**. There is no declared supported Stable release line at this time. A historical RC tag or GitHub release does not establish a Stable release or a Stable support line.
+Maatify SEO remains **Pre-Stable**. The Release Candidate represented by this release tree is **v1.0.0-rc.2**; it is a SemVer pre-release of the intended `v1.0.0` Stable line and does not establish a supported Stable release line. External publication and installability are determined by the actual tag and Composer distribution channel; this file alone does not establish publication.
 
-Security reports are still accepted during pre-stable development. A future Stable support line will be listed only after the required release lifecycle has completed and the project has declared that line supported.
+Security reports are accepted during the pre-release lifecycle. A future Stable support line will be listed only after the required first-Stable release lifecycle has completed and the project has declared that line supported.
 
 ## Reporting a Vulnerability
 

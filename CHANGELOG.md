@@ -3,12 +3,16 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [1.0.0-rc.2] - 2026-09-14
+- **Summary:** Corrected Release Candidate for the `maatify/php-seo` package identity, with the current SEO ownership boundary, expanded validation capabilities, hardened CI, real MySQL persistence verification, consumer verification, and synchronized release-facing documentation.
 - **Changed:** Removed SEO ownership of slug lifecycle and history, including the public Slug History runtime, Admin, persistence, and schema surfaces. The Host owns slug lifecycle; SEO does not require a Slug library.
 - **Changed:** Updated the Admin metadata import/export schema from `1.0` to `2.0`; current import/export data contains only SEO overrides and redirects.
 - **Changed:** Adopted and pinned the PHP engineering standards set and synchronized repository governance with the current authorities.
 - **Changed:** Normalized the Composer package identity to `maatify/php-seo`.
 - **Changed:** Migrated package exceptions to the shared `maatify/exceptions` taxonomy while preserving the package's established exception contracts.
 - **Changed:** Hardened CI and static-analysis verification, including real MySQL persistence coverage and the external Consumer Verification Harness.
+- **Changed:** Synchronized the release-facing README, Packagist badges, Composer installation guidance, and pre-release security presentation for `v1.0.0-rc.2`.
 - **Added:** The canonical `SEO_PACKAGE_REFERENCE.md` and synchronized current package documentation with its verified contracts.
 - **Added:** Phase 24 adopted a normative `MetaGeneratorService` output contract that resolves the Stack 0 material decision through a successor contract while preserving runtime behavior.
 - **Added:** The Phase 24 standalone regression lock covers 22 normative contract cases.
@@ -69,5 +73,6 @@ All notable changes to this project will be documented in this file.
 - **Added:** Phase 2A (Schema) including `maa_seo_slug_history`, `maa_seo_redirects`, and `maa_seo_overrides` tables.
 - Initial foundational release (Phase 1).
 
-[Unreleased]: https://github.com/Maatify/php-seo/compare/v1.0.0-rc.1...HEAD
+[Unreleased]: https://github.com/Maatify/php-seo/compare/v1.0.0-rc.2...HEAD
+[1.0.0-rc.2]: https://github.com/Maatify/php-seo/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/Maatify/php-seo/releases/tag/v1.0.0-rc.1

@@ -32,7 +32,7 @@ Framework-agnostic SEO tools for PHP: metadata, structured data, sitemaps, valid
 
 The Host also owns entity URLs and the full slug lifecycle: generation, normalization, uniqueness, current values, history, and old-slug lookup. SEO does not require a Slug library; it can receive an optional Host-provided slug only as an input to `HostUrlGeneratorInterface`. If a Host uses a separate Slug library, the Host or an adapter connects it to SEO.
 
-The package is **Pre-Stable / Development** and is being prepared for a corrected SemVer Release Candidate lifecycle. This status does not claim that a corrected RC or Stable release has been published.
+The package remains **Pre-Stable**. The Release Candidate represented by this release tree is **v1.0.0-rc.2**; it is a pre-release of the intended `v1.0.0` Stable line and does not establish a supported Stable release line. External publication and installability are determined by the actual tag and Composer distribution channel.
 
 ## Key Features
 
@@ -57,10 +57,10 @@ The package is **Pre-Stable / Development** and is being prepared for a correcte
 
 The Composer identity is `maatify/php-seo`, and the package is available on [Packagist](https://packagist.org/packages/maatify/php-seo).
 
-Current Pre-Stable / Development access through Composer:
+For the `v1.0.0-rc.2` Release Candidate:
 
 ```bash
-composer require maatify/php-seo:dev-main
+composer require maatify/php-seo:1.0.0-rc.2
 ```
 
 To work from the repository checkout instead:
@@ -120,7 +120,7 @@ The repository configures these verification gates:
 - Consumer Verification Harness on PHP 8.2 and PHP 8.5.
 - GitHub Actions workflow lint and the terminal required check, `CI Gate`.
 
-These are configured checks. Their presence does not establish that a particular CI run passed, that a corrected RC is published, or that the package is eligible for Stable release.
+These are configured checks. Their presence does not establish that a particular CI run passed, that `v1.0.0-rc.2` is externally published, or that the package is eligible for Stable release.
 
 ## License
 
