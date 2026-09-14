@@ -67,31 +67,162 @@ stack8AssertTrue(
 
 foreach ([
     '## Documentation authority',
-    '### Current executable package contract',
-    '### Canonical human-readable package reference',
-    'canonical human-readable package contract',
-    '### Detailed current documentation',
-    '### Historical implementation evidence',
-    '### Future and planning material',
-    'SEO/library/',
-    '../SEO_PACKAGE_REFERENCE.md',
-    'guides/',
-    'phases/',
-    'verification/',
-    'batches/',
-    'audits/',
-    'roadmap/',
-    'proposals/',
+    'Executable truth',
+    '- composer.json',
+    '- src/**',
+    '- schema/**',
+    '- tests/**',
+    'Canonical package contract',
+    '- SEO_PACKAGE_REFERENCE.md',
+    'Maintained documentation',
+    '- README.md',
+    '- docs/guides/**',
+    '- docs/SEO/library/**',
+    '- docs/CI.md',
+    'Future planning',
+    '- docs/roadmap/ROADMAP.md',
+    '- active proposals only',
+    'Governance',
+    '- docs/php-engineering-standards/**',
 ] as $needle) {
     stack8AssertContains("docs index contains {$needle}", $docsIndex, $needle);
 }
 
-$phase22 = stack8Read('docs/phases/PHASE_22_SEARCH_CONSOLE_EXTERNAL_VERIFICATION.md');
-stack8AssertContains('Phase 22 Final Review passed', $phase22, 'Final Review: `PASS`');
-stack8AssertContains('Phase 22 is complete', $phase22, 'Phase 22: `Complete`');
-stack8AssertContains('Phase 22 integration is recorded', $phase22, 'Integration PR: `#214` merged into `main`');
-stack8AssertNotContains('Phase 22 has no pending Final Review', $phase22, 'Final Review: pending');
-stack8AssertNotContains('Phase 22 has no incomplete lifecycle wording', $phase22, 'not marked complete');
+$libraryHandbook = stack8Read('docs/SEO/library/README.md');
+stack8AssertContains(
+    'library README identifies the current maintained engineering handbook',
+    $libraryHandbook,
+    'current, maintained Maatify SEO Library Engineering',
+);
+stack8AssertContains(
+    'library handbook heading identifies it as an engineering handbook',
+    $libraryHandbook,
+    '# Maatify SEO Library Engineering Handbook',
+);
+stack8AssertContains(
+    'library handbook defers to the canonical package-level contract',
+    $libraryHandbook,
+    '[SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md)',
+);
+stack8AssertContains(
+    'library handbook identifies the canonical package-level contract',
+    $libraryHandbook,
+    'canonical package-level contract',
+);
+stack8AssertContains(
+    'historical implementation evidence belongs to Git and GitHub history',
+    $libraryHandbook,
+    'Historical implementation and execution evidence lives in Git and GitHub',
+);
+stack8AssertContains(
+    'historical evidence is located in commits, pull requests, tags, and releases',
+    $libraryHandbook,
+    'commits, pull requests, tags, and releases',
+);
+stack8AssertContains(
+    'roadmap and active proposals are planning material',
+    $libraryHandbook,
+    'active proposals are planning',
+);
+stack8AssertContains('library handbook links to the current roadmap', $libraryHandbook, '../../roadmap/ROADMAP.md');
+stack8AssertContains(
+    'planning does not override current executable or package contracts',
+    $libraryHandbook,
+    'They do not override executable truth or current package contracts',
+);
+stack8AssertContains(
+    'host-specific SEO architecture is outside the package handbook without an explicit contract',
+    $libraryHandbook,
+    'outside this package handbook',
+);
+stack8AssertTrue(
+    'host-specific architecture is in scope only when an explicit package contract represents it',
+    preg_match('/outside this package handbook\s+unless represented by an explicit current package contract/', $libraryHandbook) === 1,
+);
+foreach ([
+    'routing structure',
+    'product lifecycle',
+    'HTTP status decisions',
+    'internal-linking strategy',
+    'site-specific multilingual URL policy',
+] as $hostOwnedArchitecture) {
+    stack8AssertContains("handbook marks {$hostOwnedArchitecture} as Host/application-specific", $libraryHandbook, $hostOwnedArchitecture);
+}
+foreach ([
+    'docs/SEO/v1',
+    'docs/phases/',
+    'docs/verification/',
+    'docs/batches/',
+    'docs/blueprints/',
+    'docs/audits/',
+    'provide historical evidence',
+] as $deletedDocumentationReference) {
+    stack8AssertNotContains(
+        "library handbook does not cite deleted documentation sources: {$deletedDocumentationReference}",
+        $libraryHandbook,
+        $deletedDocumentationReference,
+    );
+}
+
+$metaGeneratorContract = stack8Read('docs/SEO/library/META_GENERATOR_SERVICE_CONTRACT.md');
+foreach ([
+    'current maintained contract of `MetaGeneratorService`',
+    'canonical package-level contract',
+    'narrower normative service semantics',
+    'current runtime source and maintained tests are executable evidence',
+    'Historical implementation phases',
+] as $currentContractMarker) {
+    stack8AssertContains(
+        "MetaGeneratorService contract records {$currentContractMarker}",
+        $metaGeneratorContract,
+        $currentContractMarker,
+    );
+}
+foreach ([
+    'Phase 24',
+    'integration/phase-24-meta-generator-contract',
+    'WU2',
+    'not yet be part of current `main`',
+    'Stack 0',
+    'architecture audit',
+] as $staleMetaContractClaim) {
+    stack8AssertNotContains(
+        "MetaGeneratorService contract does not retain stale claim {$staleMetaContractClaim}",
+        $metaGeneratorContract,
+        $staleMetaContractClaim,
+    );
+}
+
+foreach ([
+    'Package authority and public contract',
+    'Metadata generation and override semantics',
+    'HTML head rendering and social metadata',
+    'Canonical URLs and hreflang',
+    'Robots and sitemaps',
+    'Structured data and JSON-LD',
+    'Core validation and companion profiles',
+    'Redirects, slug history, and SEO overrides',
+    'Persistence and package-owned schemas',
+    'Admin previews, operations, and import/export',
+    'Page presets and page rendering',
+    'Search Console',
+    'Merchant Center',
+    'CI and local verification',
+    'Future roadmap and active proposals',
+] as $handbookArchitectureArea) {
+    stack8AssertContains(
+        "current Engineering Handbook map includes {$handbookArchitectureArea}",
+        $libraryHandbook,
+        $handbookArchitectureArea,
+    );
+}
+foreach (['Phase 13O', 'Phase 13P', 'phase execution history'] as $staleHandbookChronology) {
+    stack8AssertNotContains(
+        "Engineering Handbook map does not frame current architecture as {$staleHandbookChronology}",
+        $libraryHandbook,
+        $staleHandbookChronology,
+    );
+}
 
 $changelog = stack8Read('CHANGELOG.md');
 stack8AssertContains('Unreleased changelog exists', $changelog, '## [Unreleased]');
@@ -170,6 +301,171 @@ foreach ($structuredDocPaths as $path) {
     $structuredDocContents[$path] = $contents;
     stack8AssertContains("{$path} uses the Stack 7 validation wording", $contents, 'scoped structural and property-range semantic validation');
 }
+
+$usageGuide = $structuredDocContents['docs/guides/USAGE_GUIDE.md'];
+foreach ([
+    'MetaGeneratorService',
+    'HostUrlGeneratorInterface',
+    'SeoPagePresetFactory',
+    'EcommerceSeoPresetFactory',
+    'ContentSeoPresetFactory',
+    'LocalBusinessSeoPresetFactory',
+    'SeoPagePresetOutputDTO',
+    'RenderSeoPageCommand',
+    'SeoPagePayloadDTO',
+    'SeoPageRenderService',
+    'CanonicalUrlBuilder',
+    'HreflangLinkBuilder',
+    'HreflangLinkRenderer',
+    'GoogleCanonicalValidator',
+    'GoogleHreflangClusterValidator',
+    'AdminRedirectCommandService',
+    'AdminSeoOverrideCommandService',
+    'AdminSlugHistoryCommandService',
+    'SerpPreviewFactory',
+    'SocialPreviewFactory',
+    'SeoMetadataImporter',
+    'SeoMetadataExporter',
+    'Rfc9309RobotsValidator',
+    'SitemapProtocolValidator',
+    'GoogleSitemapValidator',
+    'OpenGraphProtocolValidator',
+] as $usageCapability) {
+    stack8AssertContains(
+        "Usage Guide exposes current capability {$usageCapability}",
+        $usageGuide,
+        $usageCapability,
+    );
+}
+stack8AssertContains(
+    'Usage Guide separates companion profiles from core validation',
+    $usageGuide,
+    'do not silently change the generic result or score',
+);
+
+$integrationGuide = stack8Read('docs/guides/INTEGRATION_GUIDE.md');
+foreach ([
+    'docs/guides/USAGE_GUIDE.md' => $usageGuide,
+    'docs/guides/INTEGRATION_GUIDE.md' => $integrationGuide,
+] as $renderGuidePath => $renderGuide) {
+    stack8AssertTrue(
+        "{$renderGuidePath} limits RenderSeoPageCommand schemas to JsonSerializable values",
+        preg_match('/`RenderSeoPageCommand::\$schemas` accepts values that implement\s+`JsonSerializable`/', $renderGuide) === 1,
+    );
+    stack8AssertTrue(
+        "{$renderGuidePath} distinguishes JSON-LD builders from schema DTOs",
+        preg_match('/does not implement\s+`JsonSerializable`\s+and cannot be passed directly/', $renderGuide) === 1,
+    );
+    stack8AssertContains(
+        "{$renderGuidePath} materializes builder arrays as JsonLdSchemaDTO values",
+        $renderGuide,
+        'new JsonLdSchemaDTO($productSchemaBuilder->toArray())',
+    );
+    stack8AssertContains(
+        "{$renderGuidePath} passes the serializable DTO to RenderSeoPageCommand",
+        $renderGuide,
+        'schemas: [$productSchema]',
+    );
+    stack8AssertNotContains(
+        "{$renderGuidePath} does not pass a builder directly to RenderSeoPageCommand",
+        $renderGuide,
+        'schemas: [$productSchemaBuilder]',
+    );
+}
+
+foreach ([
+    'SeoPagePresetFactory',
+    'SeoPageRenderService',
+    'MetaGeneratorService',
+    'HostUrlGeneratorInterface',
+    'GoogleCanonicalValidator',
+    'GoogleHreflangClusterValidator',
+    'AdminRedirectCommandService',
+    'AdminSeoOverrideCommandService',
+    'AdminSlugHistoryCommandService',
+    'SerpPreviewFactory',
+    'SeoMetadataImporter',
+    'SearchConsoleInspectionService',
+    'SearchConsoleTransportInterface',
+    'MerchantCenterDiagnosticsService',
+    'MerchantCenterTransportInterface',
+    'httpStatus',
+    'getHttpStatus()',
+] as $integrationCapability) {
+    stack8AssertContains(
+        "Integration Guide explains current capability/boundary {$integrationCapability}",
+        $integrationGuide,
+        $integrationCapability,
+    );
+}
+foreach (['Host owns Admin UI', 'authentication, authorization', 'application workflow'] as $hostOwnedAdminSurface) {
+    stack8AssertContains(
+        "Integration Guide keeps Host ownership of {$hostOwnedAdminSurface}",
+        $integrationGuide,
+        $hostOwnedAdminSurface,
+    );
+}
+stack8AssertContains(
+    'Integration Guide separates provider evidence from generic validation',
+    $integrationGuide,
+    'separate from generic SEO validation',
+);
+
+$adminRfc = stack8Read('docs/proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md');
+stack8AssertContains('active Admin RFC remains proposed', $adminRfc, '**Status:** Proposed');
+foreach ([
+    'current package already provides granular Admin-facing capabilities',
+    'optional, higher-level orchestration/control API',
+    'No UI or views',
+    'No routes or controllers',
+    'No authentication or authorization',
+    'No framework coupling',
+    'No Host lifecycle ownership',
+] as $adminRfcCurrentBoundary) {
+    stack8AssertContains(
+        "active Admin RFC states {$adminRfcCurrentBoundary}",
+        $adminRfc,
+        $adminRfcCurrentBoundary,
+    );
+}
+foreach ([
+    'Post v1.0.0',
+    'initial `v1.0.0` release',
+    'Not Required for v1.0.0',
+    'Phase 11',
+    'Phase 19',
+] as $staleAdminRfcChronology) {
+    stack8AssertNotContains(
+        "active Admin RFC does not claim a stale release/phase baseline {$staleAdminRfcChronology}",
+        $adminRfc,
+        $staleAdminRfcChronology,
+    );
+}
+
+foreach ([
+    'docs/SEO/library/README.md' => $libraryHandbook,
+    'docs/SEO/library/META_GENERATOR_SERVICE_CONTRACT.md' => $metaGeneratorContract,
+    'docs/SEO/library/STRUCTURED_DATA_ARCHITECTURE.md' => $structuredDocContents['docs/SEO/library/STRUCTURED_DATA_ARCHITECTURE.md'],
+    'docs/guides/USAGE_GUIDE.md' => $usageGuide,
+    'docs/guides/INTEGRATION_GUIDE.md' => $integrationGuide,
+    'docs/proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md' => $adminRfc,
+] as $currentDocumentationPath => $currentDocumentation) {
+    foreach ([
+        'docs/SEO/v1',
+        'docs/phases/',
+        'docs/verification/',
+        'docs/batches/',
+        'docs/blueprints/',
+        'docs/audits/',
+    ] as $deletedDocumentationDirectory) {
+        stack8AssertNotContains(
+            "{$currentDocumentationPath} does not cite deleted documentation authority {$deletedDocumentationDirectory}",
+            $currentDocumentation,
+            $deletedDocumentationDirectory,
+        );
+    }
+}
+
 $currentStructuredDocs = implode('\n', $structuredDocContents);
 foreach ([
     'scoped structural and property-range semantic validation',
@@ -209,39 +505,57 @@ foreach ([
 stack8AssertContains('MetaGeneratorService links its current resolved contract', $reference, 'META_GENERATOR_SERVICE_CONTRACT.md');
 stack8AssertNotContains('canonical Package Reference has no unresolved MetaGenerator contract wording', $reference, 'unknown / needs decision');
 
-$enhancementRoadmap = stack8Read('docs/roadmap/SEO_LIBRARY_ENHANCEMENT_ROADMAP.md');
-$phase21Start = strpos($enhancementRoadmap, '## Structured-data CI and external-verification boundary');
-$phase21End = $phase21Start === false ? false : strpos($enhancementRoadmap, '## Constraints', $phase21Start);
-if ($phase21Start === false || $phase21End === false) {
-    stack8Fail('Phase 21 structured-data scope section has clear boundaries');
-}
-$phase21Scope = substr($enhancementRoadmap, $phase21Start, $phase21End - $phase21Start);
-stack8AssertContains(
-    'Phase 21 lists exactly the four scoped JSON-LD types',
-    $phase21Scope,
-    'scoped structural and property-range semantic validation limited to `Product`, `Offer`, `AggregateOffer`, and `ProductGroup`',
-);
-
-stack8AssertContains('Image fields remain public/output compatible', $enhancementRoadmap, 'public/output-compatible fields `title`, `caption`, `geoLocation`, and');
-stack8AssertContains('Image fields are classified as Google deprecated', $enhancementRoadmap, 'Google-deprecated compatibility fields');
-stack8AssertContains('Image fields are not current recommended enhancements', $enhancementRoadmap, 'current recommended provider enhancements');
-stack8AssertContains('News optional fields remain legacy/public-output compatible', $enhancementRoadmap, 'legacy/public-output compatibility fields');
-stack8AssertContains('News fields are not current recommended enhancements', $enhancementRoadmap, 'legacy/public-output compatibility fields, not current recommended provider');
-
-$phase13OStart = strpos($enhancementRoadmap, '# Phase 13O — Advanced Product & Variant Structured Data');
-$phase13PEnd = $phase13OStart === false ? false : strpos($enhancementRoadmap, '# Phase 13P — Structured Data Semantic Validation', $phase13OStart);
-if ($phase13OStart === false || $phase13PEnd === false) {
-    stack8Fail('Phase 13O historical section has clear boundaries');
-}
-$phase13O = substr($enhancementRoadmap, $phase13OStart, $phase13PEnd - $phase13OStart);
-stack8AssertNotContains('Phase 13O no longer says Phase 13P is outstanding', $phase13O, 'Deep Schema.org semantic validation remains outstanding in Phase 13P');
-stack8AssertNotContains('Phase 13O contains no outstanding Phase 13P claim', strtolower($phase13O), 'remains outstanding in phase 13p');
-stack8AssertContains('Phase 13O records that Phase 13P was historical follow-up', $phase13O, 'identified as follow-up work for Phase 13P');
-stack8AssertContains('Phase 13O records that Phase 13P is complete', $phase13O, 'Phase 13P has since completed');
-stack8AssertContains('Phase 13O states the current scoped validation contract', $phase13O, 'scoped structural and property-range semantic validation');
+$roadmap = stack8Read('docs/roadmap/ROADMAP.md');
+preg_match_all('/^## .+$/m', $roadmap, $roadmapHeadings);
 stack8AssertTrue(
-    'Phase 13O avoids a complete Schema.org claim',
-    preg_match('/This does not claim\s+complete Schema\.org validation\./', $phase13O) === 1,
+    'roadmap contains only the three future items and active proposal',
+    $roadmapHeadings[0] === [
+        '## 1. Deeper Generic Schema.org Semantic Validation',
+        '## 2. Google Rich Results / Provider-Specific Eligibility Profile',
+        '## 3. Large Sitemap Memory / Streaming Strategy',
+        '## Active proposal',
+    ],
+);
+stack8AssertContains(
+    'generic semantic validation remains scoped to selected structures',
+    $roadmap,
+    '`Product`, `Offer`, `AggregateOffer`, and `ProductGroup`',
+);
+stack8AssertContains(
+    'roadmap does not imply current JSON-LD generation is invalid',
+    $roadmap,
+    'does not imply that current JSON-LD generation is invalid',
+);
+stack8AssertContains(
+    'Google eligibility remains a distinct future capability',
+    $roadmap,
+    'Results eligibility prediction or profile',
+);
+stack8AssertContains(
+    'Merchant Center diagnostics are already implemented',
+    $roadmap,
+    'implemented and are not future work',
+);
+stack8AssertContains(
+    'sitemap roadmap preserves the current in-memory API',
+    $roadmap,
+    'The current in-memory API remains valid',
+);
+stack8AssertContains(
+    'active Admin RFC is linked',
+    $roadmap,
+    '../proposals/OPTIONAL_ADMIN_SEO_CONTROL_LAYER_RFC.md',
+);
+stack8AssertContains(
+    'active Admin RFC remains framework-neutral and not a UI implementation',
+    $roadmap,
+    'orchestration/control API',
+);
+stack8AssertContains('active Admin RFC is not a UI implementation', $roadmap, 'not a UI implementation');
+stack8AssertContains(
+    'views, controllers, and routes remain outside the RFC scope',
+    $roadmap,
+    'and routes remain outside the proposal',
 );
 
 $sitemapExample = stack8Read('examples/sitemap-output.php');

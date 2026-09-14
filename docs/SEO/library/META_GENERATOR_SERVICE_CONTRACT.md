@@ -2,11 +2,9 @@
 
 ## Status and Authority
 
-This document records the successor normative contract for `MetaGeneratorService` established by Phase 24. It resolves the Stack 0 classification `unknown / needs decision` for the service's material output semantics without changing runtime behavior.
+This document records the current maintained contract of `MetaGeneratorService`. The root [SEO_PACKAGE_REFERENCE.md](../../../SEO_PACKAGE_REFERENCE.md) remains the canonical package-level contract; this document defines the narrower normative service semantics for metadata defaults, active overrides, canonical selection, and `MetaTagsDTO` output.
 
-Within Phase 24, after this document is reviewed, accepted, and merged into `integration/phase-24-meta-generator-contract`, it is the execution authority for this decision, closes its AP-11 gate, and permits WU2 to begin. This statement does not claim that this contract is part of current `main`; that is true only after the final Phase 24 integration is merged into `main`.
-
-The Stack 0 inventory and architecture audit remain historical records of the evidence and decision state at the time they were written. This contract does not rewrite those records or supersede unrelated audit decisions.
+The current runtime source and maintained tests are executable evidence for this contract. Historical implementation phases describe how the package arrived at its current behavior; they are not current documentation authority.
 
 ## Defaults
 
