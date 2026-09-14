@@ -43,7 +43,7 @@ $report = SeoValidationReportBuilder::build(
     meta: $pageMetadata,
     context: [
         'page' => 'https://example.com/guides/seo-validation',
-        'source' => 'Phase 20 WU2 example',
+        'source' => 'standalone usage example',
     ],
 );
 

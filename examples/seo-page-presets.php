@@ -51,6 +51,8 @@ $productPreset = EcommerceSeoPresetFactory::productDetail(
 echo "Title: " . $productPreset->metaTags->title . "\n";
 echo "Canonical: " . $productPreset->canonicalUrl . "\n";
 echo "Schemas Count: " . count($productPreset->schemas) . "\n\n";
+echo "Product preset output DTO:\n";
+echo json_encode($productPreset, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n\n";
 
 
 echo "--- Content Article Preset ---\n";

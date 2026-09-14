@@ -29,7 +29,7 @@ function printSection(string $title, mixed $output): void
     echo "==============================\n";
     if (is_string($output)) {
         echo $output . "\n";
-    } elseif (is_array($output)) {
+    } elseif (is_array($output) || $output instanceof JsonSerializable) {
         echo json_encode($output, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
     }
 }
@@ -43,6 +43,11 @@ $metaTags = new MetaTagsDTO(
     openGraphDescription: 'This is a basic example of rendering SEO head tags via OpenGraph.',
     openGraphUrl: 'https://example.com/basic-page',
     openGraphType: 'website',
+    openGraphImage: 'https://example.com/images/basic-page.jpg',
+    twitterCard: 'summary_large_image',
+    twitterTitle: 'My Basic Webpage',
+    twitterDescription: 'This is a basic example of rendering SEO head tags.',
+    twitterImage: 'https://example.com/images/basic-page.jpg',
 );
 
 $schemaArray = [
@@ -58,3 +63,4 @@ $fullHtml = $renderer->render($metaTags, [$schemaArray]);
 printSection('MetaTagsDTO Instance', 'Configured basic meta tags.');
 printSection('Basic JSON-LD Schema Array', $schemaArray);
 printSection('Full Rendered SEO Head HTML', $fullHtml);
+printSection('Rendered SEO Head Sections', $renderer->renderDto($metaTags, [$schemaArray]));

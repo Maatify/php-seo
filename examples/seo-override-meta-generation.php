@@ -175,6 +175,7 @@ function printOverride(string $label, SeoOverrideDTO $override): void
     echo 'Entity: ' . $override->entityType . ':' . $override->entityId . "\n";
     echo 'Manual title: ' . ($override->metaTitle ?? '(none)') . "\n";
     echo 'Manual description: ' . ($override->metaDescription ?? '(none)') . "\n";
+    echo json_encode($override, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
 }
 
 function printMetaResult(string $label, MetaTagsDTO $metaTags): void
@@ -197,7 +198,14 @@ $metaGeneratorService = new MetaGeneratorService(
 
 $languageId = 1;
 $productType = 'product';
-$productId = '42';
+// In a Host application this record is loaded through its own repository/service.
+$hostProduct = [
+    'id' => '42',
+    'name' => 'Super Widget Pro',
+    'description' => 'Default product description loaded from the Host product record.',
+    'slug' => 'super-widget-pro',
+];
+$productId = $hostProduct['id'];
 
 $overrideId = $overrideCommandService->create(new CreateSeoOverrideCommand(
     entityType: $productType,
@@ -213,6 +221,7 @@ echo "SEO Override + Meta Generation\n";
 echo "==============================\n";
 echo "\n1. Override-present case\n";
 echo "==============================\n";
+echo "Host-loaded product title: {$hostProduct['name']}\n";
 echo "Created SEO override ID: {$overrideId}\n";
 printOverride('Queried active SEO override', $override);
 
@@ -220,12 +229,14 @@ $overrideMeta = $metaGeneratorService->generate(new GenerateMetaTagsCommand(
     entityType: $productType,
     entityId: $productId,
     languageId: $languageId,
-    defaultTitle: 'Default Product Title',
-    defaultDescription: 'Default product description used when no manual override exists.',
-    slug: 'super-widget-pro',
+    defaultTitle: $hostProduct['name'],
+    defaultDescription: $hostProduct['description'],
+    slug: $hostProduct['slug'],
     canonicalUrl: 'https://example.com/products/super-widget-pro',
 ));
 printMetaResult('MetaGeneratorService result with manual override', $overrideMeta);
+echo "Serialized MetaTagsDTO:\n";
+echo json_encode($overrideMeta, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
 
 $articleType = 'article';
 $articleId = '99';

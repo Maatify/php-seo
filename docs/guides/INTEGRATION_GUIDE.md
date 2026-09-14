@@ -4,6 +4,8 @@ This guide explains how host applications should integrate the Maatify SEO libra
 
 For the current package contract and complete runtime inventory, see the
 [canonical Package Reference](../../SEO_PACKAGE_REFERENCE.md).
+For practical choices and executed output examples, see the
+[Usage Guide decision map](USAGE_GUIDE.md#capability-decision-map).
 
 ---
 
@@ -432,6 +434,8 @@ entity lookup, or lifecycle. For persisted overrides, use the package's
 `SeoOverrideQueryService` and configured repository; the Host supplies its PDO
 connection, while the package provides PDO adapters and schemas for its own
 tables as described in [Persistence Integration](#11-persistence-integration-guidance).
+The runnable [override/default example](../../examples/seo-override-meta-generation.php)
+prints the selected title, description, canonical, and serialized result.
 
 ### 12.2 Presets and page rendering
 
@@ -458,6 +462,9 @@ $headHtml = $preset->html;
 Other factories cover generic, content, and local-business page compositions.
 The preset result exposes `metaTags`, `canonicalUrl`, `robots`, `socialTags`,
 `socialHtml`, `schemas`, and `html` for Host use.
+See the executed [preset example](../../examples/seo-page-presets.php) for the
+serialized fields and the [page-render example](../../examples/seo-page-render.php)
+for `SeoPagePayloadDTO` plus rendered head output.
 
 When a Host instead wants the service orchestration path, it passes a
 `RenderSeoPageCommand` to `SeoPageRenderService::render()`. The command carries
@@ -507,6 +514,8 @@ and checks its defined lexical and relationship boundaries, including usable
 URLs, self-references, reciprocity, and consistent alternate sets. Neither
 builder output nor these checks prove language-tag membership in an ISO
 registry, and the Host chooses when and where to run validation.
+The [canonical/robots example](../../examples/meta-robots-canonical.php) and
+[hreflang example](../../examples/hreflang-generation.php) show emitted values.
 
 ### 12.4 Admin-domain integration
 
@@ -527,6 +536,9 @@ permissions, and application workflow. It decides who may invoke an operation,
 how to present the DTOs, and when to persist or apply the result. Import/export
 can work with the package's DTOs and configured repositories; they do not
 provide bulk Admin workflows or Host-specific entity mapping automatically.
+Executed output is available in the [redirect/slug-history example](../../examples/redirect-slug-history.php),
+[preview example](../../examples/admin-previews.php), and
+[import/export example](../../examples/import-export.php).
 
 ### 12.5 Search Console and Merchant Center
 
@@ -557,6 +569,9 @@ provider HTTP code such as 403 directly into an application HTTP 403; map the
 package exception according to the Host's application error policy. See
 [`SEO_PACKAGE_REFERENCE.md`](../../SEO_PACKAGE_REFERENCE.md) for the exact
 exception taxonomy.
+The [Search Console fixture](../../examples/search-console-response-mapping.php)
+and [Merchant Center fixture](../../examples/merchant-center-diagnostics.php)
+show sample payloads and mapped package DTOs without making network calls.
 
 ## 13. Error Handling
 
