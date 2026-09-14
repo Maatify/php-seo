@@ -50,49 +50,49 @@ function printSection(string $title, mixed $output): void
     echo (string) $output . "\n";
 }
 
-final class Phase7ShowcaseToArraySchema
+final class ObservableOutputToArraySchema
 {
     /** @return array<string, mixed> */
     public function toArray(): array
     {
-        return ['@context' => 'https://schema.org', '@type' => 'Article', 'headline' => 'Fake local toArray schema'];
+        return ['@context' => 'https://schema.org', '@type' => 'Article', 'headline' => 'Local toArray schema'];
     }
 }
 
-final class Phase7ShowcaseJsonSerializeSchema implements JsonSerializable
+final class ObservableOutputJsonSerializeSchema implements JsonSerializable
 {
     /** @return array<string, mixed> */
     public function jsonSerialize(): array
     {
-        return ['@context' => 'https://schema.org', '@type' => 'Product', 'name' => 'Fake local jsonSerialize schema'];
+        return ['@context' => 'https://schema.org', '@type' => 'Product', 'name' => 'Local jsonSerialize schema'];
     }
 }
 
-final class Phase7ShowcaseScriptSchema
+final class ObservableOutputScriptSchema
 {
     public function toScript(): string
     {
-        return '<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Fake local toScript schema"}</script>';
+        return '<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Local toScript schema"}</script>';
     }
 }
 
 $metaTags = new MetaTagsDTO(
-    title: 'Phase 7 <Output> Showcase',
+    title: 'Observable <Output> Showcase',
     description: 'Inspect rendered SEO helpers & DTO output.',
-    canonicalUrl: 'https://example.test/phase-7?source=showcase&name=A&B',
+    canonicalUrl: 'https://example.test/output-showcase?source=showcase&name=A&B',
     robots: 'index,follow,max-image-preview:large',
     openGraphTitle: 'OpenGraph <Title> & Showcase',
     openGraphDescription: 'OpenGraph description with "quotes" & symbols.',
-    openGraphUrl: 'https://example.test/phase-7/og?ref=A&B',
+    openGraphUrl: 'https://example.test/output-showcase/og?ref=A&B',
     twitterTitle: 'Twitter Card <Title>',
     twitterDescription: 'Twitter description with "quotes" & symbols.',
     openGraphType: 'article',
-    openGraphImage: 'https://cdn.example.test/images/phase-7.png?size=1200x630&v=1',
+    openGraphImage: 'https://cdn.example.test/images/output-showcase.png?size=1200x630&v=1',
     twitterCard: 'summary_large_image',
-    twitterImage: 'https://cdn.example.test/images/twitter-phase-7.png?size=1200x600&v=1',
+    twitterImage: 'https://cdn.example.test/images/twitter-output-showcase.png?size=1200x600&v=1',
 );
 
-$schemaArray = ['@context' => 'https://schema.org', '@type' => 'WebPage', 'name' => 'Phase 7 Showcase'];
+$schemaArray = ['@context' => 'https://schema.org', '@type' => 'WebPage', 'name' => 'Observable Output Showcase'];
 $schemaDto = new JsonLdSchemaDTO(['@context' => 'https://schema.org', '@type' => 'Organization', 'name' => 'Maatify SEO']);
 $schemas = [$schemaArray, $schemaDto];
 
@@ -129,7 +129,7 @@ printSection('SeoHeadHtmlDTO::$fullHtml', $headDto->fullHtml);
 printSection('SeoHeadHtmlDTO::jsonSerialize() pretty JSON', $headDto->jsonSerialize());
 
 $builder = (new FluentSeoBuilder())
-    ->title('Builder Phase 7 Showcase')
+    ->title('Builder Output Showcase')
     ->description('Built through FluentSeoBuilder.')
     ->canonical('https://example.test/builder')
     ->robots('index,follow')
@@ -152,23 +152,23 @@ printSection('FluentSeoBuilder::clearSchemas()', $builder->clearSchemas()->rende
 
 $spatieAdapter = new SpatieSchemaAdapter();
 if (method_exists($builder, 'spatieSchema')) {
-    printSection('FluentSeoBuilder::spatieSchema()', $builder->spatieSchema(new Phase7ShowcaseToArraySchema(), $spatieAdapter)->render());
+    printSection('FluentSeoBuilder::spatieSchema()', $builder->spatieSchema(new ObservableOutputToArraySchema(), $spatieAdapter)->render());
 }
 
-$fakeToArray = new Phase7ShowcaseToArraySchema();
-$fakeJsonSerialize = new Phase7ShowcaseJsonSerializeSchema();
-$fakeScript = new Phase7ShowcaseScriptSchema();
-printSection('SpatieSchemaAdapter::supports() toArray fake', $spatieAdapter->supports($fakeToArray));
-printSection('SpatieSchemaAdapter::supports() jsonSerialize fake', $spatieAdapter->supports($fakeJsonSerialize));
-printSection('SpatieSchemaAdapter::supports() toScript fake', $spatieAdapter->supports($fakeScript));
-printSection('SpatieSchemaAdapter::toJsonLdSchemaDTO() toArray fake', $spatieAdapter->toJsonLdSchemaDTO($fakeToArray));
-printSection('SpatieSchemaAdapter::toJsonLdSchemaDTO() jsonSerialize fake', $spatieAdapter->toJsonLdSchemaDTO($fakeJsonSerialize));
-printSection('SpatieSchemaAdapter::toJsonLdSchemaDTO() toScript fake', $spatieAdapter->toJsonLdSchemaDTO($fakeScript));
-printSection('SpatieSchemaAdapter::toJsonLdSchemaDTOs() all fake objects', $spatieAdapter->toJsonLdSchemaDTOs([$fakeToArray, $fakeJsonSerialize, $fakeScript]));
+$fakeToArray = new ObservableOutputToArraySchema();
+$fakeJsonSerialize = new ObservableOutputJsonSerializeSchema();
+$fakeScript = new ObservableOutputScriptSchema();
+printSection('SpatieSchemaAdapter::supports() toArray-shaped local object', $spatieAdapter->supports($fakeToArray));
+printSection('SpatieSchemaAdapter::supports() jsonSerialize-shaped local object', $spatieAdapter->supports($fakeJsonSerialize));
+printSection('SpatieSchemaAdapter::supports() toScript-shaped local object', $spatieAdapter->supports($fakeScript));
+printSection('SpatieSchemaAdapter::toJsonLdSchemaDTO() toArray-shaped local object', $spatieAdapter->toJsonLdSchemaDTO($fakeToArray));
+printSection('SpatieSchemaAdapter::toJsonLdSchemaDTO() jsonSerialize-shaped local object', $spatieAdapter->toJsonLdSchemaDTO($fakeJsonSerialize));
+printSection('SpatieSchemaAdapter::toJsonLdSchemaDTO() toScript-shaped local object', $spatieAdapter->toJsonLdSchemaDTO($fakeScript));
+printSection('SpatieSchemaAdapter::toJsonLdSchemaDTOs() local objects', $spatieAdapter->toJsonLdSchemaDTOs([$fakeToArray, $fakeJsonSerialize, $fakeScript]));
 
 $sitemapRenderer = new SitemapXmlStringRenderer();
-$sitemapDto = new SitemapUrlDTO('https://example.test/products/phase-7', '2026-07-01', 'daily', 0.8);
-$arrayEntry = ['loc' => 'https://example.test/blog/phase-7', 'lastmod' => '2026-07-01T12:00:00+00:00', 'changefreq' => 'weekly', 'priority' => '0.6'];
+$sitemapDto = new SitemapUrlDTO('https://example.test/products/output-showcase', '2026-07-01', 'daily', 0.8);
+$arrayEntry = ['loc' => 'https://example.test/blog/output-showcase', 'lastmod' => '2026-07-01T12:00:00+00:00', 'changefreq' => 'weekly', 'priority' => '0.6'];
 $specialCharsEntry = ['loc' => 'https://example.test/search?q=seo&name=A<B"C', 'lastmod' => null, 'changefreq' => '', 'priority' => null];
 $minimalEntry = ['loc' => 'https://example.test/minimal', 'lastmod' => '', 'changefreq' => null, 'priority' => ''];
 printSection('SitemapXmlStringRenderer::renderUrlEntry() with SitemapUrlDTO', $sitemapRenderer->renderUrlEntry($sitemapDto));

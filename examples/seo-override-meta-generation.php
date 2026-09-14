@@ -29,6 +29,11 @@ use Maatify\Seo\Shared\DTO\SeoOverride\SeoOverrideDTO;
 use Maatify\Seo\Shared\Service\MetaGeneratorService;
 use Maatify\Seo\Shared\Service\SeoOverrideCommandService;
 use Maatify\Seo\Shared\Service\SeoOverrideQueryService;
+use Maatify\Seo\Admin\SeoOverride\Command\CreateSeoOverrideCommand as AdminCreateSeoOverrideCommand;
+use Maatify\Seo\Admin\SeoOverride\Command\UpdateSeoOverrideCommand as AdminUpdateSeoOverrideCommand;
+use Maatify\Seo\Admin\SeoOverride\DTO\AdminSeoOverrideDTO;
+use Maatify\Seo\Admin\SeoOverride\Service\AdminSeoOverrideCommandService;
+use Maatify\Seo\Admin\SeoOverride\Service\AdminSeoOverrideQueryService;
 
 final class InMemorySeoOverrideRepository implements SeoOverrideRepositoryInterface
 {
@@ -167,7 +172,7 @@ final class ExampleMetaUrlGenerator implements HostUrlGeneratorInterface
     }
 }
 
-function printOverride(string $label, SeoOverrideDTO $override): void
+function printOverride(string $label, SeoOverrideDTO|AdminSeoOverrideDTO $override): void
 {
     echo "\n{$label}\n";
     echo "------------------------------\n";
@@ -175,6 +180,7 @@ function printOverride(string $label, SeoOverrideDTO $override): void
     echo 'Entity: ' . $override->entityType . ':' . $override->entityId . "\n";
     echo 'Manual title: ' . ($override->metaTitle ?? '(none)') . "\n";
     echo 'Manual description: ' . ($override->metaDescription ?? '(none)') . "\n";
+    echo json_encode($override, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
 }
 
 function printMetaResult(string $label, MetaTagsDTO $metaTags): void
@@ -190,6 +196,8 @@ function printMetaResult(string $label, MetaTagsDTO $metaTags): void
 $repository = new InMemorySeoOverrideRepository();
 $overrideCommandService = new SeoOverrideCommandService($repository);
 $overrideQueryService = new SeoOverrideQueryService($repository);
+$adminOverrideCommandService = new AdminSeoOverrideCommandService($overrideCommandService);
+$adminOverrideQueryService = new AdminSeoOverrideQueryService($overrideQueryService);
 $metaGeneratorService = new MetaGeneratorService(
     overrideQueryService: $overrideQueryService,
     urlGenerator: new ExampleMetaUrlGenerator(),
@@ -197,22 +205,30 @@ $metaGeneratorService = new MetaGeneratorService(
 
 $languageId = 1;
 $productType = 'product';
-$productId = '42';
+// In a Host application this record is loaded through its own repository/service.
+$hostProduct = [
+    'id' => '42',
+    'name' => 'Super Widget Pro',
+    'description' => 'Default product description loaded from the Host product record.',
+    'slug' => 'super-widget-pro',
+];
+$productId = $hostProduct['id'];
 
-$overrideId = $overrideCommandService->create(new CreateSeoOverrideCommand(
+$overrideId = $adminOverrideCommandService->create(new AdminCreateSeoOverrideCommand(
     entityType: $productType,
     entityId: $productId,
     languageId: $languageId,
     metaTitle: 'Manual Product Title | Example Store',
     metaDescription: 'Manual product description supplied by the SEO override workflow.',
 ));
-$override = $overrideQueryService->getActiveForEntity($productType, $productId, $languageId);
+$override = $adminOverrideQueryService->getActiveForEntity($productType, $productId, $languageId);
 
 echo "\n==============================\n";
 echo "SEO Override + Meta Generation\n";
 echo "==============================\n";
 echo "\n1. Override-present case\n";
 echo "==============================\n";
+echo "Host-loaded product title: {$hostProduct['name']}\n";
 echo "Created SEO override ID: {$overrideId}\n";
 printOverride('Queried active SEO override', $override);
 
@@ -220,12 +236,22 @@ $overrideMeta = $metaGeneratorService->generate(new GenerateMetaTagsCommand(
     entityType: $productType,
     entityId: $productId,
     languageId: $languageId,
-    defaultTitle: 'Default Product Title',
-    defaultDescription: 'Default product description used when no manual override exists.',
-    slug: 'super-widget-pro',
+    defaultTitle: $hostProduct['name'],
+    defaultDescription: $hostProduct['description'],
+    slug: $hostProduct['slug'],
     canonicalUrl: 'https://example.com/products/super-widget-pro',
 ));
 printMetaResult('MetaGeneratorService result with manual override', $overrideMeta);
+echo "Serialized MetaTagsDTO:\n";
+echo json_encode($overrideMeta, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
+
+$adminOverrideCommandService->update(new AdminUpdateSeoOverrideCommand(
+    id: $overrideId,
+    metaTitle: 'Updated Product Title | Example Store',
+    metaDescription: 'Updated product description supplied by the Admin SEO override workflow.',
+));
+$updatedOverride = $adminOverrideQueryService->getById($overrideId);
+printOverride('Admin update() returns void; follow-up getById() returns', $updatedOverride);
 
 $articleType = 'article';
 $articleId = '99';

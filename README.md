@@ -82,7 +82,7 @@ $renderer = new SeoHeadHtmlRenderer();
 echo $renderer->render($metaTags);
 ```
 
-The host decides how to deliver the returned output. See the [usage guide](docs/guides/USAGE_GUIDE.md) for more examples.
+The host decides how to deliver the returned output. The [usage guide](docs/guides/USAGE_GUIDE.md) includes a capability decision map and executed output examples; the [integration guide](docs/guides/INTEGRATION_GUIDE.md) explains Host wiring, and the [Package Reference](SEO_PACKAGE_REFERENCE.md) remains the canonical contract.
 
 ## Documentation
 

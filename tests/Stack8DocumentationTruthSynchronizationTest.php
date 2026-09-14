@@ -303,9 +303,44 @@ foreach ($structuredDocPaths as $path) {
 }
 
 $usageGuide = $structuredDocContents['docs/guides/USAGE_GUIDE.md'];
+stack8AssertContains('Usage Guide presents a practical capability decision map', $usageGuide, '## Capability decision map');
+stack8AssertContains('Usage Guide states its observable-output walkthrough pattern', $usageGuide, "shows an\nobserved result");
+stack8AssertContains('Usage Guide remains subordinate to canonical Package Reference', $usageGuide, 'canonical Package Reference');
+stack8AssertContains('Usage Guide links directly to the canonical Package Reference', $usageGuide, '](../../SEO_PACKAGE_REFERENCE.md)');
+stack8AssertContains('Usage Guide labels provider fixtures as samples, not live truth', $usageGuide, 'not a captured response or proof of');
+stack8AssertContains('Usage Guide separates provider input from mapped package DTO', $usageGuide, 'mapper returns this');
+stack8AssertContains('Usage Guide keeps Host HTTP and OAuth responsibilities explicit', $usageGuide, 'owns the Google request, OAuth credentials');
+stack8AssertContains('Usage Guide states that unknown evidence is not a verdict', $usageGuide, 'not an invented pass or failure');
+stack8AssertNotContains('Usage Guide current presentation has no historical phase language', $usageGuide, 'Phase');
+foreach (glob(dirname(__DIR__) . '/examples/*.php') ?: [] as $examplePath) {
+    $exampleContent = file_get_contents($examplePath);
+    stack8AssertTrue(
+        'current example presentation contains no historical phase labels: ' . basename($examplePath),
+        is_string($exampleContent) && preg_match('/\bphase\b/i', $exampleContent) !== 1,
+    );
+}
+stack8AssertTrue(
+    'examples directory has no phase-named current examples',
+    (glob(dirname(__DIR__) . '/examples/phase*.php') ?: []) === [],
+);
 foreach ([
+    'Capability decision map',
+    'MetaTagsDTO',
+    'SeoHeadHtmlDTO',
+    'SeoHeadHtmlRenderer',
+    'FluentSeoBuilder',
     'MetaGeneratorService',
     'HostUrlGeneratorInterface',
+    'JsonLdSchemaDTO',
+    'JsonLdScriptRenderer',
+    'ProductJsonLdBuilder',
+    'AggregateOfferJsonLdBuilder',
+    'ProductGroupJsonLdBuilder',
+    'SpatieSchemaAdapter',
+    'SitemapXmlStringRenderer',
+    'SitemapIndexXmlStringRenderer',
+    'RobotsTxtRenderer',
+    'MetaRobotsBuilder',
     'SeoPagePresetFactory',
     'EcommerceSeoPresetFactory',
     'ContentSeoPresetFactory',
@@ -316,9 +351,13 @@ foreach ([
     'SeoPageRenderService',
     'CanonicalUrlBuilder',
     'HreflangLinkBuilder',
+    'HreflangLinkDTO',
     'HreflangLinkRenderer',
     'GoogleCanonicalValidator',
     'GoogleHreflangClusterValidator',
+    'OpenGraphBuilder',
+    'TwitterCardBuilder',
+    'SocialPreviewBuilder',
     'AdminRedirectCommandService',
     'AdminSeoOverrideCommandService',
     'AdminSlugHistoryCommandService',
@@ -326,6 +365,15 @@ foreach ([
     'SocialPreviewFactory',
     'SeoMetadataImporter',
     'SeoMetadataExporter',
+    'RedirectDecisionDTO',
+    'SlugHistoryService',
+    'SeoOverrideQueryService',
+    'SerpPreviewDTO',
+    'SocialPreviewDTO',
+    'SearchConsoleResponseMapper',
+    'MerchantCenterResponseMapper',
+    'SearchConsoleInspectionResultDTO',
+    'MerchantCenterProductStatusResultDTO',
     'Rfc9309RobotsValidator',
     'SitemapProtocolValidator',
     'GoogleSitemapValidator',
@@ -396,6 +444,63 @@ foreach ([
         "Integration Guide explains current capability/boundary {$integrationCapability}",
         $integrationGuide,
         $integrationCapability,
+    );
+}
+foreach ([
+    'Host creates and configures PDO',
+    'new PdoRedirectRepository($pdo)',
+    'new PdoSeoOverrideRepository($pdo)',
+    'new PdoSlugHistoryRepository($pdo)',
+    'schema/maa_seo_redirects.sql',
+    'schema/maa_seo_overrides.sql',
+    'schema/maa_seo_slug_history.sql',
+    'Result shape verified by the maintained MySQL integration test',
+    'do not begin, commit, or roll back transactions',
+] as $persistenceInvariant) {
+    stack8AssertContains(
+        "Integration Guide documents persistence invariant {$persistenceInvariant}",
+        $integrationGuide,
+        $persistenceInvariant,
+    );
+}
+foreach ([
+    'AdminRedirectCommandService',
+    'AdminRedirectQueryService',
+    'AdminSeoOverrideCommandService',
+    'AdminSeoOverrideQueryService',
+    'AdminSlugHistoryCommandService',
+    'AdminSlugHistoryQueryService',
+    'getActiveByRequestedSlug',
+    'listByEntity',
+    'softDelete',
+    'hardDelete',
+    'isDeleted',
+] as $adminCrudInvariant) {
+    stack8AssertContains(
+        "Usage Guide documents Admin API invariant {$adminCrudInvariant}",
+        $usageGuide,
+        $adminCrudInvariant,
+    );
+}
+stack8AssertContains(
+    'Integration Guide keeps provider status distinct from Host response status',
+    $integrationGuide,
+    'A provider HTTP 403 is evidence about the provider request. It does not automatically become the Host application\'s HTTP 403.',
+);
+foreach ([
+    '"is_valid": false',
+    '"is_healthy": false',
+    '"deductions"',
+    '"context"',
+    'SeoValidationReportExporter::toJson($report)',
+    'SeoValidationBatchReportExporter::toJson($batch)',
+    '"averageScore": 97.5',
+    'SEO batch validation completed with warnings.',
+] as $reportOutputInvariant) {
+    stack8AssertContains(
+        "Usage Guide documents report output invariant {$reportOutputInvariant}",
+        $usageGuide,
+        $reportOutputInvariant,
     );
 }
 foreach (['Host owns Admin UI', 'authentication, authorization', 'application workflow'] as $hostOwnedAdminSurface) {

@@ -62,6 +62,8 @@ echo "Created Items: " . $importResult->created . "\n";
 echo "Updated Items: " . $importResult->updated . "\n";
 echo "Failed Items: " . $importResult->failed . "\n";
 echo "Errors Count: " . count($importResult->errors) . "\n";
+echo "Import result DTO:\n";
+echo json_encode($importResult, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
 
 if (!empty($importResult->errors)) {
     echo "Errors:\n";
